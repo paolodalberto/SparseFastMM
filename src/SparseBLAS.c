@@ -134,7 +134,7 @@ static inline COOE index_coot(COOTemporary *T, int L) {
   int i = L/T->M;
   int j = L % T->M;
 
-  assert((L>T->length)?1:0) ;
+  assert((L>T->length)?0:1) ;
   return T->data[i][j];
 }
 
@@ -143,6 +143,10 @@ static inline int free_coot(COOTemporary *T) {
   int L = T->length;
   int i = L/T->N;
 
+
+
+
+  
 
   for (;i>=0; i--) {
     free(T->data[i]);
