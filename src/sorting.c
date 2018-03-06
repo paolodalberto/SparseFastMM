@@ -1,5 +1,7 @@
 #include<stdio.h>
 typedef int Mat ;
+static int DEBUG=0;
+
 #include<SparseBLAS.h>
 
 /* Function to sort an array using insertion sort*/

@@ -4,14 +4,13 @@
 //#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
 typedef int Mat ;
+static int DEBUG = 0;
+#define GRAPH_PATH 1
+
 #include <SparseBLAS.h>
 
-#define add(a,b) (((a)<(b))?(a):(b))
-#define e_a  INT_MAX
-#define mul(a,b) ((a)+(b))
-#define e_m  0
 
-static int DEBUG = 0;
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -119,61 +118,6 @@ void smvp(int nodes,
 }
 
 
-int initialize_coot(COOTemporary *T) { 
-  T->data = (COOE**) calloc(T->M,sizeof(COOE*));
-  assert(T->data);
-  for (int i=0;i<T->M;i++) {
-    T->data[i] = 0;
-  }
-  T->data[0] = (COOE*) malloc(T->N*sizeof(COOE));
-  assert(T->data[0]);
-  return 1;
-}
-
-static inline COOE index_coot(COOTemporary *T, int L) {
-  int i = L/T->M;
-  int j = L % T->M;
-
-  assert((L>T->length)?0:1) ;
-  return T->data[i][j];
-}
-
-
-static inline int free_coot(COOTemporary *T) {
-  int L = T->length;
-  int i = L/T->N;
-
-
-
-
-  
-
-  for (;i>=0; i--) {
-    free(T->data[i]);
-    T->data[i] = NULL;
-  }
-  T-> length = 0;
-  free(T->data);
-  return 1;
-}
-
-
-int append_coot(COOTemporary *T, COOE val) {
-  int L = (T->length);
-  int i = L/T->M;
-  int j = L % T->M;
-  int add=0;
-  if (DEBUG && !T->data[i])  printf(" append_coot L =%d i=%i j=%d ARR=%d \n",L, i, j, (int)T->data[i]);
-  if (!T->data[i]) {
-    T->data[i] = (COOE*) malloc(T->N*sizeof(COOE));
-    assert(T->data[i] );
-    add = 1;
-  }
-  T->data[i][j] = val;
-  T->length ++;
-  return add;
-}
-
 
 
 
@@ -264,6 +208,75 @@ COO matmul_coo(COO C,COO A,COO B) {
     free_coot(&T);
     if (DEBUG) printf("free TEMP \n");
     return CT;
+    
+}
+
+
+
+void matmul_coo_AB(COO *C,COO A,COO B) {
+
+  int i, j, t, l,row, col;
+    COOTemporary T = { NULL, 0, A.M, B.N};
+    initialize_coot(&T);
+    COO CT = { NULL, 0, A.M, B.N }; 
+
+    l  = 0; // C and T runner 
+    i = 0; // A runner
+
+    while (i<A.length) {
+      
+      int iii = collectrow(A.data, A.length,i,A.data[i].m); // from i to iii there is the A[row] vector 
+      int ii=i;
+      row = A.data[i].m;
+
+      j = 0;  // B runner
+      while (j<B.length) {
+	COOE temp = { row, B.data[j].n, e_a}; // temporary to hold the product 
+	int jjj = collectcol(B.data, B.length,j,B.data[j].n); // from j to jjj there is the B[col] vector 
+	int jj=j;
+	col = B.data[j].n;
+	if (DEBUG) printf("%d\t j=%d Col %d jj=%d jjj=%d \n",l,j,col,jj,jjj);
+
+	// a_row * b_col is like a merge
+	while (ii<iii && jj<jjj) {
+	  if (A.data[ii].n == B.data[jj].m)  {
+
+	    temp.value = add(temp.value, mul(A.data[ii].value,B.data[jj].value));
+	    if (DEBUG) printf("\t\t Merge  (%d,%d,%d) \n", temp.m, temp.n,temp.value);
+	    ii ++;  jj ++;
+	  }
+	  else { 
+	    if (A.data[ii].n < B.data[jj].m)   ii++;
+	    else                               jj++;
+	  }
+	}
+	//Done because if either is empty nothing to do e_a*w = e_a
+
+	// if temp is not e_a (identity for +)  
+	if (temp.value != e_a) { int res = append_coot(&T, temp);
+	  if (DEBUG) printf("\t\t append CT %d temp (%d,%d,%d) \n",res,temp.m,temp.n,temp.value);
+	}
+	
+	j = jjj;  // next column 
+	if (DEBUG) printf("\t end jjj %d \n",jjj);
+      }
+	if (DEBUG) printf("end iii %d \n",iii);
+      i =iii; // next row
+    }
+    
+    // we copy the temporary result as a sparse and contiguous
+    // matrix and deallocate the temporary file.
+    if (DEBUG) printf("Compressing %d \n", T.length);
+    C->length = T.length;
+    C->data = (COOE*) malloc(T.length*sizeof(COOE)); 
+    for (t=0; t<T.length;t++)	{
+      C->data[t] = index_coot(&T,t);
+    }
+    if (DEBUG) printf("Compressed  \n");
+	
+    free_coot(&T);
+    if (DEBUG) printf("free TEMP \n");
+    return C;
     
 }
 
@@ -371,45 +384,5 @@ double duration;
 
 
 
-
-
-
-int main() {
-  int k, D;
-  COO M,MT;
-  COO temp;
-  
-  printf("K"); scanf("%d", &k);
-  printf("D"); scanf("%d", &D);
-  
-  M = buildrandom_coo_list(k, D);
-
-  printf("M %d %d %d \n", M.length, M.M, M.N); 
-  START_CLOCK;
-  MT = M;
-
-  MT.data = (COOE*) malloc(M.length*sizeof(COOE));
-  
-  assert(MT.data);
-  
-  
-  for (int i=0;i<M.length;i++) MT.data[i] = M.data[i];
-
-  columnsort(&MT); // we really transpose the data so that the order is
-
-  printf("MT %d %d %d \n", MT.length, MT.M, MT.N); 
-  
-  if (DEBUG) print_coo(M);
-
-  temp = matmul_coo(M,M,MT);
-  END_CLOCK;
-  if (DEBUG) print_coo(temp);
-  
-  free(MT.data);
-  free(M.data);
-  free(temp.data);
-
-  return 0;
-}
 
 

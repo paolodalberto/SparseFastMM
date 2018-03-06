@@ -29,8 +29,8 @@ all: $(OBJ) $(DIR)/main.c
 	$(CC) $^ -o $(Executable)/main
 
 
-sparsecoo: $(DIR)/SparseBLAS.o $(DIR)/sorting.o 
-	$(CC) $(OPT) $(DIR)/SparseBLAS.o $(DIR)/sorting.o -o $(Executable)/stest
+sparsecoo: $(DIR)/SparseBLAS.o $(DIR)/sorting.o  $(DIR)/paoloexample.o $(DIR)/parsparsecoo.o
+	$(CC) $(OPT) $(DIR)/paoloexample.o $(DIR)/SparseBLAS.o $(DIR)/sorting.o $(DIR)/parsparsecoo.o -o $(Executable)/stest -lpthread
 
 clean:
 	rm *.o $(DIR)/*.o 

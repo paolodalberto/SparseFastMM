@@ -69,7 +69,7 @@ int main() {
 
   
   START_CLOCK;
-  if (Ps==0) 
+  if (Ps<=1) 
     temp = matmul_coo(M,M,MT);
   else
     temp = matmul_coo_par(M,M,MT,Ps);
