@@ -15,7 +15,7 @@ static int DEBUG = 0;
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <sorting.h>
 
 
 
@@ -134,7 +134,7 @@ static inline COOE index_coot(COOTemporary *T, int L) {
   int i = L/T->M;
   int j = L % T->M;
 
-  assert((L>T->length)?1:0) ;
+  assert((L>T->length)?0:1) ;
   return T->data[i][j];
 }
 
@@ -142,7 +142,7 @@ static inline COOE index_coot(COOTemporary *T, int L) {
 static inline int free_coot(COOTemporary *T) {
   int L = T->length;
   int i = L/T->N;
-  int j = L % T->N;
+
 
   for (;i>=0; i--) {
     free(T->data[i]);
@@ -175,7 +175,7 @@ int append_coot(COOTemporary *T, COOE val) {
 
 COO matmul_coo(COO C,COO A,COO B) {
 
-  int i, j, t, l,ll,lll,row, col;
+  int i, j, t, l,row, col;
     COOTemporary T = { NULL, 0, C.M, C.N};
     initialize_coot(&T);
     COO CT = { NULL, 0, C.M, C.N }; 
@@ -264,7 +264,7 @@ COO matmul_coo(COO C,COO A,COO B) {
 }
 
 
-int print_coo(COO B) {
+void print_coo(COO B) {
 
   int rows =B.data[0].m;
   printf("L=%d M=%d N=%d S=%d \n",B.length,B.M, B.N, sizeof(COOE));
@@ -279,7 +279,7 @@ int print_coo(COO B) {
 
 }
 
-int print_coo_c(COO B) {
+void print_coo_c(COO B) {
 
   int cols =B.data[0].n;
   printf("L=%d M=%d N=%d S=%d \n",B.length,B.M, B.N, sizeof(COOE));

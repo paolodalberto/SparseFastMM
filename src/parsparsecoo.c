@@ -2,7 +2,7 @@
 #define GRAPH_PATH 1
 typedef int Mat ;
 static int DEBUG = 0;
-
+static int DEBUG2=1;
 #include <SparseBLAS.h>
 
 #define add(a,b) (((a)<(b))?(a):(b))
@@ -63,7 +63,7 @@ void *basicComputation( void *s) {
       printf(" Fail processor setting pt %d \n",mc.pi);
     }
   }
-  if (DEBUG) printf(" A %d x %d x %d \n",mc.c->M,mc.a.N,mc.b.N);
+  if (DEBUG2) printf("C =%d  A %d x %d x %d \n",mc.pi,mc.c->M,mc.a.N,mc.b.N);
   mc.m(mc.c, mc.a,mc.b);
   return 0;
 }
@@ -99,7 +99,7 @@ void MatrixComputations(TAddOperands *args, int len)  {
  for (i = 0; i<k-1; i++){
    pthread_join(p_thread[i], NULL);
  }
- if (DEBUG) printf(" Done pthreading \n");
+ if (DEBUG2) printf(" Done pthreading \n");
 
  free(thr_id);
  free(p_thread);
@@ -119,7 +119,7 @@ COO merge( COO C, COO T) {  // R = C+T both sparse
   initialize_coot(&TR);          
 
   
-  for (i=0, j =0; i<C.length || j<T.length; ){
+  for (i=0, j =0; i<C.length && j<T.length; ){
     c = C.data[i];
     t = T.data[j];
     if ((c.m*C.N+c.n)<(t.m*T.N+t.n)) {
@@ -135,6 +135,13 @@ COO merge( COO C, COO T) {  // R = C+T both sparse
       j++;
     }
   }
+  for (; i<C.length ;i++ )
+    append_coot(&TR,C.data[i]);
+  
+  for (;  j<T.length; j++)
+    append_coot(&TR,T.data[j]);
+  
+
   R.length = TR.length;
   R.data = (COOE*) malloc(TR.length*sizeof(COOE)); 
   for (int t=0; t<TR.length;t++)	{
@@ -181,7 +188,7 @@ COO *split_rows(COO A, int Ps) {
   b = (int*) malloc(L*sizeof(int));
 
   r = count_rows(A,b);
-
+  
 
   RK = r%Ps;
   
@@ -224,8 +231,8 @@ COO matmul_coo_par(COO C,COO A,COO B,
   COO R = { NULL, 0, A.M, A.N};
   TAddOperands *args = (TAddOperands*) malloc(Ps*sizeof(TAddOperands));
   
-
-    // This will be parallelized 
+  if (DEBUG2) printf("Parallel %d\n",Ps);
+  // This will be parallelized 
   for (i=0;i<Ps;i++) {
     args[i].pi = i;
     args[i].m = matmul_coo_AB;
@@ -233,6 +240,7 @@ COO matmul_coo_par(COO C,COO A,COO B,
     args[i].a = Rows[i];
     args[i].b = B;
   }
+
   MatrixComputations(args,Ps);
   free(args);
 
@@ -243,7 +251,7 @@ COO matmul_coo_par(COO C,COO A,COO B,
   
   TR.data = (COOE *) malloc(j*sizeof(COOE));
   TR.length = j;
-  
+  if (DEBUG2) printf("Combining %d\n",Ps);
   for (k=0,i=0;i<Ps;i++) 
     for (j=0; j< Ts[i].length; j++)
       TR.data[k++] = Ts[i].data[j];
@@ -254,8 +262,10 @@ COO matmul_coo_par(COO C,COO A,COO B,
   free(Ts);
   free(Rows);
 
+  if (DEBUG2) printf("Merging C and T  %d\n",Ps);
   R = merge(C,TR);
 
+  if (DEBUG2) printf("last free \n");
   free(TR.data);
   
   return R;

@@ -2,8 +2,14 @@
 //#include <arrayobject.h>
 #include <limits.h>
 #include <assert.h>
+#include <stdlib.h>
 
-
+#ifdef GRAPH_PATH
+#define add(a,b) (((a)<(b))?(a):(b))
+#define e_a  INT_MAX
+#define mul(a,b) ((a)+(b))
+#define e_m  0
+#endif
 
 
 struct degree_type {
@@ -79,6 +85,75 @@ struct adj_matrix {
   int n;
 };
 typedef struct adj_matrix Adjacent ;
+
+static int initialize_coot(COOTemporary *T) { 
+  T->data = (COOE**) calloc(T->M,sizeof(COOE*));
+  assert(T->data);
+  for (int i=0;i<T->M;i++) {
+    T->data[i] = 0;
+  }
+  T->data[0] = (COOE*) malloc(T->N*sizeof(COOE));
+  assert(T->data[0]);
+  return 1;
+}
+
+static inline COOE index_coot(COOTemporary *T, int L) {
+  int i = L/T->M;
+  int j = L % T->M;
+  
+  if (DEBUG && L<T->length) printf("T length %d i %d j %d \n", T->length,i,j);
+  //assert((L>T->length)?1:0) ;
+  return T->data[i][j];
+}
+
+
+static inline int free_coot(COOTemporary *T) {
+  int L = T->length;
+  int i = L/T->N;
+
+
+  for (;i>=0; i--) {
+    free(T->data[i]);
+    T->data[i] = NULL;
+  }
+  T-> length = 0;
+  free(T->data);
+  return 1;
+}
+
+
+static inline int append_coot(COOTemporary *T, COOE val) {
+  int L = (T->length);
+  int i = L/T->M;
+  int j = L % T->M;
+  int add=0;
+  if (DEBUG && !T->data[i])  printf(" append_coot L =%d i=%i j=%d ARR=%d \n",L, i, j, (int)T->data[i]);
+  if (!T->data[i]) {
+    T->data[i] = (COOE*) malloc(T->N*sizeof(COOE));
+    assert(T->data[i] );
+    add = 1;
+  }
+  T->data[i][j] = val;
+  T->length ++;
+  return add;
+}
+
+
+#ifndef SPARSEBLASDEF
+#define SPARSEBLASDEF
+
+extern COO matmul_coo(COO C,COO A,COO B);
+extern void matmul_coo_AB(COO *C, COO A,COO B);
+extern COO buildrandom_coo_list(int k, int D);
+extern void matmul_f(
+		     Mat *C, int cm, int cn,
+		     Mat *A, int am, int an,
+		     Mat *B, int bm, int bn);
+
+extern void print_coo(COO B);
+extern void print_coo_c(COO B);
+
+#endif
 
 
 
