@@ -44,15 +44,23 @@ int main() {
   int k, D,Ps;
   COO M,MT;
   COO temp;
+  int ver;
   
   printf("K "); scanf("%d", &k);
   printf("D "); scanf("%d", &D);
   printf("P "); scanf("%d", &Ps);
   
   M = buildrandom_coo_list(k, D);
+  ver = validate(M);
 
+  if (!ver) {
+    return 2;
+  }
+      
+  
+  
   printf("M %d %d %d \n", M.length, M.M, M.N); 
-
+  
   MT = M;
 
   MT.data = (COOE*) malloc(M.length*sizeof(COOE));
@@ -60,9 +68,19 @@ int main() {
   assert(MT.data);
     
   for (int i=0;i<M.length;i++) MT.data[i] = M.data[i];
-
+  
+  //print_coo(MT);
+  START_CLOCK;
   columnsort(&MT); // we really transpose the data so that the order is
+  END_CLOCK;
+  //print_coo_c(MT);
 
+  ver = validateT(MT);
+  if (!ver) {
+    return 2;
+  }
+  
+  
   printf("MT %d %d %d \n", MT.length, MT.M, MT.N); 
   
   if (DEBUG) print_coo(M);

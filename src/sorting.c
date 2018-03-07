@@ -9,6 +9,12 @@ void insertionSort(COOE *arr, int n, Comparing comp, Ordering *order)
 {
   COOE key;
   int i,  j;
+  if (DEBUG) {
+    printf("%d insert>: ",n );
+    for (int i=0; i<n; i++) printf("(%d,%d,%d) ",arr[i].m,arr[i].n,arr[i].value);
+    printf("\n");
+  }
+  
   for (i = 1; i < n; i++)
     {
       key = arr[i];
@@ -24,6 +30,14 @@ void insertionSort(COOE *arr, int n, Comparing comp, Ordering *order)
 	}
       arr[j+1] = key;
     }
+
+    if (DEBUG) {
+      printf("%d insert<: ",n);
+      for (int i=0; i<n; i++) printf("(%d,%d,%d) ",arr[i].m,arr[i].n,arr[i].value);
+      printf("\n");
+    }
+
+
 }
 
 
@@ -45,11 +59,11 @@ int partition (COOE *arr, int low, int high, Comparing comp, Ordering *order)
   COOE pivot = arr[high]; // pivot
   int i = (low - 1); // Index of smaller element
 
-  for (int j = low; j <= high- 1; j++)
+  for (int j = low; j <= high-1; j++)
     {
       // If current element is smaller than or
       // equal to pivot
-      if (comp(arr +j,&pivot,order)<0)
+      if (comp(arr +j,&pivot,order)<=0)
 	{
 	  i++; // increment index of smaller element
 	  swap(arr +i, arr +j);
@@ -67,20 +81,41 @@ void quickSort(COOE *arr, int low, int high, Comparing comp, Ordering *order)
 {
   if (low < high )
     {
-      if (high-low >7) 
-	insertionSort(arr,high-low+1, comp, order)	;
+      if (DEBUG) {
+	printf("%d %d quick >: ", low, high);
+	for (int i=low; i<=high; i++) printf("(%d,%d,%d) ",arr[i].m,arr[i].n,arr[i].value);
+	printf("\n");
+      }
+      
+      
+      if (high-low <7) 
+	insertionSort(arr+low,high-low+1, comp, order)	;
       else {
       
 	/* pi is partitioning index, arr[p] is now
 	   at right place */
 	int pi = partition(arr, low, high,comp, order);
-	
+
+	if (DEBUG) {
+	  printf("%d pivot  quick >: ", pi);
+	  printf("(%d,%d,%d) ",arr[pi].m,arr[pi].n,arr[pi].value);
+	  printf("\n");
+	}
+
 	// Separately sort elements before
 	// partition and after partition
 	quickSort(arr, low, pi - 1,comp,order);
 	quickSort(arr, pi + 1, high,comp,order);
       }
+
+      if (DEBUG) {
+	printf("< %d %d quick: ", low, high);
+	for (int i=low; i<=high; i++) printf("(%d,%d,%d) ",arr[i].m,arr[i].n,arr[i].value);
+	printf("\n");
+      }
+      
     }
+  
 }
 
 /***
@@ -108,10 +143,10 @@ int colorder(COOE *a, COOE *b, Ordering *order) {
 
 void columnsort(COO *M) {
   Ordering order = {M->M, M->N, 1 } ;
-  quickSort(M->data,0, M->length, colorder, &order);
+  quickSort(M->data,0, M->length-1, colorder, &order);
 }
 
 void rowsort(COO *M) {
   Ordering order = {M->M, M->N, 1 } ;
-  quickSort(M->data,0, M->length, roworder, &order);
+  quickSort(M->data,0, M->length-1, roworder, &order);
 }

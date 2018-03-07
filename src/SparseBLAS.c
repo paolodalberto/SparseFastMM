@@ -17,29 +17,88 @@ static int DEBUG = 0;
 #include <sorting.h>
 
 
+int validate(COO A) {
+  Ordering order = {A.M, A.N, 1 } ;
+  
+  for (int i=1; i< A.length; i++) { 
+    COOE l = A.data[i-1];
+    COOE c = A.data[i];
+    if (roworder(&c,&l,&order)<0) {
+      printf(" %d <%d location %d Current (%d,%d,%d) < previous (%d,%d,%d ) \n",
+	     c.m*A.N+c.n, l.m*A.N+l.n,
+	     i,c.m,c.n,c.value,l.m,l.n,l.value);
+      return 0;
+    }
+    
+  }
+  return 1;
+}
+
+int validateT(COO A) {
+  Ordering order = {A.M, A.N, 1 } ;
+  
+  for (int i=1; i< A.length; i++) { 
+    COOE l = A.data[i-1];
+    COOE c = A.data[i];
+    if (colorder(&c, &l,&order)<0) {
+      printf(" %d < %d location %d A.M %d A.N %d Current (%d,%d,%d) < previous (%d,%d,%d ) \n",
+	     c.m+A.M*c.n ,  l.m+A.M*l.n,
+	     i, A.M, A.N,
+	     c.m,c.n,c.value,
+	     l.m,l.n,l.value);
+      return 0;
+    }
+    
+  }
+  return 1;
+}
+
 
 COO buildrandom_coo_list(int k, int D){
   int range = 0;
   COO res = { NULL, 0, k,k};
   COOE *array ;
   array =  (COOE *) malloc(sizeof(COOE)*k*((10*D<k)?(10*D):k));
+  int r[D];
+  int q[D];
+  int min, imin;
+  static int FFF = 0;
   
   res.data = array;
 
   if (DEBUG)
     printf("Degree %d \n", D);
 
-
-
-  for (int i=0; i < k; i++) 
-    for (int j=0; j<k; j++ ) 
-      if ((random() % k) <= D || i ==j) {
-	array[range].m = i;
-	array[range].n = j;
-	array[range].value = 1;
-	range ++;
+  if (FFF) printf("\n");
+  for (int i=0; i < k; i++) {
+    r[0] = i;
+    for (int j=1; j<D; j++ )  {
+      r[j] = (r[j-1] + 1+random() % (k-1)/D) %k; 
+    }
+    min = k;
+    for (int j=0; j<D; j++ )  {
+      if (r[j] <min) { min=r[j]; imin=j;}
+    }
+    if (FFF) {   printf("%d %d r ",i,imin);
+      for (int j=0; j<D; j++ )
+	printf("%2d ",r[j]);
+      printf(" \tq ");
+    }
+    for (int j=0; j<D; j++ ) { 
+      q[j] = r[(j+imin)%D];
+    }
+    if (FFF)  {
+      for (int j=0; j<D; j++ )
+	printf("%2d ",q[j]);
+      printf("\n");
+    }
+    for (int j=0; j<D; j++ )  {
+      array[range].m = i;
+      array[range].n = q[j];
+      array[range].value = 1;
+      range ++;
       }
-  
+  }
   res.length = range;
 
   if (DEBUG)
