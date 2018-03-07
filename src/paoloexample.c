@@ -87,10 +87,14 @@ int main() {
 
   
   START_CLOCK;
-  if (Ps<=1) 
+  if (Ps<=1) { 
     temp = matmul_coo(M,M,MT);
-  else
+    printf("## %2d %3d %6d ",  1, D,MT.M);
+  } 
+  else { 
     temp = matmul_coo_par(M,M,MT,Ps);
+    printf("## %2d %3d %6d ",  Ps, D, MT.M);
+  }
   END_CLOCK;
 
 
