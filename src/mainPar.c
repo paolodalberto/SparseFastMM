@@ -8,20 +8,21 @@
 
 #define THREAD_NUM 8
 
-void *tMul(void *arg) {
-	/* code */
-	int tid = *(int *)arg;
-}
+int **A,*B, *C, *D, *E;
+int i, j, k, n, valNum, first, same, sparse_factor;
+int *val;
+int *col, *rowPtr;
+
+void *tMul(void *arg);
 
 int main(int argc, char **argv)
 {
-	int **A,*B, *C, *D;
-	int i, j, k, n, actualVal=0, first, same=1, sparse_factor;
-	int *val;
-	int *col, *rowPtr;
 
 	pthread_t *threads;
 	clock_t t;
+
+	valNum=0;
+	same=1;
 
 	printf("Give matrix size (N):\n");
 	scanf("%d",&n);
@@ -40,9 +41,10 @@ int main(int argc, char **argv)
 		B=(int *)malloc(n*sizeof(int*));
 		C=(int *)malloc(n*sizeof(int*));
 		D=(int *)malloc(n*sizeof(int*));
+
 		rowPtr=(int *)malloc(n*sizeof(int*));
 
-		threads = (pthread_t *) malloc(num_threads * sizeof(pthread_t));
+		threads = (pthread_t *) malloc(THREAD_NUM * sizeof(pthread_t));
 
 		//gen_V(n);
 		read_V(B,n);
@@ -51,10 +53,11 @@ int main(int argc, char **argv)
 
 			//gen_M(n, sparse_factor);
 			read_M(A,n,sparse_factor);
-			read_K(&k,n,sparse_factor);
-			val=(int*)malloc(k*sizeof(int*));
-			col=(int*)malloc(k*sizeof(int*));
-			read_CRF_M(val,col,rowPtr,n,k,sparse_factor);
+			read_K(&valNum,n,sparse_factor);
+			val=(int*)malloc(valNum*sizeof(int*));
+			col=(int*)malloc(valNum*sizeof(int*));
+			E=(int *)malloc(valNum*sizeof(int*));
+			read_CRF_M(val,col,rowPtr,n,valNum,sparse_factor);
 
 			printf("\nComputing naive multiplication...\n");
 			t=clock();
@@ -77,29 +80,49 @@ int main(int argc, char **argv)
 				if(rowPtr[i]>=0){
 					while((rowPtr[k]<0)&&(k<n))
 						k++;
-					for(j=rowPtr[i]; (k==n) ? (j<actualVal) : (j<rowPtr[k]) ;j++){
+					for(j=rowPtr[i]; (k==n) ? (j<valNum) : (j<rowPtr[k]) ;j++){
 						D[i]+=val[j]*B[col[j]];
 					}
 				}
-			}
-// function to multiply each val with B
-			for(i=0;i<n/THREAD_NUM);i++){
-			//	i*thre
-			}
-			for ( i = 0; i < THREAD_NUM; ++i ) {
-    		int *tid;
-    		tid = (int *) malloc( sizeof(int) );
-    		*tid = i;
-    		pthread_create( &threads[i], NULL, worker, (void *)tid );
 			}
 
 			t=clock()-t;
 			double time_taken_sp = ((double)t)/CLOCKS_PER_SEC;
 
+// function to multiply each val with B
+			t=clock();
+
+			for(i=0;i<n/THREAD_NUM;i++){
+				int *tid;
+		    tid = (int *) malloc( sizeof(int) );
+		    *tid = i;
+		    pthread_create( &threads[i], NULL, tMul, (void *)tid );
+			}
+
+			for ( i = 0; i < THREAD_NUM; ++i ) {
+    		pthread_join( threads[i], NULL );
+			}
+
+			for(i=0;i<n;i++){
+				k=i+1;
+				if(rowPtr[i]>=0){
+					while((rowPtr[k]<0)&&(k<n))
+						k++;
+					for(j=rowPtr[i]; (k==n) ? (j<valNum) : (j<rowPtr[k]) ;j++){
+						D[i]+=E[j];
+					}
+				}
+			}
+
+			t=clock()-t;
+			double time_taken_s_par = ((double)t)/CLOCKS_PER_SEC;
+
 			printf("\tTime for naive multiply: %f s\n", time_taken);
 			printf("\tTime for sparse multiply computation: %f s\n", time_taken_sp);
+			printf("\tTime for parallel sparse multiply computation: %f s\n", time_taken_s_par);
 			free(val);
 			free(col);
+			free(E);
 //		}
 
 		free(rowPtr);
@@ -113,4 +136,11 @@ int main(int argc, char **argv)
 //	}
 
 	return 0;
+}
+
+void *tMul(void *arg){
+	int i,tid;
+	if(i*THREAD_NUM+tid<valNum){
+			E[i*THREAD_NUM+tid]=val[i*THREAD_NUM+tid]*B[col[i*THREAD_NUM+tid]];
+	}
 }

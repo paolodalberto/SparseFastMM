@@ -17,10 +17,10 @@ void gen_M(int n, int sparse_factor){
 
 	A=(int **)malloc(n*sizeof(int *));
 	for(i=0; i<n; i++)
-		A[i]=(int *)malloc(n*sizeof(int));	
+		A[i]=(int *)malloc(n*sizeof(int));
 
 	rowPtr=(int *)malloc(n*sizeof(int));
-	
+
 	srand(time(0));
 
 //Generating random matrix and sparsifying it
@@ -36,7 +36,7 @@ void gen_M(int n, int sparse_factor){
 		}
 		//printf("\n----------------------\n");
 	}
-	
+
 	printf("\nSparsifying matrix...\n");
 
 //	printf("%f\n%f\n",(double)actualVal/(n*n),(double)sparse_factor/100);
@@ -75,7 +75,7 @@ void gen_M(int n, int sparse_factor){
 			}
 		}
 	}
-	
+
 	t=clock()-t;
 	double time_taken_sparse_vectors = ((double)t)/CLOCKS_PER_SEC;
 	printf("\tTime for sparse vectors generation: %f s\n", time_taken_sparse_vectors);
@@ -89,13 +89,13 @@ void gen_M(int n, int sparse_factor){
 }
 
 void write_M(int **M, int n, int sparse_factor){
-	
+
 	int i,j,x;
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "Mat%dx%d_%d.txt",n,n,sparse_factor);
-	printf("x=%d\n",x);	
+	x=snprintf(fname, bufSize, "data/Mat%dx%d_%d.txt",n,n,sparse_factor);
+	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"w+");
 	if(f!=NULL){
@@ -117,8 +117,8 @@ void write_CRF_M(int *val, int *col, int *rowPtr, int n, int k, int sparse_facto
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "CRF%dx%d_%d.txt",n,n,sparse_factor);
-	printf("x=%d\n",x);	
+	x=snprintf(fname, bufSize, "data/CRF%dx%d_%d.txt",n,n,sparse_factor);
+	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"w+");
 	if(f!=NULL){
@@ -142,21 +142,21 @@ void read_M(int **res, int n, int sparse_factor){
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "Mat%dx%d_%d.txt",n,n,sparse_factor);
-	printf("x=%d\n",x);	
+	x=snprintf(fname, bufSize, "data/Mat%dx%d_%d.txt",n,n,sparse_factor);
+	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"r+");
 
 	//res=(int **)malloc(n*sizeof(int *));
 	//for(i=0; i<n; i++)
-	//	res[i]=(int *)malloc(n*sizeof(int*));	
+	//	res[i]=(int *)malloc(n*sizeof(int*));
 
 	for(i=0; i<n; i++){
 		for(j=0; j<n; j++){
 			fscanf(f, "%d ",&res[i][j]);
 		}
 	}
-	
+
 	fclose(f);
 }
 
@@ -166,8 +166,8 @@ void read_CRF_M(int *val, int *col, int *rowPtr, int n, int k, int sparse_factor
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "CRF%dx%d_%d.txt",n,n,sparse_factor);
-	printf("x=%d\n",x);	
+	x=snprintf(fname, bufSize, "data/CRF%dx%d_%d.txt",n,n,sparse_factor);
+	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"r+");
 	if(f!=NULL){
@@ -176,7 +176,7 @@ void read_CRF_M(int *val, int *col, int *rowPtr, int n, int k, int sparse_factor
 			fscanf(f, "%d",&col[i]);
 			//printf("val & col: %d %d\n",val[i],col[i]);
 		}
-	
+
 		for(i=0; i<n; i++){
 			fscanf(f, "%d",&rowPtr[i]);
 		}
@@ -191,8 +191,8 @@ void read_K(int *k, int n, int sparse_factor){
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "CRF%dx%d_%d.txt",n,n,sparse_factor);
-	printf("x=%d\n",x);	
+	x=snprintf(fname, bufSize, "data/CRF%dx%d_%d.txt",n,n,sparse_factor);
+	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"r+");
 	if(f!=NULL){

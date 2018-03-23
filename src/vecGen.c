@@ -26,8 +26,8 @@ void write_V(int *V, int n){
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "Vec%d.txt",n);
-	printf("x=%d\n",x);	
+	x=snprintf(fname, bufSize, "data/Vec%d.txt",n);
+	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"w+");
 	if(f!=NULL){
@@ -46,8 +46,8 @@ void read_V(int *V, int n){
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "Vec%d.txt",n);
-	printf("x=%d\n",x);	
+	x=snprintf(fname, bufSize, "data/Vec%d.txt",n);
+	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"r+");
 	if(f!=NULL){
