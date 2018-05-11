@@ -10,7 +10,7 @@ void gen_V(int n){
 	int j, *B;
 	//Generating dense vector
 
-	printf("Generating dense vector...\n");
+	printf("Generating dense vector... \n");
 
 	B=(int *)malloc(n*sizeof(int*));
 	for(j=0;j<n;j++){
@@ -26,7 +26,7 @@ void write_V(int *V, int n){
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "data/Vec%d.txt",n);
+	x=snprintf(fname, bufSize, "../src/data/Vec%d.txt",n);
 	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"w+");
@@ -46,7 +46,7 @@ void read_V(int *V, int n){
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "data/Vec%d.txt",n);
+	x=snprintf(fname, bufSize, "../src/data/Vec%d.txt",n);
 	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"r+");
