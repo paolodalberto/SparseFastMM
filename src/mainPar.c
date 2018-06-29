@@ -6,7 +6,7 @@
 #include <time.h>
 #include <pthread.h>
 
-#define THREAD_NUM 8
+#define THREAD_NUM 16
 
 int **A,*B, *C, *D, *E;
 int i, j, k, n, valNum, first, same, sparse_factor;
@@ -23,7 +23,13 @@ int main(int argc, char **argv)
 
 	valNum=0;
 	same=1;
-
+//Matrix and vector generation
+/*	for(n=20000;n<=25000;n+=5000){
+		gen_V(n);
+		for(sparse_factor=95;sparse_factor<100;sparse_factor++)
+			gen_M(n, sparse_factor);
+	}
+*/
 	printf("Give matrix size (N):\n");
 	scanf("%d",&n);
 	printf("N = %d\n",n);
