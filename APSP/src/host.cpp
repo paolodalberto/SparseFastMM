@@ -71,9 +71,38 @@ void rKleene_mmult_cpu1 (
 {
     int B[dim*dim], C[dim*dim], D[dim*dim];
 
+    // Display the numbers produced:
+    std::cout << "The mmult1 A results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  inA[ct] << " ";
+    }
+    std::cout << std::endl;
+    // Display the numbers produced:
+    std::cout << "The mmult1 B results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  inB[ct] << " ";
+    }
+    std::cout << std::endl;
+    // Display the numbers produced:
+    std::cout << "The mmult1 C results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  inC[ct] << " ";
+    }
+    std::cout << std::endl;
+    // Display the numbers produced:
+    std::cout << "The mmult1 D results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  inD[ct] << " ";
+    }
+    std::cout << std::endl;
     //Perform Matrix multiply B += A x B
     for(int i = 0; i < dim; i++) {
         for(int j = 0; j < dim; j++) {
+	    B[i * dim + j] = 0;
             for(int k = 0; k < dim; k++) {
                 B[i * dim + j] += inA[i * dim + k] * inB[k * dim + j];
             }
@@ -84,6 +113,7 @@ void rKleene_mmult_cpu1 (
     //Perform Matrix multiply C += C x A
     for(int i = 0; i < dim; i++) {
         for(int j = 0; j < dim; j++) {
+	    C[i * dim + j] = 0;
             for(int k = 0; k < dim; k++) {
                 C[i * dim + j] += inC[i * dim + k] * inA[k * dim + j];
             }
@@ -94,12 +124,34 @@ void rKleene_mmult_cpu1 (
     //Perform Matrix multiply D += C x B
     for(int i = 0; i < dim; i++) {
         for(int j = 0; j < dim; j++) {
+	    D[i * dim + j] = 0;
             for(int k = 0; k < dim; k++) {
                 D[i * dim + j] += outC[i * dim + k] * outB[k * dim + j];
             }
 	    outD[i * dim + j] = inD[i * dim + j] + D[i * dim + j];
         }
     }
+    // Display the numbers produced:
+    std::cout << "The mmult1 outB results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  outB[ct] << " ";
+    }
+    std::cout << std::endl;
+    // Display the numbers produced:
+    std::cout << "The mmult1 outC results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  outC[ct] << " ";
+    }
+    std::cout << std::endl;
+    // Display the numbers produced:
+    std::cout << "The mmult1 outD results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  outD[ct] << " ";
+    }
+    std::cout << std::endl;
 }  
 
 //CPU implementation of second part of Kleene Matrix Multiplication
@@ -117,9 +169,39 @@ void rKleene_mmult_cpu2 (
 {
     int B[dim*dim], C[dim*dim], A[dim*dim];
 
+
+    // Display the numbers produced:
+    std::cout << "The mmult2 A results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  inA[ct] << " ";
+    }
+    std::cout << std::endl;
+    // Display the numbers produced:
+    std::cout << "The mmult2 B results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  inB[ct] << " ";
+    }
+    std::cout << std::endl;
+    // Display the numbers produced:
+    std::cout << "The mmult2 C results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  inC[ct] << " ";
+    }
+    std::cout << std::endl;
+    // Display the numbers produced:
+    std::cout << "The mmult2 D results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  inD[ct] << " ";
+    }
+    std::cout << std::endl;
     //Perform Matrix multiply B += B x D
     for(int i = 0; i < dim; i++) {
         for(int j = 0; j < dim; j++) {
+	    B[i * dim + j] = 0;
             for(int k = 0; k < dim; k++) {
                 B[i * dim + j] += inB[i * dim + k] * inD[k * dim + j];
             }
@@ -130,6 +212,7 @@ void rKleene_mmult_cpu2 (
     //Perform Matrix multiply C += D x C
     for(int i = 0; i < dim; i++) {
         for(int j = 0; j < dim; j++) {
+	    C[i * dim + j] = 0;
             for(int k = 0; k < dim; k++) {
                 C[i * dim + j] += inD[i * dim + k] * inC[k * dim + j];
             }
@@ -140,12 +223,34 @@ void rKleene_mmult_cpu2 (
     //Perform Matrix multiply A += B x C
     for(int i = 0; i < dim; i++) {
         for(int j = 0; j < dim; j++) {
+	    A[i * dim + j] = 0;
             for(int k = 0; k < dim; k++) {
                 A[i * dim + j] += outB[i * dim + k] * outC[k * dim + j];
             }
 	    outA[i * dim + j] = inA[i * dim + j] + A[i * dim + j];
         }
     }
+    // Display the numbers produced:
+    std::cout << "The mmult2 outB results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  outB[ct] << " ";
+    }
+    std::cout << std::endl;
+    // Display the numbers produced:
+    std::cout << "The mmult2 outC results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  outC[ct] << " ";
+    }
+    std::cout << std::endl;
+    // Display the numbers produced:
+    std::cout << "The mmult2 outA results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  outA[ct] << " ";
+    }
+    std::cout << std::endl;
 }  
 
 //CPU implementation of Floyd-Warshall
@@ -171,6 +276,13 @@ void FW_cpu (
             }
         }
     }
+    // Display the numbers produced:
+    std::cout << "The FW results are: ";
+    for (int ct = 0; ct < dim*dim; ct++){
+	if(ct % dim == 0)    std::cout << std::endl;
+        std::cout <<  out[ct] << " ";
+    }
+    std::cout << std::endl;
 } 
 
 void RKleene_cpu (
@@ -179,13 +291,14 @@ void RKleene_cpu (
     int dim     //One dimension of matrix
 )
 {
+
     //check if block is small enough for FW, else do R-Kleene.
-    if(in.size() <= BSIZE * BSIZE){
+    if(dim <= BSIZE){
 	FW_cpu(in, out, dim);
     }else{
-	int Aind = 0, Bind = 0, Cind = 0, Dind = 0,
-	 A[dim/2*dim/2], B[dim/2*dim/2], C[dim/2*dim/2], D[dim/2*dim/2],
-         Atmp[dim/2*dim/2], Btmp[dim/2*dim/2], Ctmp[dim/2*dim/2], Dtmp[dim/2*dim/2];
+	int Aind = 0, Bind = 0, Cind = 0, Dind = 0;
+	int A[(dim/2)*(dim/2)], B[(dim/2)*(dim/2)], C[(dim/2)*(dim/2)], D[(dim/2)*(dim/2)],
+        Atmp[(dim/2)*(dim/2)], Btmp[(dim/2)*(dim/2)], Ctmp[(dim/2)*(dim/2)], Dtmp[(dim/2)*(dim/2)];
 	//Initialize A, B, C & D
     	for(int i = 0; i < dim; i++) {
             for(int j = 0; j < dim; j++) {
@@ -197,7 +310,7 @@ void RKleene_cpu (
 		    B[Bind] = in[i * dim + j];
 		    Bind++;
 		}
-		if(i >= dim/2 && j <= dim/2){
+		if(i >= dim/2 && j < dim/2){
 		    C[Cind] = in[i * dim + j];
 		    Cind++;
 		}
@@ -207,11 +320,35 @@ void RKleene_cpu (
 		}
 	    }
     	}
+
 	//Perform R-Kleene computations
 	RKleene_cpu(A, Atmp, dim/2);
 	rKleene_mmult_cpu1 (Atmp, B, C, D, Btmp, Ctmp, Dtmp, dim/2);
 	RKleene_cpu(Dtmp, D, dim/2);
 	rKleene_mmult_cpu2 (Atmp, Btmp, Ctmp, D, B, C, A, dim/2);
+
+	//write to out
+	Aind = 0, Bind = 0, Cind = 0, Dind = 0;
+    	for(int i = 0; i < dim; i++) {
+            for(int j = 0; j < dim; j++) {
+		if(i < dim/2 && j < dim/2){
+		    out[i * dim + j] = A[Aind];
+		    Aind++;
+		}
+		if(i < dim/2 && j >= dim/2){
+		    out[i * dim + j] = B[Bind];
+		    Bind++;
+		}
+		if(i >= dim/2 && j < dim/2){
+		    out[i * dim + j] = C[Cind];
+		    Cind++;
+		}
+		if(i >= dim/2 && j >= dim/2){
+		    out[i * dim + j] = D[Dind];
+		    Dind++;
+		}
+	    }
+    	}
     }
 }
 
@@ -222,8 +359,11 @@ uint64_t RKleene_fpga (
     int dim                                         //One dimension of matrix
 )
 {
-    int size = dim;    
+    int size = dim, halfsize = size/2;    
     size_t matrix_size_bytes = sizeof(int) * size * size;
+
+    cl::Event event;
+    uint64_t kernel_duration = 0;
 
     //The get_xil_devices will return vector of Xilinx Devices 
     std::vector<cl::Device> devices = xcl::get_xil_devices();
@@ -247,9 +387,9 @@ uint64_t RKleene_fpga (
     //This call will extract a kernel out of the program we loaded in the
     //previous line. A kernel is an OpenCL function that is executed on the
     //FPGA. This function is defined in the src/mmult.cl file.
-    cl::Kernel kernel1(program,"r-kleene_mmult1");
-    cl::Kernel kernel2(program,"r-kleene_mmult2");
-    cl::Kernel kernel3(program,"FW");
+    cl::Kernel kernel1(program,"rKleene_mmultA");
+    cl::Kernel kernel2(program,"rKleene_mmultB");
+    cl::Kernel kernel3(program,"mmult");
 
     //check if block is small enough for FW, else do R-Kleene.
     if(source_in1.size() <= BSIZE * BSIZE){
@@ -276,9 +416,6 @@ uint64_t RKleene_fpga (
     	kernel3.setArg(narg++, buffer_in1);
     	kernel3.setArg(narg++, buffer_output);
     	kernel3.setArg(narg++, size);
-    
-    	cl::Event event;
-    	uint64_t kernel_duration = 0;
 
     	//Launch the kernel
     	q1.enqueueTask(kernel3, NULL, &event);
@@ -292,8 +429,8 @@ uint64_t RKleene_fpga (
 	kernel_duration += get_duration_ns(event);
     }else{
 	int Aind = 0, Bind = 0, Cind = 0, Dind = 0;
-	std::vector<int,aligned_allocator<int>> A[dim/2*dim/2], B[dim/2*dim/2], C[dim/2*dim/2], D[dim/2*dim/2],
-        Atmp[dim/2*dim/2], Btmp[dim/2*dim/2], Ctmp[dim/2*dim/2], Dtmp[dim/2*dim/2];
+	std::vector<int,aligned_allocator<int>> A, B, C, D,
+         Atmp, Btmp, Ctmp, Dtmp;
 	//Initialize A, B, C & D
     	for(int i = 0; i < dim; i++) {
             for(int j = 0; j < dim; j++) {
@@ -316,10 +453,10 @@ uint64_t RKleene_fpga (
 	    }
     	}
 	//Perform R-Kleene computations
-	kernel_duration += RKleene_fpga(A, Atmp, dim/2);
+	//kernel_duration += RKleene_fpga(A, Atmp, dim/2);
 
 	/*********************************************
-			r-kleene_mmult1
+			r-kleene_mmultA
 	*********************************************/
 	//These commands will allocate memory on the FPGA. The cl::Buffer
 	//objects can be used to reference the memory locations on the device.
@@ -355,43 +492,41 @@ uint64_t RKleene_fpga (
     	kernel1.setArg(narg++, buffer_outB);
     	kernel1.setArg(narg++, buffer_outC);
     	kernel1.setArg(narg++, buffer_outD);
-    	kernel1.setArg(narg++, size/2);
-    
-    	cl::Event event;
+    	kernel1.setArg(narg++, halfsize);
 
     	//Launch the kernel
-    	q2.enqueueTask(kernel, NULL, &event);
+    	q2.enqueueTask(kernel1, NULL, &event);
 
     	//The result of the previous kernel execution will need to be retrieved in
     	//order to view the results. This call will write the data from the
     	//buffer_output cl_mem object to the source_fpga_results vector
     	q2.enqueueMigrateMemObjects({buffer_outB, buffer_outC, buffer_outD},CL_MIGRATE_MEM_OBJECT_HOST);
-    	q2.finish();
+    	q2.finish();//?
 
 	kernel_duration += get_duration_ns(event);
 
-	kernel_duration += R-Kleene_fpga(Dtmp, D, dim/2);
+	//kernel_duration += RKleene_fpga(Dtmp, D, dim/2);
 
 	/*********************************************
-			r-kleene_mmult2
+			r-kleene_mmultB
 	*********************************************/
 	//These commands will allocate memory on the FPGA. The cl::Buffer
 	//objects can be used to reference the memory locations on the device.
 	//The cl::Buffer object cannot be referenced directly and must be passed
 	//to other OpenCL functions.
-	cl::Buffer buffer_inA(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
+	cl::Buffer buffer2_inA(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
             matrix_size_bytes,Atmp.data());    
-	cl::Buffer buffer_inB(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
+	cl::Buffer buffer2_inB(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
             matrix_size_bytes,Btmp.data()); 
-	cl::Buffer buffer_inC(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
+	cl::Buffer buffer2_inC(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
             matrix_size_bytes,Ctmp.data()); 
-	cl::Buffer buffer_inD(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
+	cl::Buffer buffer2_inD(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
             matrix_size_bytes,D.data()); 
-	cl::Buffer buffer_outB(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
+	cl::Buffer buffer2_outB(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
             matrix_size_bytes,B.data());
-	cl::Buffer buffer_outC(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
+	cl::Buffer buffer2_outC(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
             matrix_size_bytes,C.data());
-	cl::Buffer buffer_outA(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
+	cl::Buffer buffer2_outA(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
             matrix_size_bytes,A.data());
 
     	//These commands will load the source_in1 and source_in2 vectors from the host
@@ -401,25 +536,23 @@ uint64_t RKleene_fpga (
     	q2.enqueueMigrateMemObjects({buffer_inA, buffer_inB, buffer_inC, buffer_inD},0/* 0 means from host*/);
 
     	//Set the kernel arguments
-    	int narg = 0;
-    	kernel2.setArg(narg++, buffer_inA);
-    	kernel2.setArg(narg++, buffer_inB);
-    	kernel2.setArg(narg++, buffer_inC);
-    	kernel2.setArg(narg++, buffer_inD);
-    	kernel2.setArg(narg++, buffer_outB);
-    	kernel2.setArg(narg++, buffer_outC);
-    	kernel2.setArg(narg++, buffer_outA);
-    	kernel2.setArg(narg++, size/2);
-    
-    	cl::Event event;
+    	int narg2 = 0;
+    	kernel2.setArg(narg2++, buffer2_inA);
+    	kernel2.setArg(narg2++, buffer2_inB);
+    	kernel2.setArg(narg2++, buffer2_inC);
+    	kernel2.setArg(narg2++, buffer2_inD);
+    	kernel2.setArg(narg2++, buffer2_outB);
+    	kernel2.setArg(narg2++, buffer2_outC);
+    	kernel2.setArg(narg2++, buffer2_outA);
+    	kernel2.setArg(narg2++, halfsize);
 
     	//Launch the kernel
-    	q2.enqueueTask(kernel, NULL, &event);
+    	q2.enqueueTask(kernel2, NULL, &event);
 
     	//The result of the previous kernel execution will need to be retrieved in
     	//order to view the results. This call will write the data from the
     	//buffer_output cl_mem object to the source_fpga_results vector
-    	q2.enqueueMigrateMemObjects({buffer_outB, buffer_outC, buffer_outA},CL_MIGRATE_MEM_OBJECT_HOST);
+    	q2.enqueueMigrateMemObjects({buffer2_outB, buffer2_outC, buffer2_outA},CL_MIGRATE_MEM_OBJECT_HOST);
     	q2.finish();
 
 	kernel_duration += get_duration_ns(event);
@@ -468,7 +601,8 @@ int main(int argc, char** argv)
 
         // Display the numbers read:
         std::cout << "The numbers are: ";
-        for (unsigned int ct = 0; ct < size*size; ct++){
+        for (int ct = 0; ct < size*size; ct++){
+	    if(ct % size == 0)    std::cout << std::endl;
             std::cout << source_in1[ct] << " ";
         }
 
@@ -487,21 +621,22 @@ int main(int argc, char** argv)
 
     uint64_t kernel_duration = 0;  
 
-      
+    FW_cpu(source_in1.data(), source_cpu_results.data(), size);
 
     //Compute CPU Results
-    R-Kleene_cpu(source_in1.data(), source_cpu_results.data(), size);
+    RKleene_cpu(source_in1.data(), source_cpu_results.data(), size);
 
         // Display the numbers produced:
         std::cout << "The results are: ";
-        for (unsigned int ct = 0; ct < size*size; ct++){
+        for (int ct = 0; ct < size*size; ct++){
+	    if(ct % size == 0)    std::cout << std::endl;
             std::cout <<  source_cpu_results[ct] << " ";
         }
 
         std::cout << std::endl;
 
     //Compute FPGA Results
-    kernel_duration = mmult_fpga(source_in1, source_fpga_results, size);
+    kernel_duration = RKleene_fpga(source_in1, source_fpga_results, size);
 
     //Compare the results of the FPGA to CPU 
     bool match = true;

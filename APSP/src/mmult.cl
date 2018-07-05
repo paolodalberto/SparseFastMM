@@ -36,7 +36,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define BSIZE 2
 
 kernel __attribute__((reqd_work_group_size(1, 1, 1)))
-void r-kleene_mmult1( __global int* inA,  //Read-only input matrix A
+void rKleene_mmultA( __global int* inA,  //Read-only input matrix A
   		      __global int* inB,  //Read-only input matrix B
   		      __global int* inC,  //Read-only input matrix C
   		      __global int* inD,  //Read-only input matrix D
@@ -63,19 +63,19 @@ void r-kleene_mmult1( __global int* inA,  //Read-only input matrix A
 
     //Burst reads on input matrices from DDR memory
     //Burst read for matrix local_in1 and local_in2
-    read_in1: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    read_in1A: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         local_inA[i][j] = inA[iter];
     }
-    read_in2: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    read_in2A: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         local_inB[i][j] = inB[iter];
     }
-    read_in3: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    read_in3A: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         local_inC[i][j] = inC[iter];
     }
-    read_in4: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    read_in4A: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         local_inD[i][j] = inD[iter];
     }
@@ -85,14 +85,14 @@ void r-kleene_mmult1( __global int* inA,  //Read-only input matrix A
     //But for the pipeline to happen in the "loop_2" the
     //"loop_3" must be unrolled, to unroll the size cannot be dynamic.
     //It gives better throughput with usage of additional resources. 
-    loop_1: for(int i = 0; i < dim; i++){
+    loop_1A_B: for(int i = 0; i < dim; i++){
         __attribute__((xcl_pipeline_loop))
-        loop_2: for(int j = 0; j < dim; j++){
+        loop_2A_B: for(int j = 0; j < dim; j++){
             __attribute__((opencl_unroll_hint))
-            loop_3: for(int k = 0; k < MAX_SIZE; k++){
+            loop_3A_B: for(int k = 0; k < MAX_SIZE; k++){
                 B[i][j] += local_inA[i][k] * local_inB[k][j];
             }
-	    local_outB[i][j] = B[i][j] + local_inB[i][j]
+	    local_outB[i][j] = B[i][j] + local_inB[i][j];
         }
     }    
 
@@ -101,14 +101,14 @@ void r-kleene_mmult1( __global int* inA,  //Read-only input matrix A
     //But for the pipeline to happen in the "loop_2" the
     //"loop_3" must be unrolled, to unroll the size cannot be dynamic.
     //It gives better throughput with usage of additional resources. 
-    loop_1: for(int i = 0; i < dim; i++){
+    loop_1A_C: for(int i = 0; i < dim; i++){
         __attribute__((xcl_pipeline_loop))
-        loop_2: for(int j = 0; j < dim; j++){
+        loop_2A_C: for(int j = 0; j < dim; j++){
             __attribute__((opencl_unroll_hint))
-            loop_3: for(int k = 0; k < MAX_SIZE; k++){
+            loop_3A_C: for(int k = 0; k < MAX_SIZE; k++){
                 C[i][j] += local_inC[i][k] * local_inA[k][j];
             }
-	    local_outC[i][j] = C[i][j] + local_inC[i][j]
+	    local_outC[i][j] = C[i][j] + local_inC[i][j];
         }
     }
 
@@ -117,34 +117,34 @@ void r-kleene_mmult1( __global int* inA,  //Read-only input matrix A
     //But for the pipeline to happen in the "loop_2" the
     //"loop_3" must be unrolled, to unroll the size cannot be dynamic.
     //It gives better throughput with usage of additional resources. 
-    loop_1: for(int i = 0; i < dim; i++){
+    loop_1A_D: for(int i = 0; i < dim; i++){
         __attribute__((xcl_pipeline_loop))
-        loop_2: for(int j = 0; j < dim; j++){
+        loop_2A_D: for(int j = 0; j < dim; j++){
             __attribute__((opencl_unroll_hint))
-            loop_3: for(int k = 0; k < MAX_SIZE; k++){
+            loop_3A_D: for(int k = 0; k < MAX_SIZE; k++){
                 D[i][j] += local_outC[i][k] * local_outB[k][j];
             }
-	    local_outD[i][j] = D[i][j] + local_inD[i][j]
+	    local_outD[i][j] = D[i][j] + local_inD[i][j];
         }
     }      
 
     //Burst write from local to DDR memory
-    write_out1: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    write_out1A: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         outB[iter] = local_outB[i][j];
     }
-    write_out2: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    write_out2A: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         outC[iter] = local_outC[i][j];
     }
-    write_out3: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    write_out3A: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         outD[iter] = local_outD[i][j];
     }
 }
 
 kernel __attribute__((reqd_work_group_size(1, 1, 1)))
-void r-kleene_mmult2( __global int* inA,  //Read-only input matrix A
+void rKleene_mmultB( __global int* inA,  //Read-only input matrix A
   		      __global int* inB,  //Read-only input matrix B
   		      __global int* inC,  //Read-only input matrix C
   		      __global int* inD,  //Read-only input matrix D
@@ -171,19 +171,19 @@ void r-kleene_mmult2( __global int* inA,  //Read-only input matrix A
 
     //Burst reads on input matrices from DDR memory
     //Burst read for matrix local_in1 and local_in2
-    read_in1: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    read_in1B: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         local_inA[i][j] = inA[iter];
     }
-    read_in2: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    read_in2B: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         local_inB[i][j] = inB[iter];
     }
-    read_in3: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    read_in3B: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         local_inC[i][j] = inC[iter];
     }
-    read_in4: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    read_in4B: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         local_inD[i][j] = inD[iter];
     }
@@ -193,14 +193,14 @@ void r-kleene_mmult2( __global int* inA,  //Read-only input matrix A
     //But for the pipeline to happen in the "loop_2" the
     //"loop_3" must be unrolled, to unroll the size cannot be dynamic.
     //It gives better throughput with usage of additional resources. 
-    loop_1: for(int i = 0; i < dim; i++){
+    loop_1B_B: for(int i = 0; i < dim; i++){
         __attribute__((xcl_pipeline_loop))
-        loop_2: for(int j = 0; j < dim; j++){
+        loop_2B_B: for(int j = 0; j < dim; j++){
             __attribute__((opencl_unroll_hint))
-            loop_3: for(int k = 0; k < MAX_SIZE; k++){
+            loop_3B_B: for(int k = 0; k < MAX_SIZE; k++){
                 B[i][j] += local_inB[i][k] * local_inD[k][j];
             }
-	    local_outB[i][j] = B[i][j] + local_inB[i][j]
+	    local_outB[i][j] = B[i][j] + local_inB[i][j];
         }
     }    
 
@@ -209,14 +209,14 @@ void r-kleene_mmult2( __global int* inA,  //Read-only input matrix A
     //But for the pipeline to happen in the "loop_2" the
     //"loop_3" must be unrolled, to unroll the size cannot be dynamic.
     //It gives better throughput with usage of additional resources. 
-    loop_1: for(int i = 0; i < dim; i++){
+    loop_1B_C: for(int i = 0; i < dim; i++){
         __attribute__((xcl_pipeline_loop))
-        loop_2: for(int j = 0; j < dim; j++){
+        loop_2B_C: for(int j = 0; j < dim; j++){
             __attribute__((opencl_unroll_hint))
-            loop_3: for(int k = 0; k < MAX_SIZE; k++){
+            loop_3B_C: for(int k = 0; k < MAX_SIZE; k++){
                 C[i][j] += local_inD[i][k] * local_inC[k][j];
             }
-	    local_outC[i][j] = C[i][j] + local_inC[i][j]
+	    local_outC[i][j] = C[i][j] + local_inC[i][j];
         }
     }
 
@@ -225,34 +225,34 @@ void r-kleene_mmult2( __global int* inA,  //Read-only input matrix A
     //But for the pipeline to happen in the "loop_2" the
     //"loop_3" must be unrolled, to unroll the size cannot be dynamic.
     //It gives better throughput with usage of additional resources. 
-    loop_1: for(int i = 0; i < dim; i++){
+    loop_1B_A: for(int i = 0; i < dim; i++){
         __attribute__((xcl_pipeline_loop))
-        loop_2: for(int j = 0; j < dim; j++){
+        loop_2B_A: for(int j = 0; j < dim; j++){
             __attribute__((opencl_unroll_hint))
-            loop_3: for(int k = 0; k < MAX_SIZE; k++){
+            loop_3B_A: for(int k = 0; k < MAX_SIZE; k++){
                 A[i][j] += local_outB[i][k] * local_outC[k][j];
             }
-	    local_outA[i][j] = A[i][j] + local_inA[i][j]
+	    local_outA[i][j] = A[i][j] + local_inA[i][j];
         }
     }      
 
     //Burst write from local to DDR memory
-    write_out1: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    write_out1B: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         outB[iter] = local_outB[i][j];
     }
-    write_out2: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    write_out2B: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         outC[iter] = local_outC[i][j];
     }
-    write_out3: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
+    write_out3B: for(int iter = 0, i = 0, j = 0; iter < dim * dim; iter++, j++){
         if(j == dim){ j = 0; i++; }
         outA[iter] = local_outA[i][j];
     }
 }
 
 kernel __attribute__((reqd_work_group_size(1, 1, 1)))
-void FW( __global int* in1,  //Read-only input matrix1
+void mmult( __global int* in1,  //Read-only input matrix1
          __global int* out,  //Output matrix
          int dim             //One dimension of the matrix
        )
