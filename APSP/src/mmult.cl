@@ -35,6 +35,11 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define MAX_SIZE 4
 #define BSIZE 2
 
+#define add(a,b) (((a)<(b))?(a):(b))
+#define e_a INT_MAX
+#define mul(a,b) ((a)+(b))
+#define e_m 0
+
 kernel __attribute__((reqd_work_group_size(1, 1, 1)))
 void rKleene_mmultA( __global int* inA,  //Read-only input matrix A
   		      __global int* inB,  //Read-only input matrix B
@@ -88,6 +93,7 @@ void rKleene_mmultA( __global int* inA,  //Read-only input matrix A
     loop_1A_B: for(int i = 0; i < dim; i++){
         __attribute__((xcl_pipeline_loop))
         loop_2A_B: for(int j = 0; j < dim; j++){
+		B[i][j] = 0;
             __attribute__((opencl_unroll_hint))
             loop_3A_B: for(int k = 0; k < MAX_SIZE; k++){
                 B[i][j] += local_inA[i][k] * local_inB[k][j];
@@ -104,6 +110,7 @@ void rKleene_mmultA( __global int* inA,  //Read-only input matrix A
     loop_1A_C: for(int i = 0; i < dim; i++){
         __attribute__((xcl_pipeline_loop))
         loop_2A_C: for(int j = 0; j < dim; j++){
+		C[i][j] = 0;
             __attribute__((opencl_unroll_hint))
             loop_3A_C: for(int k = 0; k < MAX_SIZE; k++){
                 C[i][j] += local_inC[i][k] * local_inA[k][j];
@@ -120,6 +127,7 @@ void rKleene_mmultA( __global int* inA,  //Read-only input matrix A
     loop_1A_D: for(int i = 0; i < dim; i++){
         __attribute__((xcl_pipeline_loop))
         loop_2A_D: for(int j = 0; j < dim; j++){
+		D[i][j] = 0;
             __attribute__((opencl_unroll_hint))
             loop_3A_D: for(int k = 0; k < MAX_SIZE; k++){
                 D[i][j] += local_outC[i][k] * local_outB[k][j];
@@ -196,6 +204,7 @@ void rKleene_mmultB( __global int* inA,  //Read-only input matrix A
     loop_1B_B: for(int i = 0; i < dim; i++){
         __attribute__((xcl_pipeline_loop))
         loop_2B_B: for(int j = 0; j < dim; j++){
+		B[i][j] = 0;
             __attribute__((opencl_unroll_hint))
             loop_3B_B: for(int k = 0; k < MAX_SIZE; k++){
                 B[i][j] += local_inB[i][k] * local_inD[k][j];
@@ -212,6 +221,7 @@ void rKleene_mmultB( __global int* inA,  //Read-only input matrix A
     loop_1B_C: for(int i = 0; i < dim; i++){
         __attribute__((xcl_pipeline_loop))
         loop_2B_C: for(int j = 0; j < dim; j++){
+		C[i][j] = 0;
             __attribute__((opencl_unroll_hint))
             loop_3B_C: for(int k = 0; k < MAX_SIZE; k++){
                 C[i][j] += local_inD[i][k] * local_inC[k][j];
@@ -228,6 +238,7 @@ void rKleene_mmultB( __global int* inA,  //Read-only input matrix A
     loop_1B_A: for(int i = 0; i < dim; i++){
         __attribute__((xcl_pipeline_loop))
         loop_2B_A: for(int j = 0; j < dim; j++){
+		A[i][j] = 0;
             __attribute__((opencl_unroll_hint))
             loop_3B_A: for(int k = 0; k < MAX_SIZE; k++){
                 A[i][j] += local_outB[i][k] * local_outC[k][j];

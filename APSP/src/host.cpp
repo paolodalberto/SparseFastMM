@@ -37,17 +37,23 @@ arrays are partitioned and the innermost loop is unrolled in the kernel.
 //OpenCL utility layer include
 #include "xcl2.hpp"
 #include "stdlib.h"
+#include "limits.h"
 #include <vector>
 #include <fstream>
 
 //Max Array Size
-#define MAX_SIZE 4
+#define MAX_SIZE 8
 
 //Array Size to access 
-#define DATA_SIZE 4 
+#define DATA_SIZE 8 
 
 //Block Size
 #define BSIZE 2
+
+#define add(a,b) (((a)<(b))?(a):(b))
+#define e_a 10000
+#define mul(a,b) ((a)+(b))
+#define e_m 0
 
 uint64_t get_duration_ns (const cl::Event &event) {
     uint64_t nstimestart, nstimeend;
@@ -69,7 +75,6 @@ void rKleene_mmult_cpu1 (
     int dim     //One dimension of matrix
 )
 {
-    int B[dim*dim], C[dim*dim], D[dim*dim];
 
     // Display the numbers produced:
     std::cout << "The mmult1 A results are: ";
@@ -102,34 +107,34 @@ void rKleene_mmult_cpu1 (
     //Perform Matrix multiply B += A x B
     for(int i = 0; i < dim; i++) {
         for(int j = 0; j < dim; j++) {
-	    B[i * dim + j] = 0;
+	    outB[i * dim + j] = e_a;
             for(int k = 0; k < dim; k++) {
-                B[i * dim + j] += inA[i * dim + k] * inB[k * dim + j];
+                outB[i * dim + j] = add(outB[i * dim + j], mul(inA[i * dim + k], inB[k * dim + j]));
             }
-	    outB[i * dim + j] = inB[i * dim + j] + B[i * dim + j];
+	    outB[i * dim + j] = add(inB[i * dim + j], outB[i * dim + j]);
         }
     }
 
     //Perform Matrix multiply C += C x A
     for(int i = 0; i < dim; i++) {
         for(int j = 0; j < dim; j++) {
-	    C[i * dim + j] = 0;
+	    outC[i * dim + j] = e_a;
             for(int k = 0; k < dim; k++) {
-                C[i * dim + j] += inC[i * dim + k] * inA[k * dim + j];
+                outC[i * dim + j] = add(outC[i * dim + j], mul(inC[i * dim + k], inC[k * dim + j]));
             }
-	    outC[i * dim + j] = inC[i * dim + j] + C[i * dim + j];
+	    outC[i * dim + j] = add(inC[i * dim + j], outC[i * dim + j]);
         }
     }
 
     //Perform Matrix multiply D += C x B
     for(int i = 0; i < dim; i++) {
         for(int j = 0; j < dim; j++) {
-	    D[i * dim + j] = 0;
+	    outD[i * dim + j] = e_a;
             for(int k = 0; k < dim; k++) {
-                D[i * dim + j] += outC[i * dim + k] * outB[k * dim + j];
+                outD[i * dim + j] = add(outD[i * dim + j], mul(outC[i * dim + k], outB[k * dim + j]));
             }
-	    outD[i * dim + j] = inD[i * dim + j] + D[i * dim + j];
-        }
+	    outD[i * dim + j] = add(inD[i * dim + j], outD[i * dim + j]);
+	}
     }
     // Display the numbers produced:
     std::cout << "The mmult1 outB results are: ";
@@ -167,7 +172,6 @@ void rKleene_mmult_cpu2 (
     int dim     //One dimension of matrix
 )
 {
-    int B[dim*dim], C[dim*dim], A[dim*dim];
 
 
     // Display the numbers produced:
@@ -201,34 +205,34 @@ void rKleene_mmult_cpu2 (
     //Perform Matrix multiply B += B x D
     for(int i = 0; i < dim; i++) {
         for(int j = 0; j < dim; j++) {
-	    B[i * dim + j] = 0;
+	    outB[i * dim + j] = e_a;
             for(int k = 0; k < dim; k++) {
-                B[i * dim + j] += inB[i * dim + k] * inD[k * dim + j];
+                outB[i * dim + j] = add(outB[i * dim + j], mul(inB[i * dim + k], inD[k * dim + j]));
             }
-	    outB[i * dim + j] = inB[i * dim + j] + B[i * dim + j];
-        }
+	    outB[i * dim + j] = add(inB[i * dim + j], outB[i * dim + j]);
+	}
     }
 
     //Perform Matrix multiply C += D x C
     for(int i = 0; i < dim; i++) {
         for(int j = 0; j < dim; j++) {
-	    C[i * dim + j] = 0;
+	    outC[i * dim + j] = e_a;
             for(int k = 0; k < dim; k++) {
-                C[i * dim + j] += inD[i * dim + k] * inC[k * dim + j];
+                outC[i * dim + j] = add(outC[i * dim + j], mul(inD[i * dim + k], inC[k * dim + j]));
             }
-	    outC[i * dim + j] = inC[i * dim + j] + C[i * dim + j];
-        }
+	    outC[i * dim + j] = add(inC[i * dim + j], outC[i * dim + j]);
+	}
     }
 
     //Perform Matrix multiply A += B x C
     for(int i = 0; i < dim; i++) {
         for(int j = 0; j < dim; j++) {
-	    A[i * dim + j] = 0;
+	    outA[i * dim + j] = e_a;
             for(int k = 0; k < dim; k++) {
-                A[i * dim + j] += outB[i * dim + k] * outC[k * dim + j];
+                outA[i * dim + j] = add(outA[i * dim + j], mul(outB[i * dim + k], outC[k * dim + j]));
             }
-	    outA[i * dim + j] = inA[i * dim + j] + A[i * dim + j];
-        }
+	    outA[i * dim + j] = add(inA[i * dim + j], outA[i * dim + j]);
+	}
     }
     // Display the numbers produced:
     std::cout << "The mmult2 outB results are: ";
@@ -388,7 +392,7 @@ uint64_t RKleene_fpga (
     //previous line. A kernel is an OpenCL function that is executed on the
     //FPGA. This function is defined in the src/mmult.cl file.
     cl::Kernel kernel1(program,"rKleene_mmultA");
-    cl::Kernel kernel2(program,"rKleene_mmultB");
+    //cl::Kernel kernel2(program,"rKleene_mmultB");
     cl::Kernel kernel3(program,"mmult");
 
     //check if block is small enough for FW, else do R-Kleene.
@@ -442,7 +446,7 @@ uint64_t RKleene_fpga (
 		    B[Bind] = source_in1[i * dim + j];
 		    Bind++;
 		}
-		if(i >= dim/2 && j <= dim/2){
+		if(i >= dim/2 && j < dim/2){
 		    C[Cind] = source_in1[i * dim + j];
 		    Cind++;
 		}
@@ -509,7 +513,7 @@ uint64_t RKleene_fpga (
 
 	/*********************************************
 			r-kleene_mmultB
-	*********************************************/
+	*********************************************//*
 	//These commands will allocate memory on the FPGA. The cl::Buffer
 	//objects can be used to reference the memory locations on the device.
 	//The cl::Buffer object cannot be referenced directly and must be passed
@@ -533,7 +537,7 @@ uint64_t RKleene_fpga (
     	//application into the buffer_in1 and buffer_in2 cl::Buffer objects. The data
     	//will be be transferred from system memory over PCIe to the FPGA on-board
     	//DDR memory.
-    	q2.enqueueMigrateMemObjects({buffer_inA, buffer_inB, buffer_inC, buffer_inD},0/* 0 means from host*/);
+    	q2.enqueueMigrateMemObjects({buffer_inA, buffer_inB, buffer_inC, buffer_inD},0*//* 0 means from host*//*);
 
     	//Set the kernel arguments
     	int narg2 = 0;
@@ -555,7 +559,7 @@ uint64_t RKleene_fpga (
     	q2.enqueueMigrateMemObjects({buffer2_outB, buffer2_outC, buffer2_outA},CL_MIGRATE_MEM_OBJECT_HOST);
     	q2.finish();
 
-	kernel_duration += get_duration_ns(event);
+	kernel_duration += get_duration_ns(event);*/
     }
     return kernel_duration;
 }
@@ -592,7 +596,10 @@ int main(int argc, char** argv)
         // Push items into a vector
         int current_number = 0;
         while (inputFile >> current_number && count < size*size){
-            source_in1[count] = current_number;
+	    if(current_number == 0)
+		source_in1[count] = e_a;
+	    else
+		source_in1[count] = current_number;
 	    count++;
         }
 
