@@ -42,10 +42,10 @@ arrays are partitioned and the innermost loop is unrolled in the kernel.
 #include <fstream>
 
 //Max Array Size
-#define MAX_SIZE 8
+#define MAX_SIZE 19
 
 //Array Size to access 
-#define DATA_SIZE 8 
+#define DATA_SIZE 19 
 
 //Block Size
 #define BSIZE 2
@@ -72,88 +72,89 @@ void rKleene_mmult_cpu1 (
     int *outB,   //Output Matrix 1
     int *outC,   //Output Matrix 2
     int *outD,   //Output Matrix 3
-    int dim     //One dimension of matrix
+    int s,     //Short dimension of matrix
+    int l     //Long dimension of matrix
 )
 {
 
     // Display the numbers produced:
     std::cout << "The mmult1 A results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < s*s; ct++){
+	if(ct % s == 0)    std::cout << std::endl;
         std::cout <<  inA[ct] << " ";
     }
     std::cout << std::endl;
     // Display the numbers produced:
     std::cout << "The mmult1 B results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < s*l; ct++){
+	if(ct % l == 0)    std::cout << std::endl;
         std::cout <<  inB[ct] << " ";
     }
     std::cout << std::endl;
     // Display the numbers produced:
     std::cout << "The mmult1 C results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < l*s; ct++){
+	if(ct % s == 0)    std::cout << std::endl;
         std::cout <<  inC[ct] << " ";
     }
     std::cout << std::endl;
     // Display the numbers produced:
     std::cout << "The mmult1 D results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < l*l; ct++){
+	if(ct % l == 0)    std::cout << std::endl;
         std::cout <<  inD[ct] << " ";
     }
     std::cout << std::endl;
     //Perform Matrix multiply B += A x B
-    for(int i = 0; i < dim; i++) {
-        for(int j = 0; j < dim; j++) {
-	    outB[i * dim + j] = e_a;
-            for(int k = 0; k < dim; k++) {
-                outB[i * dim + j] = add(outB[i * dim + j], mul(inA[i * dim + k], inB[k * dim + j]));
+    for(int i = 0; i < s; i++) {
+        for(int j = 0; j < l; j++) {
+	    outB[i * l + j] = e_a;
+            for(int k = 0; k < s; k++) {
+                outB[i * l + j] = add(outB[i * l + j], mul(inA[i * s + k], inB[k * l + j]));
             }
-	    outB[i * dim + j] = add(inB[i * dim + j], outB[i * dim + j]);
+	    outB[i * l + j] = add(inB[i * l + j], outB[i * l + j]);
         }
     }
 
     //Perform Matrix multiply C += C x A
-    for(int i = 0; i < dim; i++) {
-        for(int j = 0; j < dim; j++) {
-	    outC[i * dim + j] = e_a;
-            for(int k = 0; k < dim; k++) {
-                outC[i * dim + j] = add(outC[i * dim + j], mul(inC[i * dim + k], inC[k * dim + j]));
+    for(int i = 0; i < l; i++) {
+        for(int j = 0; j < s; j++) {
+	    outC[i * s + j] = e_a;
+            for(int k = 0; k < s; k++) {
+                outC[i * s + j] = add(outC[i * s + j], mul(inC[i * s + k], inA[k * s + j]));
             }
-	    outC[i * dim + j] = add(inC[i * dim + j], outC[i * dim + j]);
+	    outC[i * s + j] = add(inC[i * s + j], outC[i * s + j]);
         }
     }
 
     //Perform Matrix multiply D += C x B
-    for(int i = 0; i < dim; i++) {
-        for(int j = 0; j < dim; j++) {
-	    outD[i * dim + j] = e_a;
-            for(int k = 0; k < dim; k++) {
-                outD[i * dim + j] = add(outD[i * dim + j], mul(outC[i * dim + k], outB[k * dim + j]));
+    for(int i = 0; i < l; i++) {
+        for(int j = 0; j < l; j++) {
+	    outD[i * l + j] = e_a;
+            for(int k = 0; k < s; k++) {
+                outD[i * l + j] = add(outD[i * l + j], mul(outC[i * s + k], outB[k * l + j]));
             }
-	    outD[i * dim + j] = add(inD[i * dim + j], outD[i * dim + j]);
+	    outD[i * l + j] = add(inD[i * l + j], outD[i * l + j]);
 	}
     }
     // Display the numbers produced:
     std::cout << "The mmult1 outB results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < s*l; ct++){
+	if(ct % l == 0)    std::cout << std::endl;
         std::cout <<  outB[ct] << " ";
     }
     std::cout << std::endl;
     // Display the numbers produced:
     std::cout << "The mmult1 outC results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < l*s; ct++){
+	if(ct % s == 0)    std::cout << std::endl;
         std::cout <<  outC[ct] << " ";
     }
     std::cout << std::endl;
     // Display the numbers produced:
     std::cout << "The mmult1 outD results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < l*l; ct++){
+	if(ct % l == 0)    std::cout << std::endl;
         std::cout <<  outD[ct] << " ";
     }
     std::cout << std::endl;
@@ -169,89 +170,90 @@ void rKleene_mmult_cpu2 (
     int *outB,   //Output Matrix 1
     int *outC,   //Output Matrix 2
     int *outA,   //Output Matrix 3
-    int dim     //One dimension of matrix
+    int s,     //Short dimension of matrix
+    int l     //Long dimension of matrix
 )
 {
 
 
     // Display the numbers produced:
     std::cout << "The mmult2 A results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < s*s; ct++){
+	if(ct % s == 0)    std::cout << std::endl;
         std::cout <<  inA[ct] << " ";
     }
     std::cout << std::endl;
     // Display the numbers produced:
     std::cout << "The mmult2 B results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < s*l; ct++){
+	if(ct % l == 0)    std::cout << std::endl;
         std::cout <<  inB[ct] << " ";
     }
     std::cout << std::endl;
     // Display the numbers produced:
     std::cout << "The mmult2 C results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < l*s; ct++){
+	if(ct % s == 0)    std::cout << std::endl;
         std::cout <<  inC[ct] << " ";
     }
     std::cout << std::endl;
     // Display the numbers produced:
     std::cout << "The mmult2 D results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < l*l; ct++){
+	if(ct % l == 0)    std::cout << std::endl;
         std::cout <<  inD[ct] << " ";
     }
     std::cout << std::endl;
     //Perform Matrix multiply B += B x D
-    for(int i = 0; i < dim; i++) {
-        for(int j = 0; j < dim; j++) {
-	    outB[i * dim + j] = e_a;
-            for(int k = 0; k < dim; k++) {
-                outB[i * dim + j] = add(outB[i * dim + j], mul(inB[i * dim + k], inD[k * dim + j]));
+    for(int i = 0; i < s; i++) {
+        for(int j = 0; j < l; j++) {
+	    outB[i * l + j] = e_a;
+            for(int k = 0; k < l; k++) {
+                outB[i * l + j] = add(outB[i * l + j], mul(inB[i * l + k], inD[k * l + j]));
             }
-	    outB[i * dim + j] = add(inB[i * dim + j], outB[i * dim + j]);
+	    outB[i * l + j] = add(inB[i * l + j], outB[i * l + j]);
 	}
     }
 
     //Perform Matrix multiply C += D x C
-    for(int i = 0; i < dim; i++) {
-        for(int j = 0; j < dim; j++) {
-	    outC[i * dim + j] = e_a;
-            for(int k = 0; k < dim; k++) {
-                outC[i * dim + j] = add(outC[i * dim + j], mul(inD[i * dim + k], inC[k * dim + j]));
+    for(int i = 0; i <l; i++) {
+        for(int j = 0; j < s; j++) {
+	    outC[i * s + j] = e_a;
+            for(int k = 0; k < l; k++) {
+                outC[i * s + j] = add(outC[i * s + j], mul(inD[i * l + k], inC[k * s + j]));
             }
-	    outC[i * dim + j] = add(inC[i * dim + j], outC[i * dim + j]);
+	    outC[i * s + j] = add(inC[i * s + j], outC[i * s + j]);
 	}
     }
 
     //Perform Matrix multiply A += B x C
-    for(int i = 0; i < dim; i++) {
-        for(int j = 0; j < dim; j++) {
-	    outA[i * dim + j] = e_a;
-            for(int k = 0; k < dim; k++) {
-                outA[i * dim + j] = add(outA[i * dim + j], mul(outB[i * dim + k], outC[k * dim + j]));
+    for(int i = 0; i < s; i++) {
+        for(int j = 0; j < s; j++) {
+	    outA[i * s + j] = e_a;
+            for(int k = 0; k < l; k++) {
+                outA[i * s + j] = add(outA[i * s + j], mul(outB[i * l + k], outC[k * s + j]));
             }
-	    outA[i * dim + j] = add(inA[i * dim + j], outA[i * dim + j]);
+	    outA[i * s + j] = add(inA[i * s + j], outA[i * s + j]);
 	}
     }
     // Display the numbers produced:
     std::cout << "The mmult2 outB results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < s*l; ct++){
+	if(ct % l == 0)    std::cout << std::endl;
         std::cout <<  outB[ct] << " ";
     }
     std::cout << std::endl;
     // Display the numbers produced:
     std::cout << "The mmult2 outC results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < l*s; ct++){
+	if(ct % s == 0)    std::cout << std::endl;
         std::cout <<  outC[ct] << " ";
     }
     std::cout << std::endl;
     // Display the numbers produced:
     std::cout << "The mmult2 outA results are: ";
-    for (int ct = 0; ct < dim*dim; ct++){
-	if(ct % dim == 0)    std::cout << std::endl;
+    for (int ct = 0; ct < s*s; ct++){
+	if(ct % s == 0)    std::cout << std::endl;
         std::cout <<  outA[ct] << " ";
     }
     std::cout << std::endl;
@@ -300,9 +302,10 @@ void RKleene_cpu (
     if(dim <= BSIZE){
 	FW_cpu(in, out, dim);
     }else{
+	int s = dim/2, l = dim - dim/2;
 	int Aind = 0, Bind = 0, Cind = 0, Dind = 0;
-	int A[(dim/2)*(dim/2)], B[(dim/2)*(dim/2)], C[(dim/2)*(dim/2)], D[(dim/2)*(dim/2)],
-        Atmp[(dim/2)*(dim/2)], Btmp[(dim/2)*(dim/2)], Ctmp[(dim/2)*(dim/2)], Dtmp[(dim/2)*(dim/2)];
+	int A[(s)*(s)], B[(s)*(l)], C[(l)*(s)], D[(l)*(l)],
+        Atmp[(s)*(s)], Btmp[(s)*(l)], Ctmp[(l)*(s)], Dtmp[(l)*(l)];
 	//Initialize A, B, C & D
     	for(int i = 0; i < dim; i++) {
             for(int j = 0; j < dim; j++) {
@@ -326,10 +329,10 @@ void RKleene_cpu (
     	}
 
 	//Perform R-Kleene computations
-	RKleene_cpu(A, Atmp, dim/2);
-	rKleene_mmult_cpu1 (Atmp, B, C, D, Btmp, Ctmp, Dtmp, dim/2);
-	RKleene_cpu(Dtmp, D, dim/2);
-	rKleene_mmult_cpu2 (Atmp, Btmp, Ctmp, D, B, C, A, dim/2);
+	RKleene_cpu(A, Atmp, s);
+	rKleene_mmult_cpu1 (Atmp, B, C, D, Btmp, Ctmp, Dtmp, s, l);
+	RKleene_cpu(Dtmp, D, l);
+	rKleene_mmult_cpu2 (Atmp, Btmp, Ctmp, D, B, C, A, s, l);
 
 	//write to out
 	Aind = 0, Bind = 0, Cind = 0, Dind = 0;
@@ -592,7 +595,7 @@ int main(int argc, char** argv)
     std::ifstream inputFile("input.txt");        // Input file stream object
 
     // Check if exists and then open the file.
-    if (inputFile.is_open()) {
+    /*if (inputFile.is_open()) {
         // Push items into a vector
         int current_number = 0;
         while (inputFile >> current_number && count < size*size){
@@ -605,6 +608,17 @@ int main(int argc, char** argv)
 
         // Close the file.
         inputFile.close();
+    }else {
+        std::cout << "Error! Cannot open file.\n";
+        return 0;
+    }*/
+
+    //Create the test data and Software Result 
+    for(int i = 0 ; i < DATA_SIZE * DATA_SIZE ; i++){
+        source_in1[i] = rand() % size;
+        source_cpu_results[i] = 0;
+        source_fpga_results[i] = 0;
+    }
 
         // Display the numbers read:
         std::cout << "The numbers are: ";
@@ -612,19 +626,7 @@ int main(int argc, char** argv)
 	    if(ct % size == 0)    std::cout << std::endl;
             std::cout << source_in1[ct] << " ";
         }
-
         std::cout << std::endl;
-    }else {
-        std::cout << "Error! Cannot open file.\n";
-        return 0;
-    }
-
-    //Create the test data and Software Result 
-    for(int i = 0 ; i < DATA_SIZE * DATA_SIZE ; i++){
-        //source_in1[i] = rand() % size;
-        source_cpu_results[i] = 0;
-        source_fpga_results[i] = 0;
-    }
 
     uint64_t kernel_duration = 0;  
 
