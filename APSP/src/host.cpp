@@ -30,7 +30,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*****
 * Changes from Lab 3:
 
-To achieve better performance on the matrix multiplication the input and output 
+To achieve better performance on the matrix multiplication the input and output
 arrays are partitioned and the innermost loop is unrolled in the kernel.
 *****/
 
@@ -44,8 +44,8 @@ arrays are partitioned and the innermost loop is unrolled in the kernel.
 //Max Array Size
 #define MAX_SIZE 19
 
-//Array Size to access 
-#define DATA_SIZE 19 
+//Array Size to access
+#define DATA_SIZE 19
 
 //Block Size
 #define BSIZE 2
@@ -60,6 +60,18 @@ uint64_t get_duration_ns (const cl::Event &event) {
     event.getProfilingInfo<uint64_t>(CL_PROFILING_COMMAND_START,&nstimestart);
     event.getProfilingInfo<uint64_t>(CL_PROFILING_COMMAND_END,&nstimeend);
     return(nstimeend-nstimestart);
+}
+//Matrix multiply, out = in + in1 x in2
+void MatMul(int *in1, int *in2, int in, int *out, int outRow, int outCol, int midSize){
+  for(int i = 0; i < outRow; i++) {
+    for(int j = 0; j < outCol; j++) {
+        out[i * outCol + j] = e_a;
+        for(int k = 0; k < midSize; k++) {
+            out[i * outCol + j] = add(out[i * outCol + j], mul(in1[i * midSize + k], in2[k * outCol + j]));
+        }
+    out[i * outCol + j] = add(in[i * outCol + j], out[i * outCol + j]);
+    }
+  }
 }
 
 //CPU implementation of first part of Kleene Matrix Multiplication
@@ -158,7 +170,7 @@ void rKleene_mmult_cpu1 (
         std::cout <<  outD[ct] << " ";
     }
     std::cout << std::endl;
-}  
+}
 
 //CPU implementation of second part of Kleene Matrix Multiplication
 //The inputs are of the size (DATA_SIZE x DATA_SIZE)
@@ -257,12 +269,12 @@ void rKleene_mmult_cpu2 (
         std::cout <<  outA[ct] << " ";
     }
     std::cout << std::endl;
-}  
+}
 
 //CPU implementation of Floyd-Warshall
 //The inputs are of the size (DATA_SIZE x DATA_SIZE)
 void FW_cpu (
-    int *in,   //Input Matrix 
+    int *in,   //Input Matrix
     int *out,   //Output Matrix
     int dim     //One dimension of matrix
 )
@@ -289,7 +301,7 @@ void FW_cpu (
         std::cout <<  out[ct] << " ";
     }
     std::cout << std::endl;
-} 
+}
 
 void RKleene_cpu (
     int *in,   //Input Matrix
@@ -330,9 +342,17 @@ void RKleene_cpu (
 
 	//Perform R-Kleene computations
 	RKleene_cpu(A, Atmp, s);
-	rKleene_mmult_cpu1 (Atmp, B, C, D, Btmp, Ctmp, Dtmp, s, l);
+	//rKleene_mmult_cpu1 (Atmp, B, C, D, Btmp, Ctmp, Dtmp, s, l);
+  //mmul1
+  MatMul(Atmp, B, B, Btmp, s, l, s);
+  MatMul(C, Atmp, C, Ctmp, l, s, s);
+  MatMul(C, B, D, Dtmp, l, l, s);
 	RKleene_cpu(Dtmp, D, l);
-	rKleene_mmult_cpu2 (Atmp, Btmp, Ctmp, D, B, C, A, s, l);
+	//rKleene_mmult_cpu2 (Atmp, Btmp, Ctmp, D, B, C, A, s, l);
+  //mmul2
+  MatMul(Btmp, D, Btmp, B, s, l, l);
+  MatMul(D, Ctmp, Ctmp, C, l, s, l);
+  MatMul(Btmp, Ctmp, Atmp, A, s, s, l);
 
 	//write to out
 	Aind = 0, Bind = 0, Cind = 0, Dind = 0;
@@ -366,13 +386,13 @@ uint64_t RKleene_fpga (
     int dim                                         //One dimension of matrix
 )
 {
-    int size = dim, halfsize = size/2;    
+    int size = dim, halfsize = size/2;
     size_t matrix_size_bytes = sizeof(int) * size * size;
 
     cl::Event event;
     uint64_t kernel_duration = 0;
 
-    //The get_xil_devices will return vector of Xilinx Devices 
+    //The get_xil_devices will return vector of Xilinx Devices
     std::vector<cl::Device> devices = xcl::get_xil_devices();
     cl::Device device = devices[0];
 
@@ -380,9 +400,9 @@ uint64_t RKleene_fpga (
     cl::Context context(device);
     cl::CommandQueue q1(context, device, CL_QUEUE_PROFILING_ENABLE);
     cl::CommandQueue q2(context, device, CL_QUEUE_PROFILING_ENABLE);
-    std::string device_name = device.getInfo<CL_DEVICE_NAME>(); 
+    std::string device_name = device.getInfo<CL_DEVICE_NAME>();
 
-    //import_binary() command will find the OpenCL binary file created using the 
+    //import_binary() command will find the OpenCL binary file created using the
     //xocc compiler load into OpenCL Binary and return as Binaries
     //OpenCL and it can contain many functions which can be executed on the
     //device.
@@ -407,9 +427,9 @@ uint64_t RKleene_fpga (
 	//objects can be used to reference the memory locations on the device.
 	//The cl::Buffer object cannot be referenced directly and must be passed
 	//to other OpenCL functions.
-	cl::Buffer buffer_in1(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
-            matrix_size_bytes,source_in1.data());    
-	cl::Buffer buffer_output(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
+	cl::Buffer buffer_in1(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+            matrix_size_bytes,source_in1.data());
+	cl::Buffer buffer_output(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY,
             matrix_size_bytes,source_fpga_results.data());
 
     	//These commands will load the source_in1 and source_in2 vectors from the host
@@ -469,19 +489,19 @@ uint64_t RKleene_fpga (
 	//objects can be used to reference the memory locations on the device.
 	//The cl::Buffer object cannot be referenced directly and must be passed
 	//to other OpenCL functions.
-	cl::Buffer buffer_inA(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
-            matrix_size_bytes,Atmp.data());    
-	cl::Buffer buffer_inB(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
-            matrix_size_bytes,B.data()); 
-	cl::Buffer buffer_inC(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
-            matrix_size_bytes,C.data()); 
-	cl::Buffer buffer_inD(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
-            matrix_size_bytes,D.data()); 
-	cl::Buffer buffer_outB(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
+	cl::Buffer buffer_inA(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+            matrix_size_bytes,Atmp.data());
+	cl::Buffer buffer_inB(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+            matrix_size_bytes,B.data());
+	cl::Buffer buffer_inC(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+            matrix_size_bytes,C.data());
+	cl::Buffer buffer_inD(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+            matrix_size_bytes,D.data());
+	cl::Buffer buffer_outB(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY,
             matrix_size_bytes,Btmp.data());
-	cl::Buffer buffer_outC(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
+	cl::Buffer buffer_outC(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY,
             matrix_size_bytes,Ctmp.data());
-	cl::Buffer buffer_outD(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
+	cl::Buffer buffer_outD(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY,
             matrix_size_bytes,Dtmp.data());
 
     	//These commands will load the source_in1 and source_in2 vectors from the host
@@ -521,19 +541,19 @@ uint64_t RKleene_fpga (
 	//objects can be used to reference the memory locations on the device.
 	//The cl::Buffer object cannot be referenced directly and must be passed
 	//to other OpenCL functions.
-	cl::Buffer buffer2_inA(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
-            matrix_size_bytes,Atmp.data());    
-	cl::Buffer buffer2_inB(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
-            matrix_size_bytes,Btmp.data()); 
-	cl::Buffer buffer2_inC(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
-            matrix_size_bytes,Ctmp.data()); 
-	cl::Buffer buffer2_inD(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY, 
-            matrix_size_bytes,D.data()); 
-	cl::Buffer buffer2_outB(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
+	cl::Buffer buffer2_inA(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+            matrix_size_bytes,Atmp.data());
+	cl::Buffer buffer2_inB(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+            matrix_size_bytes,Btmp.data());
+	cl::Buffer buffer2_inC(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+            matrix_size_bytes,Ctmp.data());
+	cl::Buffer buffer2_inD(context,CL_MEM_USE_HOST_PTR | CL_MEM_READ_ONLY,
+            matrix_size_bytes,D.data());
+	cl::Buffer buffer2_outB(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY,
             matrix_size_bytes,B.data());
-	cl::Buffer buffer2_outC(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
+	cl::Buffer buffer2_outC(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY,
             matrix_size_bytes,C.data());
-	cl::Buffer buffer2_outA(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY, 
+	cl::Buffer buffer2_outA(context,CL_MEM_USE_HOST_PTR | CL_MEM_WRITE_ONLY,
             matrix_size_bytes,A.data());
 
     	//These commands will load the source_in1 and source_in2 vectors from the host
@@ -576,17 +596,17 @@ int main(int argc, char** argv)
     }
 
     //Allocate Memory in Host Memory
-    int size = DATA_SIZE, count=0;    
+    int size = DATA_SIZE, count=0;
     size_t matrix_size_bytes = sizeof(int) * size * size;
 
     //When creating a buffer with user pointer, under the hood user ptr is
-    //used if and only if it is properly aligned (page aligned). When not 
+    //used if and only if it is properly aligned (page aligned). When not
     //aligned, runtime has no choice but to create its own host side buffer
     //that backs user ptr. This in turn implies that all operations that move
     //data to/from device incur an extra memcpy to move data to/from runtime's
-    //own host buffer from/to user pointer. So it is recommended to use this 
+    //own host buffer from/to user pointer. So it is recommended to use this
     //allocator if user wish to Create Buffer/Memory Object to align user buffer
-    //to the page boundary. It will ensure that user buffer will be used when 
+    //to the page boundary. It will ensure that user buffer will be used when
     //user create Buffer/Mem Object.
     std::vector<int,aligned_allocator<int>> source_in1(matrix_size_bytes);
     std::vector<int,aligned_allocator<int>> source_fpga_results(matrix_size_bytes);
@@ -613,7 +633,7 @@ int main(int argc, char** argv)
         return 0;
     }*/
 
-    //Create the test data and Software Result 
+    //Create the test data and Software Result
     for(int i = 0 ; i < DATA_SIZE * DATA_SIZE ; i++){
         source_in1[i] = rand() % size;
         source_cpu_results[i] = 0;
@@ -628,7 +648,7 @@ int main(int argc, char** argv)
         }
         std::cout << std::endl;
 
-    uint64_t kernel_duration = 0;  
+    uint64_t kernel_duration = 0;
 
     FW_cpu(source_in1.data(), source_cpu_results.data(), size);
 
@@ -647,7 +667,7 @@ int main(int argc, char** argv)
     //Compute FPGA Results
     kernel_duration = RKleene_fpga(source_in1, source_fpga_results, size);
 
-    //Compare the results of the FPGA to CPU 
+    //Compare the results of the FPGA to CPU
     bool match = true;
     for (int i = 0 ; i < size * size; i++){
         if (source_fpga_results[i] != source_cpu_results[i]){
@@ -659,11 +679,11 @@ int main(int argc, char** argv)
         }
     }
 
-    std::cout << "TEST " << (match ? "PASSED" : "FAILED") << std::endl; 
+    std::cout << "TEST " << (match ? "PASSED" : "FAILED") << std::endl;
 
     std::cout << "Wall Clock Time (Kernel execution): " << kernel_duration << std::endl;
-    std::cout << "Note: Wall Clock Time is meaningful for real hardware execution only,"  
-            << "not for emulation." << std::endl; 
+    std::cout << "Note: Wall Clock Time is meaningful for real hardware execution only,"
+            << "not for emulation." << std::endl;
 
     return (match ? EXIT_SUCCESS :  EXIT_FAILURE);
 }
