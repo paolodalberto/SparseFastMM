@@ -3,28 +3,30 @@
 
 //#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
-typedef int Mat ;
+
 static int DEBUG = 0;
 #define GRAPH_PATH 1
-
-#include <SparseBLAS.h>
-
 
 
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <SparseBLAS.h>
+
+
+
 #include <sorting.h>
 
 
 int validate(COO A) {
   Ordering order = {A.M, A.N, 1 } ;
   
-  for (int i=1; i< A.length; i++) { 
+  for (long unsigned int i=1; i< A.length; i++) { 
     COOE l = A.data[i-1];
     COOE c = A.data[i];
     if (roworder(&c,&l,&order)<0) {
-      printf(" %d <%d location %d Current (%d,%d,%d) < previous (%d,%d,%d ) \n",
+      printf(" %d <%d location %lu Current (%d,%d,%d) < previous (%d,%d,%d ) \n",
 	     c.m*A.N+c.n, l.m*A.N+l.n,
 	     i,c.m,c.n,c.value,l.m,l.n,l.value);
       return 0;
@@ -37,11 +39,11 @@ int validate(COO A) {
 int validateT(COO A) {
   Ordering order = {A.M, A.N, 1 } ;
   
-  for (int i=1; i< A.length; i++) { 
+  for (long unsigned int i=1; i< A.length; i++) { 
     COOE l = A.data[i-1];
     COOE c = A.data[i];
     if (colorder(&c, &l,&order)<0) {
-      printf(" %d < %d location %d A.M %d A.N %d Current (%d,%d,%d) < previous (%d,%d,%d ) \n",
+      printf(" %d < %d location %lu A.M %d A.N %d Current (%d,%d,%d) < previous (%d,%d,%d ) \n",
 	     c.m+A.M*c.n ,  l.m+A.M*l.n,
 	     i, A.M, A.N,
 	     c.m,c.n,c.value,
@@ -55,7 +57,7 @@ int validateT(COO A) {
 
 
 COO buildrandom_coo_list(int k, int D){
-  int range = 0;
+  long unsigned int range = 0;
   COO res = { NULL, 0, k,k};
   COOE *array ;
   array =  (COOE *) malloc(sizeof(COOE)*k*((10*D<k)?(10*D):k));
@@ -102,15 +104,20 @@ COO buildrandom_coo_list(int k, int D){
   res.length = range;
 
   if (DEBUG)
-    printf("Size allocated %d and used %d \n", k*k,range);
+    printf("Size allocated %d and used %lu \n", k*k,range);
   return res;
 }
 
 
 
 // in row format
-int collectrow(COOE *array, int len, int i, int row) {
-  int j;
+long unsigned int
+collectrow(
+	   COOE *array,
+	   long unsigned int len,
+	   long unsigned int i,
+	   int row) {
+  long unsigned int j;
 
   for (j=i; j<len && array[j].m ==row; j++);
 
@@ -118,9 +125,14 @@ int collectrow(COOE *array, int len, int i, int row) {
 }
 
 // in column format
-int collectcol(COOE *array, int len, int i, int col) {
+long unsigned int
+collectcol(
+	   COOE *array,
+	   long unsigned int len,
+	   long unsigned int i,
+	   int col) {
 
-  int j;
+  long unsigned int j;
 
   for (j=i; j<len && array[j].n ==col; j++);
 
@@ -182,42 +194,44 @@ void smvp(int nodes,
 
 COO matmul_coo(COO C,COO A,COO B) {
 
-  int i, j, t, l,row, col;
-    COOTemporary T = { NULL, 0, C.M, C.N};
-    initialize_coot(&T);
-    COO CT = { NULL, 0, C.M, C.N }; 
+  long unsigned int i, j, t, l,row, col;
+  COOTemporary T = { NULL, 0, C.M, C.N};
+  initialize_coot(&T);
+  COO CT = { NULL, 0, C.M, C.N }; 
+  
+  l  = 0; // C and T runner 
+  i = 0; // A runner
 
-    l  = 0; // C and T runner 
-    i = 0; // A runner
-
-    while (i<A.length) {
-      
-      int iii = collectrow(A.data, A.length,i,A.data[i].m); // from i to iii there is the A[row] vector 
-      int ii=i;
+  while (i<A.length) {
+      // from i to iii there is the A[row] vector 
+      long unsigned int iii = collectrow(A.data, A.length,i,A.data[i].m); 
+      long unsigned int ii=i;
       row = A.data[i].m;
-      if (DEBUG) printf("i = %d Row %d ii=%d iii=%d \n",i,row,ii,iii);
+      if (DEBUG) printf("i = %lu Row %lu ii=%lu iii=%lu \n",i,row,ii,iii);
       // filling entire rows from C till we have the first row of A
       for (; C.data[l].m<row ; l++)  {
 	int res = append_coot(&T, C.data[l]);
-	if (DEBUG) printf("\t l=%d CR append row res=%d at %d C (%d,%d,%d) \n",
+	if (DEBUG) printf("\t l=%lu CR append row res=%d at %lu C (%d,%d,%d) \n",
 			  l,res,row,C.data[l].m,C.data[l].m,C.data[l].value);
       }
 
       j = 0;  // B runner
       while (j<B.length) {
-	COOE temp = { row, B.data[j].n, e_a}; // temporary to hold the product 
-	int jjj = collectcol(B.data, B.length,j,B.data[j].n); // from j to jjj there is the B[col] vector 
-	int jj=j;
+	// temporary to hold the product
+	COOE temp = { row, B.data[j].n, e_a}; 
+	// from j to jjj there is the B[col] vector 
+	long unsigned int jjj = collectcol(B.data, B.length,j,B.data[j].n); 
+	long unsigned int jj=j;
 	col = B.data[j].n;
-	if (DEBUG) printf("%d\t j=%d Col %d jj=%d jjj=%d \n",l,j,col,jj,jjj);
+	if (DEBUG) printf("%lu\t j=%lu Col %lu jj=%lu jjj=%lu \n",l,j,col,jj,jjj);
 	// filling the column of C
-	if (DEBUG) printf("D%d C.data[%d] %d %d %d  \n",DEBUG,l,C.data[l].m,C.data[l].n,C.data[l].value);
-	for (int k=l;
-	     C.data[l].n<col &&
-	       C.data[l].m==row ;
+	if (DEBUG) printf("D%d C.data[%lu] %d %d %d  \n",DEBUG,l,C.data[l].m,C.data[l].n,C.data[l].value);
+	for (long unsigned int k=l;
+	     C.data[l].n<col && C.data[l].m==row ;
 	     l++,k++)  {
 	  int res = 	  append_coot(&T, C.data[l]);
-	  if (DEBUG) printf("\t\t l=%d CC append  r=%d at=%d C (%d,%d,%d) \n",l, res,col,C.data[l].m,C.data[l].n,C.data[l].value);
+	  if (DEBUG) printf("\t\t l=%lu CC append  r=%d at=%lu C (%d,%d,%d) \n",
+			    l, res,col,C.data[l].m,C.data[l].n,C.data[l].value);
 	}
 
 	// filling the element of C
@@ -248,15 +262,15 @@ COO matmul_coo(COO C,COO A,COO B) {
 	}
 	
 	j = jjj;  // next column 
-	if (DEBUG) printf("\t end jjj %d \n",jjj);
+	if (DEBUG) printf("\t end jjj %lu \n",jjj);
       }
-	if (DEBUG) printf("end iii %d \n",iii);
+	if (DEBUG) printf("end iii %lu \n",iii);
       i =iii; // next row
     }
     
     // we copy the temporary result as a sparse and contiguous
     // matrix and deallocate the temporary file.
-    if (DEBUG) printf("Compressing %d \n", T.length);
+    if (DEBUG) printf("Compressing %lu \n", T.length);
     CT.length = T.length;
     CT.data = (COOE*) malloc(T.length*sizeof(COOE)); 
     for (t=0; t<T.length;t++)	{
@@ -274,27 +288,28 @@ COO matmul_coo(COO C,COO A,COO B) {
 
 void matmul_coo_AB(COO *C,COO A,COO B) {
 
-  int i, j, t, l,row, col;
-    COOTemporary T = { NULL, 0, A.M, B.N};
-    initialize_coot(&T);
-    COO CT = { NULL, 0, A.M, B.N }; 
+  long unsigned int i, j, t, l,row, col;
+  COOTemporary T = { NULL, 0, A.M, B.N};
+  initialize_coot(&T);
+  COO CT = { NULL, 0, A.M, B.N }; 
 
-    l  = 0; // C and T runner 
-    i = 0; // A runner
+  l  = 0; // C and T runner 
+  i = 0; // A runner
 
-    while (i<A.length) {
+  while (i<A.length) {
       
-      int iii = collectrow(A.data, A.length,i,A.data[i].m); // from i to iii there is the A[row] vector 
-      int ii=i;
-      row = A.data[i].m;
+    long unsigned int iii = collectrow(A.data, A.length,i,A.data[i].m); // from i to iii there is the A[row] vector 
+    long unsigned int ii=i;
+    row = A.data[i].m;
 
-      j = 0;  // B runner
-      while (j<B.length) {
-	COOE temp = { row, B.data[j].n, e_a}; // temporary to hold the product 
-	int jjj = collectcol(B.data, B.length,j,B.data[j].n); // from j to jjj there is the B[col] vector 
-	int jj=j;
-	col = B.data[j].n;
-	if (DEBUG) printf("%d\t j=%d Col %d jj=%d jjj=%d \n",l,j,col,jj,jjj);
+    j = 0;  // B runner
+    while (j<B.length) {
+      COOE temp = { row, B.data[j].n, e_a}; // temporary to hold the product
+      // from j to jjj there is the B[col] vector 
+      long unsigned int jjj = collectcol(B.data, B.length,j,B.data[j].n); 
+      long unsigned int jj=j;
+      col = B.data[j].n;
+	if (DEBUG) printf("%lu\t j=%lu Col %lu jj=%lu jjj=%lu \n",l,j,col,jj,jjj);
 
 	// a_row * b_col is like a merge
 	while (ii<iii && jj<jjj) {
@@ -312,20 +327,21 @@ void matmul_coo_AB(COO *C,COO A,COO B) {
 	//Done because if either is empty nothing to do e_a*w = e_a
 
 	// if temp is not e_a (identity for +)  
-	if (temp.value != e_a) { int res = append_coot(&T, temp);
+	if (temp.value != e_a) {
+	  int res = append_coot(&T, temp);
 	  if (DEBUG) printf("\t\t append CT %d temp (%d,%d,%d) \n",res,temp.m,temp.n,temp.value);
 	}
 	
 	j = jjj;  // next column 
-	if (DEBUG) printf("\t end jjj %d \n",jjj);
+	if (DEBUG) printf("\t end jjj %lu \n",jjj);
       }
-	if (DEBUG) printf("end iii %d \n",iii);
+	if (DEBUG) printf("end iii %lu \n",iii);
       i =iii; // next row
     }
     
     // we copy the temporary result as a sparse and contiguous
     // matrix and deallocate the temporary file.
-    if (DEBUG) printf("Compressing %d \n", T.length);
+    if (DEBUG) printf("Compressing %lu \n", T.length);
     C->length = T.length;
     C->data = (COOE*) malloc(T.length*sizeof(COOE)); 
     for (t=0; t<T.length;t++)	{
@@ -335,7 +351,7 @@ void matmul_coo_AB(COO *C,COO A,COO B) {
 	
     free_coot(&T);
     if (DEBUG) printf("free TEMP \n");
-    return C;
+    //return C;
     
 }
 
@@ -343,8 +359,8 @@ void matmul_coo_AB(COO *C,COO A,COO B) {
 void print_coo(COO B) {
 
   int rows =B.data[0].m;
-  printf("L=%d M=%d N=%d S=%d \n",B.length,B.M, B.N, sizeof(COOE));
-  for (int ktemp=0; ktemp<B.length; ktemp++) {
+  printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
+  for (long unsigned int ktemp=0; ktemp<B.length; ktemp++) {
     if (B.data[ktemp].m!= rows) {
       printf("\n");
       rows = B.data[ktemp].m;
@@ -358,8 +374,8 @@ void print_coo(COO B) {
 void print_coo_c(COO B) {
 
   int cols =B.data[0].n;
-  printf("L=%d M=%d N=%d S=%d \n",B.length,B.M, B.N, sizeof(COOE));
-  for (int ktemp=0; ktemp<B.length; ktemp++) {
+  printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
+  for (long unsigned int ktemp=0; ktemp<B.length; ktemp++) {
     if (B.data[ktemp].n!= cols) {
       printf("\n");
       cols = B.data[ktemp].n;
@@ -386,7 +402,7 @@ void matmul_f(
     if (cm <20 && cn <20) {
       for (int i=0; i<am; i++) {
 	for (int j=0; j< bn; j++) 
-	  printf("%f ", C[i*cn + j]);
+	  printf("%f ", (float)C[i*cn + j]);
 	    printf("\n");
       }
     }
@@ -406,7 +422,7 @@ void matmul_f(
       
       for (int i=0; i<am; i++) {
 	for (int j=0; j< bn; j++) 
-	  printf("%f ", C[i*cn + j]);
+	  printf("%f ", (float)C[i*cn + j]);
 	printf("\n");
       }
     

@@ -1,7 +1,8 @@
 #include<stdio.h>
-typedef int Mat ;
+
 static int DEBUG=0;
 
+#define GRAPH_PATH 1
 #include<SparseBLAS.h>
 
 /* Function to sort an array using insertion sort*/

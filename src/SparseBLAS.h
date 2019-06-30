@@ -3,12 +3,24 @@
 #include <limits.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h> 
+
+
 
 #ifdef GRAPH_PATH
+typedef int Mat ;
 #define add(a,b) (((a)<(b))?(a):(b))
 #define e_a  INT_MAX
 #define mul(a,b) ((a)+(b))
 #define e_m  0
+#endif
+
+#ifdef ALGEBRA_PATH
+typedef double Mat ;
+#define add(a,b) (a+b)
+#define e_a  0
+#define mul(a,b) ((a)*(b))
+#define e_m  1
 #endif
 
 
@@ -56,7 +68,7 @@ typedef int (*Comparing)(COOE *a, COOE *b, Ordering *c);
  */
 struct coo_matrix {
   COOE *data;
-  int length; // number of COOE
+  long unsigned int length; // number of COOE
   int M;      // Dimensions Row
   int N;      // Dimensions Column
 };
@@ -69,7 +81,7 @@ typedef struct coo_matrix COO;
  */
 struct cootemp_matrix {
   COOE **data;   // data[(L/(3*M)][(L/3 % N)*3]
-  int length; // number of COOE 
+  long unsigned int length; // number of COOE 
   int M;      // Dimensions Row
   int N;      // Dimensions Column
 };
@@ -97,18 +109,18 @@ static int initialize_coot(COOTemporary *T) {
   return 1;
 }
 
-static inline COOE index_coot(COOTemporary *T, int L) {
+static inline COOE index_coot(COOTemporary *T, long unsigned int L) {
   int i = L/T->M;
   int j = L % T->M;
   
-  if (DEBUG && L<T->length) printf("T length %d i %d j %d \n", T->length,i,j);
+  if (DEBUG && L<T->length) printf("T length %lu i %d j %d \n", T->length,i,j);
   //assert((L>T->length)?1:0) ;
   return T->data[i][j];
 }
 
 
 static inline int free_coot(COOTemporary *T) {
-  int L = T->length;
+  long unsigned int L = T->length;
   int i = L/T->N;
 
 
@@ -123,11 +135,11 @@ static inline int free_coot(COOTemporary *T) {
 
 
 static inline int append_coot(COOTemporary *T, COOE val) {
-  int L = (T->length);
+  long unsigned int L = (T->length);
   int i = L/T->M;
   int j = L % T->M;
   int add=0;
-  if (DEBUG && !T->data[i])  printf(" append_coot L =%d i=%i j=%d ARR=%d \n",L, i, j, (int)T->data[i]);
+  if (DEBUG && !T->data[i])  printf(" append_coot L =%lu i=%i j=%d  \n",L, i, j);
   if (!T->data[i]) {
     T->data[i] = (COOE*) malloc(T->N*sizeof(COOE));
     assert(T->data[i] );
@@ -152,6 +164,8 @@ extern void matmul_f(
 
 extern void print_coo(COO B);
 extern void print_coo_c(COO B);
+extern int validate(COO B);
+extern int validateT(COO B);
 
 #endif
 

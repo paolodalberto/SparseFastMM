@@ -30,7 +30,7 @@ double duration;
   printf("clock time %e s \n", duration); 
 #endif
 
-typedef int Mat ;
+#define GRAPH_PATH 1
 static int DEBUG=0;
 
 #include <SparseBLAS.h>
@@ -45,10 +45,11 @@ int main() {
   COO M,MT;
   COO temp;
   int ver;
+  int res;
   
-  printf("K "); scanf("%d", &k);
-  printf("D "); scanf("%d", &D);
-  printf("P "); scanf("%d", &Ps);
+  printf("K "); res= scanf("%d", &k);
+  printf("D "); res=scanf("%d", &D);
+  printf("P "); res=scanf("%d", &Ps);
   
   M = buildrandom_coo_list(k, D);
   ver = validate(M);

@@ -1,17 +1,13 @@
 
 #define GRAPH_PATH 1
-typedef int Mat ;
+
 static int DEBUG = 0;
 static int DEBUG2=1;
 #include <SparseBLAS.h>
 
-#define add(a,b) (((a)<(b))?(a):(b))
-#define e_a  INT_MAX
-#define mul(a,b) ((a)+(b))
-#define e_m  0
 
 
-
+ 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sorting.h>
@@ -227,8 +223,8 @@ COO matmul_coo_par(COO C,COO A,COO B,
   COO *Rows = split_rows(A,Ps);
   COO *Ts   = (COO*) malloc(Ps*sizeof(COO)); 
 
-  COO TR = { NULL, 0, A.M, A.N};
-  COO R = { NULL, 0, A.M, A.N};
+  COO TR = { NULL, 0, A.M, B.N};
+  COO R = { NULL, 0, C.M, C.N};
   TAddOperands *args = (TAddOperands*) malloc(Ps*sizeof(TAddOperands));
   
   if (DEBUG2) printf("Parallel %d\n",Ps);
@@ -268,6 +264,34 @@ COO matmul_coo_par(COO C,COO A,COO B,
   if (DEBUG2) printf("last free \n");
   free(TR.data);
   
+  return R;
+}
+
+COO
+matmul_coo_par_basic(
+		     int *_C,
+		     long unsigned LC,
+		     int MC,
+		     int NC,
+		     int *_A,
+		     long unsigned LA,
+		     int MA,
+		     int NA,
+		     int *_B,
+		     long unsigned LB,
+		     int MB,
+		     int NB,
+		     int Ps /* number of threads */
+		     ) {
+
+
+  COO C = { _C, LC, C.M, C.N};
+  COO A = { _A, LA, A.M, A.N};
+  COO B = { _B, LB, B.M, B.N};
+
+  COO R = matmul_coo_par(C,A,B,Ps);
+
+  // This has to be free by who calls this 
   return R;
 }
   
