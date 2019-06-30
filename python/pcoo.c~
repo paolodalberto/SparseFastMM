@@ -1,0 +1,12 @@
+#include <Python.h>
+
+PyObject *pmul(PyObject *self, PyObject *args) {
+
+  PyObject *C; // change this to string
+  PyObject *A;
+  PyObject *B;
+
+  if (! PyArg_ParseTuple (args, "Oii", &C, &A, &B))
+    return NULL;
+
+  
