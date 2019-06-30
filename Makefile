@@ -17,7 +17,7 @@ INC = -I ./$(DIR)  #-I/usr/include/python2.7/ -I/usr/local/lib/python2.7/dist-pa
 
 
 
-OBJ= vecGen.o matGen.o
+OBJ= $(DIR)/SparseBLAS.o $(DIR)/sorting.o  $(DIR)/paoloexample.o $(DIR)/parsparsecoo.o
 
 vecGen.o: $(DIR)/vecGen.c $(DIR)/vecGen.h
 	$(CC) $(CFLAGS) $< -o $@
@@ -29,8 +29,13 @@ all: $(OBJ) $(DIR)/main.c
 	$(CC) $^ -o $(Executable)/main
 
 
-sparsecoo: $(DIR)/SparseBLAS.o $(DIR)/sorting.o  $(DIR)/paoloexample.o $(DIR)/parsparsecoo.o
-	$(CC) $(OPT) $(DIR)/paoloexample.o $(DIR)/SparseBLAS.o $(DIR)/sorting.o $(DIR)/parsparsecoo.o -o $(Executable)/stest -lpthread
+sparsecoo: $(OBJ)
+	make lib
+	$(CC) $(OPT) $(DIR)/paoloexample.o  -o $(Executable)/stest  -L ./lib -lsparsefastmm  -lpthread
+
+
+lib: $(OBJ)
+	$(AR) ./lib/libsparsefastmm.a $(OBJ)
 
 clean:
-	rm *.o $(DIR)/*.o 
+	rm  $(DIR)/*.o lib/* 
