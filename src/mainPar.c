@@ -6,7 +6,7 @@
 #include <time.h>
 #include <pthread.h>
 
-#define THREAD_NUM 8
+#define THREAD_NUM 16
 
 int **A,*B, *C, *D, *E;
 int i, j, k, n, valNum, first, same, sparse_factor;
@@ -23,7 +23,13 @@ int main(int argc, char **argv)
 
 	valNum=0;
 	same=1;
-
+//Matrix and vector generation
+/*	for(n=20000;n<=25000;n+=5000){
+		gen_V(n);
+		for(sparse_factor=95;sparse_factor<100;sparse_factor++)
+			gen_M(n, sparse_factor);
+	}
+*/
 	printf("Give matrix size (N):\n");
 	scanf("%d",&n);
 	printf("N = %d\n",n);
@@ -89,10 +95,12 @@ int main(int argc, char **argv)
 			t=clock()-t;
 			double time_taken_sp = ((double)t)/CLOCKS_PER_SEC;
 
+			printf("\nComputing parallel multiplication...\n");
+
 // function to multiply each val with B
 			t=clock();
 
-			for(i=0;i<n/THREAD_NUM;i++){
+			for(i=0;i<THREAD_NUM;i++){
 				int *tid;
 		    tid = (int *) malloc( sizeof(int) );
 		    *tid = i;
@@ -102,6 +110,9 @@ int main(int argc, char **argv)
 			for ( i = 0; i < THREAD_NUM; ++i ) {
     		pthread_join( threads[i], NULL );
 			}
+
+			printf("threads created and joined\n");
+//for(i=0;i<valNum;i++) printf("%d ", E[i]);
 
 			for(i=0;i<n;i++){
 				k=i+1;
@@ -139,8 +150,14 @@ int main(int argc, char **argv)
 }
 
 void *tMul(void *arg){
-	int i,tid;
-	if(i*THREAD_NUM+tid<valNum){
-			E[i*THREAD_NUM+tid]=val[i*THREAD_NUM+tid]*B[col[i*THREAD_NUM+tid]];
+	int i,tid,portion_size,row_start,row_end;
+	tid = *(int *)(arg);
+	portion_size = valNum / THREAD_NUM;
+  row_start = tid * portion_size;
+  row_end = (tid+1) * portion_size;
+
+	for(i=row_start;i<row_end;i++)
+		if(i<valNum){
+			E[i]=val[i]*B[col[i]];
 	}
 }

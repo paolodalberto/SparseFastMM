@@ -94,7 +94,7 @@ void write_M(int **M, int n, int sparse_factor){
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "data/Mat%dx%d_%d.txt",n,n,sparse_factor);
+	x=snprintf(fname, bufSize, "../src/data/Mat%dx%d_%d.txt",n,n,sparse_factor);
 	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"w+");
@@ -117,7 +117,7 @@ void write_CRF_M(int *val, int *col, int *rowPtr, int n, int k, int sparse_facto
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "data/CRF%dx%d_%d.txt",n,n,sparse_factor);
+	x=snprintf(fname, bufSize, "../src/data/CRF%dx%d_%d.txt",n,n,sparse_factor);
 	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"w+");
@@ -142,7 +142,7 @@ void read_M(int **res, int n, int sparse_factor){
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "data/Mat%dx%d_%d.txt",n,n,sparse_factor);
+	x=snprintf(fname, bufSize, "../src/data/Mat%dx%d_%d.txt",n,n,sparse_factor);
 	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"r+");
@@ -166,7 +166,7 @@ void read_CRF_M(int *val, int *col, int *rowPtr, int n, int k, int sparse_factor
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "data/CRF%dx%d_%d.txt",n,n,sparse_factor);
+	x=snprintf(fname, bufSize, "../src/data/CRF%dx%d_%d.txt",n,n,sparse_factor);
 	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"r+");
@@ -191,7 +191,7 @@ void read_K(int *k, int n, int sparse_factor){
 	int bufSize=40;
 	FILE *f;
 	char fname[bufSize];
-	x=snprintf(fname, bufSize, "data/CRF%dx%d_%d.txt",n,n,sparse_factor);
+	x=snprintf(fname, bufSize, "../src/data/CRF%dx%d_%d.txt",n,n,sparse_factor);
 	printf("x=%d\n",x);
 	printf("%s\n",fname);
 	f=fopen(fname,"r+");

@@ -7,7 +7,7 @@ AR = ar rcs
 DIR=src
 Executable=Executable
 
-## Machine Specific optimizations 
+## Machine Specific optimizations
 OPT =  -O2 # -pthread -DNDEBUG -fwrapv -O2 -Wall -Wstrict-prototypes -fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2  -fstack-protector-strong -Wformat -Werror=format-security -fPIC
 
 INC = -I ./$(DIR)  #-I/usr/include/python2.7/ -I/usr/local/lib/python2.7/dist-packages/numpy/core/include/numpy/ -I/usr/include/python2.7
@@ -25,8 +25,14 @@ vecGen.o: $(DIR)/vecGen.c $(DIR)/vecGen.h
 matGen.o: $(DIR)/matGen.c $(DIR)/matGen.h
 	$(CC) $(CFLAGS) $< -o $@
 
-all: $(OBJ) $(DIR)/main.c
-	$(CC) $^ -o $(Executable)/main
+main: $(OBJ) $(DIR)/main.c
+	$(CC) $^ -o $(Executable)/$@
+
+par: $(OBJ) $(DIR)/mainPar.c
+	$(CC) $^ -o $(Executable)/$@ -g -lpthread
+
+#all: $(OBJ) $(DIR)/main.c
+#	$(CC) $^ -o $(Executable)/main
 
 
 sparsecoo: $(OBJ)
@@ -38,4 +44,5 @@ lib: $(OBJ)
 	$(AR) ./lib/libsparsefastmm.a $(OBJ)
 
 clean:
+
 	rm  $(DIR)/*.o lib/* 
