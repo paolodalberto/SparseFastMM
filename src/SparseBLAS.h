@@ -98,6 +98,19 @@ struct adj_matrix {
 };
 typedef struct adj_matrix Adjacent ;
 
+static COOE* from_three_to_one(int *x, int *y, Mat *v, long unsigned int len) {
+
+  COOE * t = (COOE*) calloc(len,sizeof(COOE*));
+  for (long unsigned int i; i<len; i++) {
+    t[i].n =x[i];
+    t[i].m =y[i];
+    t[i].value = v[i];
+  }
+  return t;
+
+}
+
+
 static int initialize_coot(COOTemporary *T) { 
   T->data = (COOE**) calloc(T->M,sizeof(COOE*));
   assert(T->data);

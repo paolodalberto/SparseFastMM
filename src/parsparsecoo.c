@@ -269,28 +269,39 @@ COO matmul_coo_par(COO C,COO A,COO B,
 
 COO
 matmul_coo_par_basic(
-		     int *_C,
+		     int *_CX,
+		     int *_CY,
+		     Mat *_CV,
 		     long unsigned LC,
 		     int MC,
 		     int NC,
-		     int *_A,
+		     int *_AX,
+		     int *_AY,
+		     int *_AV,
 		     long unsigned LA,
 		     int MA,
 		     int NA,
-		     int *_B,
+		     int *_BX,
+		     int *_BY,
+		     int *_BV,
 		     long unsigned LB,
 		     int MB,
 		     int NB,
 		     int Ps /* number of threads */
 		     ) {
 
-
+  COOE *_C = from_three_to_one(_CX,_CY,_CV,LC);
+  COOE *_A = from_three_to_one(_AX,_AY,_AV,LA);;
+  COOE *_B = from_three_to_one(_BX,_BY,_BV,LB);; 
   COO C = { _C, LC, C.M, C.N};
   COO A = { _A, LA, A.M, A.N};
   COO B = { _B, LB, B.M, B.N};
 
   COO R = matmul_coo_par(C,A,B,Ps);
 
+  free(_C);
+  free(_A);
+  free(_B);
   // This has to be free by who calls this 
   return R;
 }
