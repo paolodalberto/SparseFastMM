@@ -14,7 +14,7 @@ PyObject *pcoomul(PyObject *self, PyObject *args);
 /**
  * An array of functions made available through the module.
  */
-static PyMethodDef anomalymethods[] = {
+static PyMethodDef methods[] = {
     { "pcoomul", pcoomul, METH_VARARGS, "Sparse COO matrix R = C + A*B." },
     { NULL, NULL, 0, NULL }
 };
@@ -22,41 +22,45 @@ static PyMethodDef anomalymethods[] = {
 /**
  * Initialization function for the module.
  */
-void initpcoo (void)
+void initsparsecoo (void)
 {
-    Py_InitModule ("sparsecoo", anomalymethods);
+    Py_InitModule ("sparsecoo", methods);
 }
 
 
 
 PyObject *pcoomul(PyObject *self, PyObject *args) {
   
-  PyArrayObject *C; int CM, CN;
-  PyArrayObject *A; int AM, AN;
-  PyArrayObject *B; int BM, BN;
-  PyArrayObject *c; 
+  PyArrayObject *CX,*CY,*CV; int CM, CN;
+  PyArrayObject *AX,*AY,*AV; int AM, AN;
+  PyArrayObject *BX,*BY,*BV; int BM, BN;
+  PyArrayObject *c,*r, *v; 
   int P;
   int dim[2];
   COO R;
+  PyObject *result;
 
-  if (! PyArg_ParseTuple (args, "iO!iiO!iiO!ii",
+  if (! PyArg_ParseTuple (args, "iO!O!O!iiO!O!O!iiO!O!O!ii",
 			  &P,
-			  &PyArray_Type,&C,&CM,&CN,
-			  &PyArray_Type,&A,&AM,&AN,
-			  &PyArray_Type,&B,&BM,&BN
+			  &PyArray_Type,&CX,&PyArray_Type,&CY,&PyArray_Type,&CV,
+			  &CM,&CN,
+			  &PyArray_Type,&AX,&PyArray_Type,&AY,&PyArray_Type,&AV,
+			  &AM,&AN,
+			  &PyArray_Type,&BX,&PyArray_Type,&BY,&PyArray_Type,&BV,
+			  &BM,&BN
 			  ))
     return NULL;
 
       
   R  = matmul_coo_par_basic(
-			    (int*)C->data,
-			    C->dimensions[1],
+			    (int*)CX->data,(int*)CY->data,(Mat*)CV->data,
+			    CX->dimensions[1],
 			    CM,CN,
-			    (int*)A->data,
-			    A->dimensions[1],
+			    (int*)AX->data,(int*)AY->data,(Mat*)AV->data,
+			    AX->dimensions[1],
 			    AM,AN,
-			    (int*)B->data,
-			    B->dimensions[1],
+			    (int*)BX->data,(int*)BY->data,(Mat*)BV->data,
+			    BX->dimensions[1],
 			    BM,BN,
 			    P);
   
@@ -64,13 +68,29 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
       
       
   /* Make a new float vector of same dimension */
-  c=(PyArrayObject *) PyArray_FromDims(2,dim,NPY_INT);
-  
-  memcpy( (void*) c->data, (void*) R.data,
-	  dim[0]*dim[1]*sizeof(int)
-	  );
+  c=(PyArrayObject *) PyArray_FromDims(1,dim[1],NPY_INT);
+  r=(PyArrayObject *) PyArray_FromDims(1,dim[1],NPY_INT);
+#ifdef GRAPH_PATH
+  v=(PyArrayObject *) PyArray_FromDims(1,dim[1],NPY_INT);
+#else
+  v=(PyArrayObject *) PyArray_FromDims(1,dim[1],NPY_FLOAT);
+#endif
+
+  for (long unsigned int i; i<R.length; i++) {
+    c->data[i] = R.data[i].n;
+    r->data[i] = R.data[i].m;
+    v->data[i] = R.data[i].value;
+  }
+    
   free(R.data);
-  
-  return PyArray_Return(c);
+  result = PyTuple_New (6);
+  PyTuple_SetItem (result, 0, r);
+  PyTuple_SetItem (result, 1, c);
+  PyTuple_SetItem (result, 2, v);
+  PyTuple_SetItem (result, 3, R.length);
+  PyTuple_SetItem (result, 4, R.M);
+  PyTuple_SetItem (result, 5, R.N);
+
+  return result;
   
 }
