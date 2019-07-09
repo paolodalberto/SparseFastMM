@@ -1,8 +1,8 @@
 
-#define GRAPH_PATH 1
+//#define GRAPH_PATH 1
 
 static int DEBUG = 0;
-static int DEBUG2=1;
+static int DEBUG2=0;
 #include <SparseBLAS.h>
 
 
@@ -59,7 +59,7 @@ void *basicComputation( void *s) {
       printf(" Fail processor setting pt %d \n",mc.pi);
     }
   }
-  if (DEBUG2) printf("C =%d  A %d x %d x %d \n",mc.pi,mc.c->M,mc.a.N,mc.b.N);
+  printf("C =%d  A %d x %d x %d \n",mc.pi,mc.c->length,mc.a.length,mc.b.length);
   mc.m(mc.c, mc.a,mc.b);
   return 0;
 }
@@ -172,41 +172,45 @@ static inline int count_rows(COO A, int *b) {
 
 COO *split_rows(COO A, int Ps) {
 
-  int L = A.M;
   int *b;
   COO *Rows;
+  int L = A.M;
   int r;
   int K, RK;
   int k=0;
   int i;
 
+  b = (int*) malloc((L+1)*sizeof(int));
   Rows = (COO*) malloc(Ps*sizeof(COO));
-  b = (int*) malloc(L*sizeof(int));
-
+  
+  printf("%u\n",(unsigned int)b); 
+  
   r = count_rows(A,b);
   
-
+  printf("%u L = %d-%dx%d r =%d \n",(unsigned int)b,L,A.M,A.N,r); 
   RK = r%Ps;
   
   K = r/(Ps) + ((RK>0)?1:0) ;
 
   if (DEBUG) printf("Rows = %d K =%d RK =%d Ps=%d \n",r,K, RK,Ps);     
   for (i=0; k<Ps-1;i+=K,k++) {
-    if (DEBUG) printf("k < %d i =%d \n",k,i);     
+    if (DEBUG) printf("k < %d i =%d b[i] = %d L = %d \n",k,i,b[i],b[i+K]-b[i]-1);     
     Rows[k].data = A.data +b[i];
     Rows[k].length = b[i+K]-b[i];
     Rows[k].M = A.M;
     Rows[k].N = A.N;
   }
   if (1) {
-    if (DEBUG) printf("k > %d i =%d r =%d \n",k,i,r);     
+    if (DEBUG) printf("k = %d i =%d b[i] = %d r =%d L = %d\n",k,i,b[i],r,b[r-1]-b[i]);     
     Rows[k].data = A.data +b[i];
     Rows[k].length = b[r-1]-b[i];
     Rows[k].M = A.M;
     Rows[k].N = A.N;
   }  
+  if (DEBUG) printf("#Rows => %d \n",k);
+  printf("%u\n",(unsigned int)b); 
   free(b);
-  if (DEBUG) printf("#Rows => %d \n",k);     
+
 
   
   return Rows;
@@ -220,14 +224,18 @@ COO matmul_coo_par(COO C,COO A,COO B,
 	       ) {
 
   int i, j, k;
-  COO *Rows = split_rows(A,Ps);
-  COO *Ts   = (COO*) malloc(Ps*sizeof(COO)); 
+  COO *Rows;
+  COO *Ts; 
 
   COO TR = { NULL, 0, A.M, B.N};
   COO R = { NULL, 0, C.M, C.N};
   TAddOperands *args = (TAddOperands*) malloc(Ps*sizeof(TAddOperands));
   
   if (DEBUG2) printf("Parallel %d\n",Ps);
+
+  Rows = split_rows(A,Ps);
+  if (DEBUG2) printf("Rows \n");
+  Ts   = (COO*) calloc(Ps,sizeof(COO));
   // This will be parallelized 
   for (i=0;i<Ps;i++) {
     args[i].pi = i;
@@ -269,36 +277,27 @@ COO matmul_coo_par(COO C,COO A,COO B,
 
 COO
 matmul_coo_par_basic(
-		     int *_CX,
-		     int *_CY,
-		     Mat *_CV,
-		     long unsigned LC,
-		     int MC,
-		     int NC,
-		     int *_AX,
-		     int *_AY,
-		     int *_AV,
-		     long unsigned LA,
-		     int MA,
-		     int NA,
-		     int *_BX,
-		     int *_BY,
-		     int *_BV,
-		     long unsigned LB,
-		     int MB,
-		     int NB,
+		     int *_CX, int *_CY, Mat *_CV,
+		     long unsigned int LC,int MC, int NC,
+		     int *_AX,int *_AY,int *_AV,
+		     long unsigned int LA, int MA,int NA,
+		     int *_BX, int *_BY, Mat *_BV,
+		     long unsigned int LB, int MB, int NB,
 		     int Ps /* number of threads */
 		     ) {
-
+  printf("matmul_coo_par_basic \n");
+  if (DEBUG2) printf("C %lu \n", LC);
   COOE *_C = from_three_to_one(_CX,_CY,_CV,LC);
+  if (DEBUG2) printf("A %lu \n", LA);
   COOE *_A = from_three_to_one(_AX,_AY,_AV,LA);;
+  if (DEBUG2) printf("B %lu \n",LB);
   COOE *_B = from_three_to_one(_BX,_BY,_BV,LB);; 
-  COO C = { _C, LC, C.M, C.N};
-  COO A = { _A, LA, A.M, A.N};
-  COO B = { _B, LB, B.M, B.N};
+  COO C = { _C, LC, MC, NC};
+  COO A = { _A, LA, MA, NA};
+  COO B = { _B, LB, MB, NB};
 
   COO R = matmul_coo_par(C,A,B,Ps);
-
+  if (DEBUG2) printf("Done matmul_coo_par\n");
   free(_C);
   free(_A);
   free(_B);

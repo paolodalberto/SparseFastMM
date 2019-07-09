@@ -13,9 +13,7 @@ typedef int Mat ;
 #define e_a  INT_MAX
 #define mul(a,b) ((a)+(b))
 #define e_m  0
-#endif
-
-#ifdef ALGEBRA_PATH
+#else 
 typedef double Mat ;
 #define add(a,b) (a+b)
 #define e_a  0
@@ -100,8 +98,8 @@ typedef struct adj_matrix Adjacent ;
 
 static COOE* from_three_to_one(int *x, int *y, Mat *v, long unsigned int len) {
 
-  COOE * t = (COOE*) calloc(len,sizeof(COOE*));
-  for (long unsigned int i; i<len; i++) {
+  COOE * t = (COOE*) calloc(len,sizeof(COOE));
+  for (long unsigned int i=0; i<len; i++) {
     t[i].n =x[i];
     t[i].m =y[i];
     t[i].value = v[i];

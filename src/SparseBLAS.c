@@ -5,7 +5,7 @@
 
 
 static int DEBUG = 0;
-#define GRAPH_PATH 1
+//#define GRAPH_PATH 1
 
 
 
@@ -63,7 +63,7 @@ COO buildrandom_coo_list(int k, int D){
   array =  (COOE *) malloc(sizeof(COOE)*k*((10*D<k)?(10*D):k));
   int r[D];
   int q[D];
-  int min, imin;
+  int min, imin=0;
   static int FFF = 0;
   
   res.data = array;
@@ -291,7 +291,7 @@ void matmul_coo_AB(COO *C,COO A,COO B) {
   long unsigned int i, j, t, l,row, col;
   COOTemporary T = { NULL, 0, A.M, B.N};
   initialize_coot(&T);
-  COO CT = { NULL, 0, A.M, B.N }; 
+
 
   l  = 0; // C and T runner 
   i = 0; // A runner

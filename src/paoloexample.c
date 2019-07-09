@@ -30,13 +30,12 @@ double duration;
   printf("clock time %e s \n", duration); 
 #endif
 
-#define GRAPH_PATH 1
+//#define GRAPH_PATH 1
 static int DEBUG=0;
 
 #include <SparseBLAS.h>
 #include <sorting.h>
 #include <parsparsecoo.h>
-
 
 
 
