@@ -32,7 +32,7 @@ static int DEBUG2=0;
 # define CPU_COUNT(cpusetp)      __CPU_COUNT_S (sizeof (cpu_set_t), cpusetp)
 
 
-typedef void  (*MatrixComputation)(COO *C,  COO A, COO B);
+typedef COO  (*MatrixComputation)(COO A, COO B);
 typedef struct operands_addition TAddOperands;
 
 struct operands_addition { 
@@ -59,8 +59,13 @@ void *basicComputation( void *s) {
       printf(" Fail processor setting pt %d \n",mc.pi);
     }
   }
-  printf("C =%d  A %d x %d x %d \n",mc.pi,mc.c->length,mc.a.length,mc.b.length);
-  mc.m(mc.c, mc.a,mc.b);
+  
+  *mc.c = mc.m(mc.a,mc.b);
+  printf("C =%2d  %d x %d x %d \n",
+	 mc.pi,
+	 mc.c->length,
+	 mc.a.length,
+	 mc.b.length);
   return 0;
 }
 
@@ -109,7 +114,7 @@ void MatrixComputations(TAddOperands *args, int len)  {
 COO merge( COO C, COO T) {  // R = C+T both sparse
 
   COOTemporary TR= {NULL, 0, C.M, C.N};  
-  COO R;
+  COO R = {NULL, 0, C.M, C.N};  
   int i,j;
   COOE c,t;
   initialize_coot(&TR);          
@@ -144,27 +149,73 @@ COO merge( COO C, COO T) {  // R = C+T both sparse
     R.data[t] = index_coot(&TR,t);
   }
   if (DEBUG) printf("Compressed  \n");
-	
+  
   free_coot(&TR);
+  
+  return R;
+}
+
+COO merge_alt( COO C, COO T) {  // R = C+T both sparse
+
+  COO TR= {NULL, 0, C.M, C.N};  
+  COO R;
+  int i,j,k;
+  COOE c,t;
+
+  TR.data = (COOE*) malloc((T.length+C.length)*sizeof(COO));
+  
+  k =0;
+  for (i=0, j =0; i<C.length && j<T.length; k++){
+    c = C.data[i];
+    t = T.data[j];
+    if ((c.m*C.N+c.n)<(t.m*T.N+t.n)) {
+      TR.data[k]=c;
+      i++;
+    } else if ((c.m*C.N+c.n)>(t.m*T.N+t.n)) {
+      TR.data[k]=t;
+      j++;
+    } else {
+      c.value = add(c.value,t.value);
+      TR.data[k]=c;
+      i++;
+      j++;
+    }
+  }
+  for (; i<C.length ;i++,k++ )
+    TR.data[k] = C.data[i];
+  
+  for (;  j<T.length; j++,k++)
+    TR.data[k] = T.data[j];
+  
+  
+  R.length = k;
+  R.data = (COOE*) malloc(TR.length*sizeof(COOE)); 
+  for (int t=0; t<k;t++)	{
+    R.data[t] = TR.data[t];
+  }
+  if (DEBUG) printf("Compressed merge all \n");
+	
+  free(TR.data);
   
   return R;
 }
 
 static inline int count_rows(COO A, int *b) {
   int count; 
-  
+  int i;
   if (A.length<=0 ) return 0;
 
 
   count = 0;
   b[count] = 0; 
-  for (int i=1; i<A.length; i++)
+  for (i=1; i<A.length; i++)
     if (A.data[i-1].m != A.data[i].m) {
       count ++;
       b[count] = i;
     }
-
-  return count+1;
+  count++;
+  b[count] = i;
+  return count;
 }
 
 
@@ -238,9 +289,11 @@ COO matmul_coo_par(COO C,COO A,COO B,
   Ts   = (COO*) calloc(Ps,sizeof(COO));
   // This will be parallelized 
   for (i=0;i<Ps;i++) {
+    
+    Ts[i].M = A.M; Ts[i].N = B.N; 
     args[i].pi = i;
-    args[i].m = matmul_coo_AB;
-    args[i].c = Ts+i;
+    args[i].m = matmul_coo;
+    args[i].c = Ts + i;
     args[i].a = Rows[i];
     args[i].b = B;
   }
@@ -250,25 +303,44 @@ COO matmul_coo_par(COO C,COO A,COO B,
 
   // collecting theresults 
   j = 0;
-  for (k=0,i=0;i<Ps;i++) 
+  for (k=0,i=0;i<Ps;i++)  {
     j += Ts[i].length;
-  
+    printf("Ts[%i] %d %d \n",i,Ts[i].M,Ts[i].N); 
+    if (DEBUG && !validate(Ts[i])) {
+      printf("Problems with T[%d]\n",i);
+    } 
+  }
   TR.data = (COOE *) malloc(j*sizeof(COOE));
   TR.length = j;
   if (DEBUG2) printf("Combining %d\n",Ps);
   for (k=0,i=0;i<Ps;i++) 
     for (j=0; j< Ts[i].length; j++)
       TR.data[k++] = Ts[i].data[j];
-  
+
+  printf("TR %d %d%d  \n",TR.M,TR.N,TR.length); 
+  if (DEBUG && !validate(TR)) {
+    
+    printf("Problems with TR\n",i);
+  }
+  printf("C %d %d \n",C.M,C.N); 
+  if (DEBUG && !validate(C)) {
+    printf("Problems with C before merge with TR\n");
+  } 
   
   for (k=0,i=0;i<Ps;i++) 
     free(Ts[i].data);
   free(Ts);
   free(Rows);
 
-  if (DEBUG2) printf("Merging C and T  %d\n",Ps);
+  if (1 || DEBUG2) printf("Merging C and T  %d\n",Ps);
   R = merge(C,TR);
 
+  if (DEBUG &&  !validate(R)) {
+    printf("Problems with R\n");
+  } 
+  
+
+  
   if (DEBUG2) printf("last free \n");
   free(TR.data);
   
@@ -295,8 +367,28 @@ matmul_coo_par_basic(
   COO C = { _C, LC, MC, NC};
   COO A = { _A, LA, MA, NA};
   COO B = { _B, LB, MB, NB};
+  COO R;
 
-  COO R = matmul_coo_par(C,A,B,Ps);
+  columnsort(&B); // we really transpose the data so that the order is  
+
+
+  if (!validate(C)) {
+    printf("Problems with C\n");
+  } 
+  if (!validate(A)) {
+    printf("Problems with A\n");
+  }
+  if (!validateT(B)) {
+    printf("Problems with B\n");
+  }
+  
+  R = matmul_coo_par(C,A,B,Ps);
+
+  if (!validate(R)) {
+    printf("Problems with R\n");
+  } 
+
+
   if (DEBUG2) printf("Done matmul_coo_par\n");
   free(_C);
   free(_A);

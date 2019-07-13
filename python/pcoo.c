@@ -35,14 +35,12 @@ double duration;
 
 
 PyObject *pcoomul(PyObject *self, PyObject *args); 
-PyObject *pcoomul2(PyObject *self, PyObject *args); 
 
 /**
  * An array of functions made available through the module.
  */
 static PyMethodDef methods[] = {
     { "pcoomul", pcoomul, METH_VARARGS, "Sparse COO matrix R = C + A*B." },
-    { "pcoomul2", pcoomul2, METH_VARARGS, "Sparse COO matrix C = C + C*C." },
     { NULL, NULL, 0, NULL }
 };
 
@@ -64,10 +62,13 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   PyArrayObject *BX,*BY,*BV; int BM, BN;
   PyArrayObject *c,*r, *v; 
   int P;
-  long unsigned int dim[2];
+  long unsigned int dim[1];
   COO R;
   PyObject *result;
   long unsigned int LC,LA,LB;
+  COOE *_C;
+  COOE *_A;
+  COOE *_B;
   
   printf("Parsing basic iO!O!O!ii\n");
   
@@ -92,9 +93,9 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   printf("Calling C basic\n");
   printf("C X %d Y %d V %d\n",CX->dimensions[0],CY->dimensions[0],CV->dimensions[0]);
   printf("C CM %d CN %d\n",CM,CN);
-  printf("C X %d Y %d V %d\n",AX->dimensions[0],AY->dimensions[0],AV->dimensions[0]);
+  printf("A X %d Y %d V %d\n",AX->dimensions[0],AY->dimensions[0],AV->dimensions[0]);
   printf("A AM %d AN %d\n",AM,AN);
-  printf("C X %d Y %d V %d\n",BX->dimensions[0],BY->dimensions[0],BY->dimensions[0]);
+  printf("B X %d Y %d V %d\n",BX->dimensions[0],BY->dimensions[0],BV->dimensions[0]);
   printf("B BM %d BN %d\n",BM,BN);
   LC = (long unsigned int) CX->dimensions[0];
   LA = (long unsigned int) AX->dimensions[0];
@@ -104,19 +105,42 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
 #else
   printf("C  %d  %d %d %e \n",((int*)CX->data)[3],((int*)CY->data)[3],sizeof(Mat),((Mat *)CV->data)[3]);
 #endif
+  printf("Clocking\n");
+
+  _C = from_three_to_one((int *)CX->data,(int *)CY->data,(Mat *)CV->data,LC);
+  _A = from_three_to_one((int *)AX->data,(int *)AY->data,(Mat *)AV->data,LA);;
+  _B = from_three_to_one((int *)BX->data,(int *)BY->data,(Mat *)BV->data,LB);; 
+  
+  
   START_CLOCK;
-  R  = matmul_coo_par_basic(
-			    (int*)CX->data,(int*)CY->data,(Mat*)CV->data,
-			    LC,
-			    CM,CN,
-			    (int*)AX->data,(int*)AY->data,(Mat*)AV->data,
-			    LA,
-			    AM,AN,
-			    (int*)BX->data,(int*)BY->data,(Mat*)BV->data,
-			    LB,
-			    BM,BN,
-			    P);
+  {
+    COO C = { _C, LC, CM, CN};
+    COO A = { _A, LA, AM, AN};
+    COO B = { _B, LB, BM, BN};
+
+    if (!validate(C)) {
+      printf("Problems with C\n");
+    } 
+    if (!validate(A)) {
+      printf("Problems with A\n");
+    }
+    if (!validateT(B)) {
+      printf("Problems with B\n");
+    }
+    
+    R = matmul_coo_par(C,A,B,P);
+    if (!validate(R)) {
+      printf("Problems with R\n");
+    } 
+    
+  }
   END_CLOCK;
+
+  if (DEBUG2) printf("Done matmul_coo_par\n");
+  free(_C);
+  free(_A);
+  free(_B);
+  
   dim[0]  = R.length;
   printf("C  Computed  \n");
       
@@ -134,92 +158,25 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
 
   printf("setting the elements\n");
   for (long unsigned int i=0; i<R.length; i++) {
-    c->data[i] = R.data[i].n;
-    r->data[i] = R.data[i].m;
-    v->data[i] = R.data[i].value;
+    if (R.data[i].n<0 || R.data[i].m<0) {
+      printf("Negative %lu %d %d\n", i,R.data[i],R.data[i]); 
+
+    }
+    ((int*)c->data)[i] = R.data[i].n;
+    ((int*)r->data)[i] = R.data[i].m;
+    ((Mat*)v->data)[i] = R.data[i].value;
   }
 
   free(R.data);
   printf("setting the output\n");
-  result = PyTuple_New (5);
+  result = PyTuple_New (3);
   printf("setting 0 \n");
   PyTuple_SetItem (result, 0, r);
   printf("setting 1 \n");
-  
-  PyTuple_SetItem (result, 1, c);
-  printf("setting 2 %d\n", R.M);
-  PyTuple_SetItem (result, 2, R.M);
-  printf("setting 3 %d \n",R.N);
-  PyTuple_SetItem (result, 3, R.N);
-  printf("setting 4 \n");
-  PyTuple_SetItem (result, 4, v);
-  
-  printf("return  \n");
-  return result;
-  
-}
-PyObject *pcoomul2(PyObject *self, PyObject *args) {
-  
-  PyArrayObject *CX,*CY,*CV; int CM, CN;
-  PyArrayObject *c,*r, *v; 
-  int P;
-  int dim[2];
-  COO R;
-  PyObject *result;
-
-  
-  printf("Calling basic 2 \n");
-  
-  if (! PyArg_ParseTuple (args, "iO!O!O!ii",
-			  &P,
-			  &PyArray_Type,&CX,
-			  &PyArray_Type,&CY,
-			  &PyArray_Type,&CV,
-			  &CM,&CN
-			  )) {
-    printf("Argh\n");
-    return NULL;
-  }
-  printf("Calling basic 2\n");
-  R  = matmul_coo_par_basic(
-			    (int*)CX->data,(int*)CY->data,(Mat*)CV->data,
-			    CX->dimensions[1],
-			    CM,CN,
-			    (int*)CX->data,(int*)CY->data,(Mat*)CV->data,
-			    CX->dimensions[1],
-			    CM,CN,
-			    (int*)CX->data,(int*)CY->data,(Mat*)CV->data,
-			    CX->dimensions[1],
-			    CM,CN,
-			    P);
-  
-  dim[0] = 3; dim[1] = R.length;
-      
-      
-  /* Make a new float vector of same dimension */
-  c=(PyArrayObject *) PyArray_FromDims(1,dim[1],NPY_INT);
-  r=(PyArrayObject *) PyArray_FromDims(1,dim[1],NPY_INT);
-#ifdef GRAPH_PATH
-  v=(PyArrayObject *) PyArray_FromDims(1,dim[1],NPY_INT);
-#else
-  v=(PyArrayObject *) PyArray_FromDims(1,dim[1],NPY_FLOAT);
-#endif
-
-  for (long unsigned int i=0; i<R.length; i++) {
-    c->data[i] = R.data[i].n;
-    r->data[i] = R.data[i].m;
-    v->data[i] = R.data[i].value;
-  }
-    
-  free(R.data);
-  result = PyTuple_New (6);
-  PyTuple_SetItem (result, 0, r);
   PyTuple_SetItem (result, 1, c);
   PyTuple_SetItem (result, 2, v);
-  PyTuple_SetItem (result, 3, R.length);
-  PyTuple_SetItem (result, 4, R.M);
-  PyTuple_SetItem (result, 5, R.N);
-
+  
+  printf("return  \n");
   return result;
   
 }

@@ -7,8 +7,11 @@ AR = ar rcs
 DIR=src
 Executable=Executable
 
+#ALG = GRAPH_PATH
+ALG = ALGEBRA_PATH
+
 ## Machine Specific optimizations
-OPT =  -O2 # -pthread -DNDEBUG -fwrapv -O2 -Wall -Wstrict-prototypes -fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2  -fstack-protector-strong -Wformat -Werror=format-security -fPIC
+OPT =   -pthread -D$(ALG) -fwrapv -O2  -Wall -Wstrict-prototypes -fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2  -fstack-protector-strong -Wformat -Werror=format-security -fPIC
 
 INC = -I ./$(DIR)  #-I/usr/include/python2.7/ -I/usr/local/lib/python2.7/dist-packages/numpy/core/include/numpy/ -I/usr/include/python2.7
 
@@ -17,8 +20,8 @@ INC = -I ./$(DIR)  #-I/usr/include/python2.7/ -I/usr/local/lib/python2.7/dist-pa
 
 
 
-OBJ= $(DIR)/SparseBLAS.o $(DIR)/sorting.o  $(DIR)/paoloexample.o $(DIR)/parsparsecoo.o
-
+OBJ= $(DIR)/paoloexample.o
+OBJ2 = $(DIR)/SparseBLAS.o $(DIR)/sorting.o  $(DIR)/parsparsecoo.o
 vecGen.o: $(DIR)/vecGen.c $(DIR)/vecGen.h
 	$(CC) $(CFLAGS) $< -o $@
 
@@ -40,8 +43,8 @@ sparsecoo: $(OBJ)
 	$(CC) $(OPT) $(DIR)/paoloexample.o  -o $(Executable)/stest  -L ./lib -lsparsefastmm  -lpthread
 
 
-lib: $(OBJ)
-	$(AR) ./lib/libsparsefastmm.a $(OBJ)
+lib: $(OBJ2)
+	$(AR) ./lib/libsparsefastmm.a $(OBJ2)
 
 clean:
 

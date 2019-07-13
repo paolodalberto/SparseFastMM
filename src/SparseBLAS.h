@@ -115,7 +115,7 @@ static int initialize_coot(COOTemporary *T) {
   for (int i=0;i<T->M;i++) {
     T->data[i] = 0;
   }
-  T->data[0] = (COOE*) malloc(T->N*sizeof(COOE));
+  T->data[0] = (COOE*) malloc(T->M*sizeof(COOE));
   assert(T->data[0]);
   return 1;
 }
@@ -132,7 +132,7 @@ static inline COOE index_coot(COOTemporary *T, long unsigned int L) {
 
 static inline int free_coot(COOTemporary *T) {
   long unsigned int L = T->length;
-  int i = L/T->N;
+  int i = L/T->M;
 
 
   for (;i>=0; i--) {
@@ -152,7 +152,7 @@ static inline int append_coot(COOTemporary *T, COOE val) {
   int add=0;
   if (DEBUG && !T->data[i])  printf(" append_coot L =%lu i=%i j=%d  \n",L, i, j);
   if (!T->data[i]) {
-    T->data[i] = (COOE*) malloc(T->N*sizeof(COOE));
+    T->data[i] = (COOE*) malloc(T->M*sizeof(COOE));
     assert(T->data[i] );
     add = 1;
   }
@@ -165,8 +165,7 @@ static inline int append_coot(COOTemporary *T, COOE val) {
 #ifndef SPARSEBLASDEF
 #define SPARSEBLASDEF
 
-extern COO matmul_coo(COO C,COO A,COO B);
-extern void matmul_coo_AB(COO *C, COO A,COO B);
+extern COO matmul_coo(COO A,COO B);
 extern COO buildrandom_coo_list(int k, int D);
 extern void matmul_f(
 		     Mat *C, int cm, int cn,
