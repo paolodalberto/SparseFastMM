@@ -234,11 +234,11 @@ COO *split_rows(COO A, int Ps) {
   b = (int*) malloc((L+1)*sizeof(int));
   Rows = (COO*) malloc(Ps*sizeof(COO));
   
-  printf("%u\n",(unsigned int)b); 
+  if (DEBUG) printf("%u\n",(unsigned int)b); 
   
   r = count_rows(A,b);
   
-  printf("%u L = %d-%dx%d r =%d \n",(unsigned int)b,L,A.M,A.N,r); 
+  if (DEBUG) printf("%u L = %d-%dx%d r =%d \n",(unsigned int)b,L,A.M,A.N,r); 
   RK = r%Ps;
   
   K = r/(Ps) + ((RK>0)?1:0) ;
@@ -305,7 +305,7 @@ COO matmul_coo_par(COO C,COO A,COO B,
   j = 0;
   for (k=0,i=0;i<Ps;i++)  {
     j += Ts[i].length;
-    printf("Ts[%i] %d %d \n",i,Ts[i].M,Ts[i].N); 
+    if (DEBUG) printf("Ts[%i] %d %d \n",i,Ts[i].M,Ts[i].N); 
     if (DEBUG && !validate(Ts[i])) {
       printf("Problems with T[%d]\n",i);
     } 
@@ -317,12 +317,12 @@ COO matmul_coo_par(COO C,COO A,COO B,
     for (j=0; j< Ts[i].length; j++)
       TR.data[k++] = Ts[i].data[j];
 
-  printf("TR %d %d%d  \n",TR.M,TR.N,TR.length); 
+  if (DEBUG) printf("TR %d %d%d  \n",TR.M,TR.N,TR.length); 
   if (DEBUG && !validate(TR)) {
     
     printf("Problems with TR\n",i);
   }
-  printf("C %d %d \n",C.M,C.N); 
+  if (DEBUG) printf("C %d %d \n",C.M,C.N); 
   if (DEBUG && !validate(C)) {
     printf("Problems with C before merge with TR\n");
   } 
@@ -332,7 +332,7 @@ COO matmul_coo_par(COO C,COO A,COO B,
   free(Ts);
   free(Rows);
 
-  if (1 || DEBUG2) printf("Merging C and T  %d\n",Ps);
+  if ( DEBUG2) printf("Merging C and T  %d\n",Ps);
   R = merge(C,TR);
 
   if (DEBUG &&  !validate(R)) {

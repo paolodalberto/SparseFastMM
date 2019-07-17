@@ -60,9 +60,9 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   PyArrayObject *CX,*CY,*CV; int CM, CN;
   PyArrayObject *AX,*AY,*AV; int AM, AN;
   PyArrayObject *BX,*BY,*BV; int BM, BN;
-  PyArrayObject *c,*r, *v; 
+  PyArrayObject *c,*r, *v, *t; 
   int P;
-  long unsigned int dim[1];
+  long int dim[1];
   COO R;
   PyObject *result;
   long unsigned int LC,LA,LB;
@@ -70,15 +70,7 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   COOE *_A;
   COOE *_B;
   
-  printf("Parsing basic iO!O!O!ii\n");
-  
-  if (0 &&! PyArg_ParseTuple (args, "iO!O!O!ii",
-			  &P,&PyArray_Type,&CX,&PyArray_Type,&CY,&PyArray_Type,&CV,&CM,&CN
-			  )) {
-    printf("Argh\n");
-    return NULL;
-  }
-  printf("Parsing basic iO!O!O!iiO!O!O!iiO!O!O!ii\n");
+  if (DEBUG) printf("Parsing basic iO!O!O!iiO!O!O!iiO!O!O!ii\n");
   if ( ! PyArg_ParseTuple (args, "iO!O!O!iiO!O!O!iiO!O!O!ii",
 			  &P,
 			  &PyArray_Type,&CX,&PyArray_Type,&CY,&PyArray_Type,&CV,&CM,&CN,
@@ -89,23 +81,24 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
     return NULL;
   }
 
-
-  printf("Calling C basic\n");
-  printf("C X %d Y %d V %d\n",CX->dimensions[0],CY->dimensions[0],CV->dimensions[0]);
-  printf("C CM %d CN %d\n",CM,CN);
-  printf("A X %d Y %d V %d\n",AX->dimensions[0],AY->dimensions[0],AV->dimensions[0]);
-  printf("A AM %d AN %d\n",AM,AN);
-  printf("B X %d Y %d V %d\n",BX->dimensions[0],BY->dimensions[0],BV->dimensions[0]);
-  printf("B BM %d BN %d\n",BM,BN);
+  if (DEBUG) {
+    printf("Calling C basic\n");
+    printf("C X %d Y %d V %d\n",CX->dimensions[0],CY->dimensions[0],CV->dimensions[0]);
+    printf("C CM %d CN %d\n",CM,CN);
+    printf("A X %d Y %d V %d\n",AX->dimensions[0],AY->dimensions[0],AV->dimensions[0]);
+    printf("A AM %d AN %d\n",AM,AN);
+    printf("B X %d Y %d V %d\n",BX->dimensions[0],BY->dimensions[0],BV->dimensions[0]);
+    printf("B BM %d BN %d\n",BM,BN);
+  }
   LC = (long unsigned int) CX->dimensions[0];
   LA = (long unsigned int) AX->dimensions[0];
   LB = (long unsigned int) BX->dimensions[0];
 #ifdef GRAPH_PATH
-  printf("C  %d  %d %d \n",((int*)CX->data)[3],((int*)CY->data)[3],((Mat *)CV->data)[3]);
+  if (DEBUG) printf("C  %d  %d %d \n",((int*)CX->data)[3],((int*)CY->data)[3],((Mat *)CV->data)[3]);
 #else
-  printf("C  %d  %d %d %e \n",((int*)CX->data)[3],((int*)CY->data)[3],sizeof(Mat),((Mat *)CV->data)[3]);
+  if (DEBUG) printf("C  %d  %d %d %e \n",((int*)CX->data)[3],((int*)CY->data)[3],sizeof(Mat),((Mat *)CV->data)[3]);
 #endif
-  printf("Clocking\n");
+  if (DEBUG) printf("Clocking\n");
 
   _C = from_three_to_one((int *)CX->data,(int *)CY->data,(Mat *)CV->data,LC);
   _A = from_three_to_one((int *)AX->data,(int *)AY->data,(Mat *)AV->data,LA);;
@@ -114,14 +107,15 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   
   START_CLOCK;
   {
+    // Real Computation 
     COO C = { _C, LC, CM, CN};
     COO A = { _A, LA, AM, AN};
     COO B = { _B, LB, BM, BN};
 
-    if (!validate(C)) {
+    if (DEBUG && !validate(C)) {
       printf("Problems with C\n");
     } 
-    if (!validate(A)) {
+    if (DEBUG && !validate(A)) {
       printf("Problems with A\n");
     }
     if (!validateT(B)) {
@@ -129,7 +123,7 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
     }
     
     R = matmul_coo_par(C,A,B,P);
-    if (!validate(R)) {
+    if (DEBUG && !validate(R)) {
       printf("Problems with R\n");
     } 
     
@@ -142,13 +136,14 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   free(_B);
   
   dim[0]  = R.length;
-  printf("C  Computed  \n");
+  if (DEBUG) printf("C  Computed  \n");
       
   /* Make a new float vector of same dimension */
   //PyArray_ZEROS(int nd, npy_intp* dims, int type_num, int fortran)¶
-  
+
+
   c=(PyArrayObject *) PyArray_ZEROS(1,dim,NPY_INT,0);
-  printf("c intermediate %d %d \n", PyArray_Size(c),c->data[0]);
+  if (DEBUG) printf("c intermediate %d %d \n", PyArray_Size(c),c->data[0]);
   r=(PyArrayObject *) PyArray_ZEROS(1,dim,NPY_INT,0);
 #ifdef GRAPH_PATH
   v=(PyArrayObject *) PyArray_ZEROS(1,dim,NPY_INT,0);
@@ -156,9 +151,15 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   v=(PyArrayObject *) PyArray_ZEROS(1,dim,NPY_DOUBLE,0);
 #endif
 
-  printf("setting the elements\n");
+  
+  dim[0] = 1;
+  t=(PyArrayObject *) PyArray_ZEROS(1,dim,NPY_DOUBLE,0);
+  ((double*)t->data)[0] = duration;
+  
+  
+  if (DEBUG) printf("setting the elements\n");
   for (long unsigned int i=0; i<R.length; i++) {
-    if (R.data[i].n<0 || R.data[i].m<0) {
+    if (DEBUG && (R.data[i].n<0 || R.data[i].m<0)) {
       printf("Negative %lu %d %d\n", i,R.data[i],R.data[i]); 
 
     }
@@ -168,15 +169,20 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   }
 
   free(R.data);
-  printf("setting the output\n");
-  result = PyTuple_New (3);
-  printf("setting 0 \n");
-  PyTuple_SetItem (result, 0, r);
-  printf("setting 1 \n");
-  PyTuple_SetItem (result, 1, c);
-  PyTuple_SetItem (result, 2, v);
+  if (DEBUG) printf("setting the output\n");
+
+  result = PyTuple_New (4);
+  if (DEBUG) printf("setting 0 \n");
+  PyTuple_SetItem (result, 0, (PyObject*)r);
+  if (DEBUG) printf("setting 1 \n");
+  PyTuple_SetItem (result, 1, (PyObject*)c);
+  if (DEBUG) printf("setting 2 \n");
+  PyTuple_SetItem (result, 2, (PyObject*)v);
+  if (DEBUG) printf("setting 3 \n");
+
+  PyTuple_SetItem (result, 3, (PyObject*)t);
   
-  printf("return  \n");
+  if (DEBUG) printf("return  \n");
   return result;
   
 }
