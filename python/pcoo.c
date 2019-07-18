@@ -60,7 +60,7 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   PyArrayObject *CX,*CY,*CV; int CM, CN;
   PyArrayObject *AX,*AY,*AV; int AM, AN;
   PyArrayObject *BX,*BY,*BV; int BM, BN;
-  PyArrayObject *c,*r, *v, *t; 
+  PyArrayObject *c,*r, *v, *t,*ops; 
   int P;
   long int dim[1];
   COO R;
@@ -108,9 +108,9 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   START_CLOCK;
   {
     // Real Computation 
-    COO C = { _C, LC, CM, CN};
-    COO A = { _A, LA, AM, AN};
-    COO B = { _B, LB, BM, BN};
+    COO C = initialize_COO( _C, LC, CM, CN);
+    COO A = initialize_COO( _A, LA, AM, AN);
+    COO B = initialize_COO( _B, LB, BM, BN);
 
     if (DEBUG && !validate(C)) {
       printf("Problems with C\n");
@@ -118,7 +118,9 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
     if (DEBUG && !validate(A)) {
       printf("Problems with A\n");
     }
-    if (!validateT(B)) {
+    columnsort(&B); // we really transpose the data so that the order is  
+    
+    if (DEBUG &&  !validateT(B)) {
       printf("Problems with B\n");
     }
     
@@ -155,6 +157,8 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   dim[0] = 1;
   t=(PyArrayObject *) PyArray_ZEROS(1,dim,NPY_DOUBLE,0);
   ((double*)t->data)[0] = duration;
+  ops=(PyArrayObject *) PyArray_ZEROS(1,dim,NPY_LONG,0);
+  ((long unsigned int*)ops->data)[0] = R.ops;
   
   
   if (DEBUG) printf("setting the elements\n");
@@ -171,7 +175,7 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   free(R.data);
   if (DEBUG) printf("setting the output\n");
 
-  result = PyTuple_New (4);
+  result = PyTuple_New (5);
   if (DEBUG) printf("setting 0 \n");
   PyTuple_SetItem (result, 0, (PyObject*)r);
   if (DEBUG) printf("setting 1 \n");
@@ -179,8 +183,9 @@ PyObject *pcoomul(PyObject *self, PyObject *args) {
   if (DEBUG) printf("setting 2 \n");
   PyTuple_SetItem (result, 2, (PyObject*)v);
   if (DEBUG) printf("setting 3 \n");
-
   PyTuple_SetItem (result, 3, (PyObject*)t);
+  if (DEBUG) printf("setting 4 \n");
+  PyTuple_SetItem (result, 4, (PyObject*)ops);
   
   if (DEBUG) printf("return  \n");
   return result;

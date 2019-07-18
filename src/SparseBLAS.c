@@ -59,7 +59,7 @@ int validateT(COO A) {
 
 COO buildrandom_coo_list(int k, int D){
   long unsigned int range = 0;
-  COO res = { NULL, 0, k,k};
+  COO res = initialize_COO( NULL, 0, k,k);
   COOE *array ;
   array =  (COOE *) malloc(sizeof(COOE)*k*((10*D<k)?(10*D):k));
   int r[D];
@@ -197,10 +197,10 @@ COO matmul_coo(COO A,COO B) {
 
   long unsigned int i, j, t, l,row, col;
   COOTemporary T = { NULL, 0, A.M, B.N};
-  COO CT = { NULL, 0, A.M, B.N }; 
+  COO CT = initialize_COO( NULL,  0,A.M, B.N ); 
   int kk = 1;
   initialize_coot(&T);
-
+  long unsigned int ops = 0;
  
   l  = 0; // C and T runner 
   i = 0; // A runner
@@ -228,7 +228,7 @@ COO matmul_coo(COO A,COO B) {
       // a_row * b_col is like a merge
       while (ii<iii && jj<jjj) {
 	if (A.data[ii].n == B.data[jj].m)  {
-	  
+	  ops ++;
 	  temp.value = add(temp.value, mul(A.data[ii].value,B.data[jj].value));
 	  if (DEBUG) printf("\t\t Merge  (%d,%d,%d) \n", temp.m, temp.n,(int)temp.value);
 	  ii ++;  jj ++;
@@ -257,6 +257,7 @@ COO matmul_coo(COO A,COO B) {
   // matrix and deallocate the temporary file.
   if (DEBUG) printf("Compressing %lu \n", T.length);
   CT.length = T.length;
+  CT.ops = ops;
   CT.data = (COOE*) malloc(T.length*sizeof(COOE)); 
   for (t=0; t<T.length;t++)	{
     CT.data[t] = index_coot(&T,t);

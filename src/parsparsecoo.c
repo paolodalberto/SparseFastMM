@@ -48,7 +48,7 @@ void *basicComputation( void *s) {
   TAddOperands mc = *(TAddOperands *)s;
   int p1;
   cpu_set_t mask;
-  if (mc.pi > 0)  {
+  if (mc.pi >= 0)  {
 
     CPU_ZERO(&mask);
     CPU_SET(mc.pi, &mask);
@@ -61,8 +61,9 @@ void *basicComputation( void *s) {
   }
   
   *mc.c = mc.m(mc.a,mc.b);
-  printf("C =%2d  %d x %d x %d \n",
+  printf("C =%2d  Ops %lu %d x %d x %d \n",
 	 mc.pi,
+	 mc.c->ops,
 	 mc.c->length,
 	 mc.a.length,
 	 mc.b.length);
@@ -114,11 +115,11 @@ void MatrixComputations(TAddOperands *args, int len)  {
 COO merge( COO C, COO T) {  // R = C+T both sparse
 
   COOTemporary TR= {NULL, 0, C.M, C.N};  
-  COO R = {NULL, 0, C.M, C.N};  
+  COO R = initialize_COO(NULL, 0, C.M, C.N);  
   int i,j;
   COOE c,t;
   initialize_coot(&TR);          
-
+  long unsigned int ops=0;
   
   for (i=0, j =0; i<C.length && j<T.length; ){
     c = C.data[i];
@@ -130,6 +131,7 @@ COO merge( COO C, COO T) {  // R = C+T both sparse
       append_coot(&TR,t);
       j++;
     } else {
+      ops++;
       c.value = add(c.value,t.value);
       append_coot(&TR,c);
       i++;
@@ -144,7 +146,8 @@ COO merge( COO C, COO T) {  // R = C+T both sparse
   
 
   R.length = TR.length;
-  R.data = (COOE*) malloc(TR.length*sizeof(COOE)); 
+  R.data = (COOE*) malloc(TR.length*sizeof(COOE));
+  R.ops = ops + T.ops;
   for (int t=0; t<TR.length;t++)	{
     R.data[t] = index_coot(&TR,t);
   }
@@ -157,7 +160,7 @@ COO merge( COO C, COO T) {  // R = C+T both sparse
 
 COO merge_alt( COO C, COO T) {  // R = C+T both sparse
 
-  COO TR= {NULL, 0, C.M, C.N};  
+  COO TR= initialize_COO(NULL, 0, C.M, C.N);  
   COO R;
   int i,j,k;
   COOE c,t;
@@ -273,13 +276,13 @@ COO *split_rows(COO A, int Ps) {
 COO matmul_coo_par(COO C,COO A,COO B,
 	       int Ps /* number of threads */
 	       ) {
-
+  long unsigned int ops = 0;
   int i, j, k;
   COO *Rows;
   COO *Ts; 
 
-  COO TR = { NULL, 0, A.M, B.N};
-  COO R = { NULL, 0, C.M, C.N};
+  COO TR = initialize_COO( NULL, 0, A.M, B.N);
+  COO R = initialize_COO( NULL, 0, C.M, C.N);
   TAddOperands *args = (TAddOperands*) malloc(Ps*sizeof(TAddOperands));
   
   if (DEBUG2) printf("Parallel %d\n",Ps);
@@ -305,6 +308,7 @@ COO matmul_coo_par(COO C,COO A,COO B,
   j = 0;
   for (k=0,i=0;i<Ps;i++)  {
     j += Ts[i].length;
+    ops += Ts[i].ops;
     if (DEBUG) printf("Ts[%i] %d %d \n",i,Ts[i].M,Ts[i].N); 
     if (DEBUG && !validate(Ts[i])) {
       printf("Problems with T[%d]\n",i);
@@ -312,6 +316,7 @@ COO matmul_coo_par(COO C,COO A,COO B,
   }
   TR.data = (COOE *) malloc(j*sizeof(COOE));
   TR.length = j;
+  TR.ops = ops;
   if (DEBUG2) printf("Combining %d\n",Ps);
   for (k=0,i=0;i<Ps;i++) 
     for (j=0; j< Ts[i].length; j++)
@@ -331,7 +336,7 @@ COO matmul_coo_par(COO C,COO A,COO B,
     free(Ts[i].data);
   free(Ts);
   free(Rows);
-
+  
   if ( DEBUG2) printf("Merging C and T  %d\n",Ps);
   R = merge(C,TR);
 
@@ -364,9 +369,9 @@ matmul_coo_par_basic(
   COOE *_A = from_three_to_one(_AX,_AY,_AV,LA);;
   if (DEBUG2) printf("B %lu \n",LB);
   COOE *_B = from_three_to_one(_BX,_BY,_BV,LB);; 
-  COO C = { _C, LC, MC, NC};
-  COO A = { _A, LA, MA, NA};
-  COO B = { _B, LB, MB, NB};
+  COO C = initialize_COO( _C, LC, MC, NC);
+  COO A = initialize_COO( _A, LA, MA, NA);
+  COO B = initialize_COO( _B, LB, MB, NB);
   COO R;
 
   columnsort(&B); // we really transpose the data so that the order is  

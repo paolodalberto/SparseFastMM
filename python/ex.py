@@ -76,11 +76,11 @@ def sparse_mm(P,C=C,A=A,B=B):
               (C.row>C.shape[0]).any(),(C.row<0).any() 
         )
     
-    cr,cc,cv,time =  sparsecoo.pcoomul(
+    cr,cc,cv,time,ops =  sparsecoo.pcoomul(
         P,
         C.col,C.row,C.data,C.shape[0],C.shape[1],
         A.col,A.row,A.data,A.shape[0],A.shape[1],
-        B.row,B.col,B.data,B.shape[1],B.shape[0]    # transposeing B
+        B.col,B.row,B.data,B.shape[0],B.shape[1]    # transposeing B
     )
     #pdb.set_trace()
     
@@ -88,13 +88,13 @@ def sparse_mm(P,C=C,A=A,B=B):
     if DEBUG: print(A.shape,cr.shape,cc.shape,cv.shape, time)
     
     #pdb.set_trace()
-    return scipy.sparse.coo_matrix((cv, (cr, cc))),time
+    return scipy.sparse.coo_matrix((cv, (cr, cc))),time,ops
 
-R = []
-for i in range(2,17):
-    G,time =sparse_mm(i)
-    print(i,G.nnz,time, G.nnz/time[0])
-    R.append([i,i,G.nnz,time, G.nnz/time[0]])
+if  True:
+    R = []
+    for i in range(2,16):
+        G,time,ops =sparse_mm(i)
+        print(i,G.nnz,time, G.nnz/time[0], ops[0], ops[0]/time[0])
+        R.append([i,G.nnz,time, G.nnz/time[0], ops[0], ops[0]/time[0]])
 
-for r in R:
-    print(r)
+    print(R)

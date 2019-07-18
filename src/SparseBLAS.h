@@ -67,12 +67,18 @@ typedef int (*Comparing)(COOE *a, COOE *b, Ordering *c);
 struct coo_matrix {
   COOE *data;
   long unsigned int length; // number of COOE
+  long unsigned int ops;    // number of operations
   int M;      // Dimensions Row
   int N;      // Dimensions Column
+  
 };
 
 typedef struct coo_matrix COO;
 
+static COO initialize_COO(COOE *e, long unsigned int L, int M, int N) {
+  COO C = { e, L, 0, M, N}; 
+  return C;
+}
 /*
   In C we must allocate space in advance. We create chunks of memory
   that can be used and then solidified into a single block
