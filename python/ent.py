@@ -53,6 +53,7 @@ Differential = namedtuple(
 
 parameters = [
         ("-f", "--file",       str,None,    'store',"Input matrix"),
+        ("-s", "--save",       str,None,    'store',"Output matrix"),
         ("-csv", "--csvfile",  str,None,    'store',"Input matrix"),
         ("-o", "--pngfile",    str,None,    'store',"Write Graphs in PNG files"),
         ("-m", "--method",     str,None,    'store',"Method"),
@@ -156,7 +157,10 @@ def hier_entropy(Q,least=4):
                     (j*JH):min(((j+1)*JH),Q.matrix.shape[0]),
                     (k*JH):min(((k+1)*JH),Q.matrix.shape[1])
                 ].flatten()/SS
-                re = -sum(G*numpy.log(G))
+                G = G*numpy.log(G)
+                G = G[~numpy.isnan(G)]
+                
+                re = -sum(G)
                 #print("\t",re,j,k,
                 #      (j*JH),min(((j+1)*JH),Q.matrix.shape[0]),
                 #      (k*JH),min(((k+1)*JH),Q.matrix.shape[1]))
@@ -642,7 +646,7 @@ def search(args):
     if D.sw>0:
         a = numpy.abs((D.width[1:-1]-D.mw)/math.sqrt(D.sw))
     
-    if a is not None and (5*a>0).any():
+    if False and a is not None and (5*a>0).any():
         S = True
         mx = max(a)
         for i in range(0,len(a)):
@@ -666,7 +670,7 @@ def search(args):
 
     
     ## regular shuffle
-    for i in range(0,1):
+    for i in range(0,0):
         numpy.random.shuffle(W.col)
         numpy.random.shuffle(W.row)
         Q = spatial_hist(W)
@@ -696,7 +700,8 @@ def search(args):
         print(ResultsHeader)
         print(",".join([str(i) for i in Results]))
     
-            
+    if args.save:
+        sio.mmwrite(args.save,W)
         
         
 if __name__ == '__main__':

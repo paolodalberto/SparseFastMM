@@ -4,38 +4,43 @@ import scipy
 import scipy.io as sio
 import math
 
-B = sio.mmread("bcsstk32.mtx")
-A = sio.mmread("bcsstk32.mtx")
-C = sio.mmread("bcsstk32.mtx")
-AL = []
-print("Ordering A Row Major")
-for i in range(0,A.nnz):
-    AL.append([A.row[i],A.col[i], i])
+
+SHUFFLE=False
+
+if SHUFFLE:
+    B = sio.mmread("bcsstk32.mtx")
+    A = sio.mmread("shufflebcsstk32.mtx")
+    C = sio.mmread("shufflebcsstk32.mtx")
+else:
+    B = sio.mmread("bcsstk32.mtx")
+    A = sio.mmread("bcsstk32.mtx")
+    C = sio.mmread("bcsstk32.mtx")
+
     
-AL = sorted(AL, key = lambda x: (x[0],x[1]))
-I = []
-for i in range(0,A.nnz):
-    I.append(AL[i][2])
-A.row = A.row[I]
-A.col = A.col[I]
-A.data = A.data[I]
+def orderbyrow(A):
+    AL = []
+    print("Ordering A Row Major")
+    for i in range(0,A.nnz):
+        AL.append([A.row[i],A.col[i], i])
+    
+    AL = sorted(AL, key = lambda x: (x[0],x[1]))
+    I = []
+    for i in range(0,A.nnz):
+        I.append(AL[i][2])
+    A.row = A.row[I]
+    A.col = A.col[I]
+    A.data = A.data[I]
+    return A
 
-#A.row = A.row[0:IP]
-#A.col = A.col[0:IP]
-#A.data = A.data[0:IP]
-
-
+print("Ordering C by row")
+A = orderbyrow(A)
 
 print("Ordering C as A")
-C.row = C.row[I]
-C.col = C.col[I]
-C.data = C.data[I]
+C = orderbyrow(C)
 
-print("Ordering B as A (this will be reorg in the kenel")
+print("Ordering B (this will be reorg in the kenel")
 
-B.col  = B.col[I]
-B.row  = B.row[I]
-B.data = B.data[I]
+B = orderbyrow(B)
 
 
 DEBUG = False
@@ -92,9 +97,10 @@ def sparse_mm(P,C=C,A=A,B=B):
 
 if  True:
     R = []
-    for i in range(2,16):
+    for i in range(2,17):
         G,time,ops =sparse_mm(i)
         print(i,G.nnz,time, G.nnz/time[0], ops[0], ops[0]/time[0])
         R.append([i,G.nnz,time, G.nnz/time[0], ops[0], ops[0]/time[0]])
 
-    print(R)
+    for r in R:
+        print(r)
