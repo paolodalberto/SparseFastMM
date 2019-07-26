@@ -597,8 +597,8 @@ def search(args):
     if args.visualize: ent_visualize(R,"e-regular.png")
 
     ## regular shuffle
-    for i in range(0,0):
-        numpy.random.shuffle(W.col)
+    for i in range(0,1):
+        #numpy.random.shuffle(W.col)
         numpy.random.shuffle(W.row)
         Q = spatial_hist(W)
         if args.visualize: visualize(Q,str(i)+"-pre-shuffle.png")
