@@ -1,0 +1,185 @@
+%%
+%% This is file `sample-manuscript.tex',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% samples.dtx  (with options: `manuscript')
+%% 
+%% IMPORTANT NOTICE:
+%% 
+%% For the copyright see the source file.
+%% 
+%% Any modified versions of this file must be renamed
+%% with new filenames distinct from sample-manuscript.tex.
+%% 
+%% For distribution of the original source see the terms
+%% for copying and modification in the file samples.dtx.
+%% 
+%% This generated file may be distributed as long as the
+%% original source files, as listed above, are part of the
+%% same distribution. (The sources need not necessarily be
+%% in the same archive or directory.)
+%%
+%% The first command in your LaTeX source must be the \documentclass command.
+\documentclass[manuscript,screen]{acmart}
+\usepackage{bm}
+
+% Paolo's definition. Yes, I have my way to define stuff. Please take
+% a look
+\input{mydef}
+
+
+% Always include hyperref last
+\usepackage[bookmarks=true,breaklinks=true,letterpaper=true,colorlinks,linkcolor=black,citecolor=blue,urlcolor=black]{hyperref}
+
+%%
+%% \BibTeX command to typeset BibTeX logo in the docs
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
+
+%% Rights management information.  This information is sent to you
+%% when you complete the rights form.  These commands have SAMPLE
+%% values in them; it is your responsibility as an author to replace
+%% the commands and values with those provided to you when you
+%% complete the rights form.
+\setcopyright{acmcopyright}
+\copyrightyear{2020}
+\acmYear{2020}
+\acmDOI{}
+
+%% These commands are for a PROCEEDINGS abstract or paper.
+%\acmConference[Woodstock '18]{Woodstock '18: ACM Symposium on Neural
+%  Gaze Detection}{June 03--05, 2018}{Woodstock, NY}
+%\acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection,
+%  June 03--05, 2018, Woodstock, NY}
+%\acmPrice{15.00}
+%\acmISBN{978-1-4503-XXXX-X/18/06}
+
+
+%%
+%% Submission ID.
+%% Use this when submitting an article to a sponsored event. You'll
+%% receive a unique submission ID from the organizers
+%% of the event, and this ID should be used as the parameter to this command.
+%%\acmSubmissionID{123-A56-BU3}
+
+%%
+%% The majority of ACM publications use numbered citations and
+%% references.  The command \citestyle{authoryear} switches to the
+%% "author year" style.
+%%
+%% If you are preparing content for an event
+%% sponsored by ACM SIGGRAPH, you must use the "author year" style of
+%% citations and references.
+%% Uncommenting
+%% the next command will enable that style.
+%%\citestyle{acmauthoryear}
+
+%%
+%% end of the preamble, start of the body of the document source.
+\begin{document}
+
+%%%%%%%%%%%---SETME-----%%%%%%%%%%%%%
+\title{Randomization and Sparse Matrix by Vector Multiplication }
+
+\author{Abhishek Jain}
+%\email{---}
+\author{Ismail Bustany}
+%\email{---}
+\author{Paolo D'Alberto}
+%\email{---}
+
+%\affiliation{%
+%  \institution{1 * -}
+%  \streetaddress{2 * -}
+%  \city{3 * -}
+%  \state{4 * -}
+%  \postcode{5 * -}
+%}
+
+\renewcommand{\shortauthors}{Jain et al.}
+
+\begin{abstract}
+A sparse matrix by vector multiplication (SpMV) is simplified by the
+matrix non-zero elements and how they are stored. From these two,
+there are different strategies to achieve the best computation. The
+applications of SpMV are many, the way to store the matrix are many,
+and the algorithms are many. However, there is no optimality without
+considering the architecture: for example, the CPU is only one among
+... many; here we shall present the effects of choosing among CPU,
+GPU, and FPGAs.
+
+When guided by proper principles, we can randomize by hardware
+properly. By nature, randomization is resilient to counter techniques,
+thus suitable to avoid worst case scenarios and improve performance on
+average; however, it can nudge off an otherwise good solution. Like
+preconditioning, randomization is advantageous when the matrix is
+reused or it is a constant such as in the power method for page
+ranking, Krilov's space, or convolutions for image classifications.
+Randomization is also an optimization that any architecture may take
+advantage although in different ways. Randomization is beneficial in
+specific cases for general purpose architectures and it has a larger
+application to custom architecture.
+
+We shall show there are cases where we can improve by 15\% performance
+for general purpose architectures and by 8x for custom architectures.
+
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+The idea should be simple to state: Sparse computations have few
+operations but they still have patterns and shapes. To achieve peak
+performance is to exploit these patterns. In the same fashion,
+specific patterns may reach catastrophic performance.  We are in the
+business in seeking these disagreeable patterns and destroy them.
+
+
+
+\section{Entropy}
+Patterns in sparse matrices are often visually pleasing. We want
+Entropy as a quantitative measure representing matrices patterns. We
+introduce such a measure to summarize the sparsity and to guide
+randomization heuristics.
+
+
+\section{Uniform distribution}
+If we are trying to split a SpMV into two computations with equal work
+load, and then recursively split further, then we must have a uniform
+distribution of non-zeros so that we can achieve a balanced work
+distribution or a quick way to estimate such balance distribution.
+
+
+\section{Workload and Parallelism}
+What we do not want to have is a partition into lots of smaller
+computations with very different workloads. Here we may want to
+indicate cases where we could split the matrix into sparse and dense
+formats.
+
+\section{Guiding randomization}
+There is random and there is Random.
+
+
+\section{Call for a different strategy}
+We want to find out randomization techniques that are suitable for
+custom hardware but also what are the most common and simple
+heuristics that can justified for any hardware.
+
+
+\section{Experimental Results}
+
+Plots and pots.
+
+
+%\input{conclusion.tex}
+
+%%%%%%%%% -- BIB STYLE AND FILE -- %%%%%%%%
+\bibliographystyle{ACM-Reference-Format} \bibliography{ref}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\appendix{Review and Response}
+%\input{review.tex}
+\end{document}
