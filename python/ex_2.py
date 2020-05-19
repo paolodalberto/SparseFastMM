@@ -5,19 +5,23 @@ import math
 import numpy
 import time
 
-B = sio.mmread("bcsstk32.mtx")
-AS = sio.mmread("shufflebcsstk32.mtx")
-A = sio.mmread("bcsstk32.mtx")
+T = "/media/ext4/home/paolo/FastMM/Epyc/clSPARSE/bin/Externals/MTX/Bell_Garland/cant/cant.mtx"
 
+print("reading")
+B = sio.mmread(T)
+A = sio.mmread(T)
+
+print("B translating ")
 BC= B.tocsc()
 BCC= B.tocsr()
 AC= A.tocsr()
 
+print("computing")
 b = time.time(); C=A*B; e = time.time(); print(e-b)
 b = time.time(); CC=AC*BC; e = time.time(); print(e-b)
 b = time.time(); CC=AC*BCC; e = time.time(); print(e-b)
 
-
+print("Multi")
 def f(x,N=AC.shape[0]):
     S = N//x[1]
     l = x[0]*S

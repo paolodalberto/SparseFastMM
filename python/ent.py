@@ -12,6 +12,7 @@ from multiprocessing import Pool
 from functools import reduce    
 
 from  gpu_script import gpu_execute
+from  thread_script import compute_parallel
 
 
 Range = namedtuple("Range",
@@ -425,6 +426,11 @@ def measure(A, IN=10, device=0) :
 
     return "COO GFLOPS {0:5.2f} CSR GFLOPS {1:5.2f} ".format(coogflops,csrgflops)  
 
+def measure_p(filename) :
+    
+    return compute_parallel([filename])
+    
+
 def gpu_measure(filename, device=0) :
     #import pdb; pdb.set_trace()
     R : dict = {device: {'s' : {}, 'd' : {}}}
@@ -485,7 +491,11 @@ def search(args):
     for e  in R[0][-1,:,:].flatten():
         Results.append(e)
     sio.mmwrite(wrt+"0_"+name,W)
-    print("{:25s}".format(name),"Entropy      d {:5.2f} ".format(Ent),"time",measure(W,1000),gpu_measure(wrt+"0_"+name,args.device))
+    print("{:25s} {:7s}".format(name,str(W.dtype)),
+          "Entropy      d {:5.2f} ".format(Ent),
+          "time",measure(W,1000),
+          gpu_measure(wrt+"0_"+name,args.device),
+          measure_p(wrt+"0_"+name))
     if args.visualize: ent_visualize(R,"regular.png")
     WT = W.copy()
 
@@ -508,8 +518,12 @@ def search(args):
             print("Gradient pre-w",D.mw,D.sw)
         
         sio.mmwrite(wrt+"1_"+name,W)
-        print("{:25s}".format(name),
-              "Entropy  pre-d {:5.2f} ".format(scipy.stats.entropy(Q.matrix.flatten(),None)),"time",measure(W,1000),gpu_measure(wrt+"1_"+name,args.device))
+        print("{:25s} {:7s}".format(name,str(W.dtype)),
+              "Entropy  pre-d {:5.2f} ".format(scipy.stats.entropy(Q.matrix.flatten(),None)),
+              "time",measure(W,1000),
+              gpu_measure(wrt+"1_"+name,args.device),
+              measure_p(wrt+"1_"+name)
+        )
         R = hier_entropy(Q)
         if args.visualize:  ent_visualize(R,"shuffle.png")
 
@@ -540,8 +554,11 @@ def search(args):
             print("H Entropy  w",scipy.stats.entropy(Q.width.flatten(),None))
             print("h Gradient w",D.mw,D.sw)
         sio.mmwrite(wrt+"2_"+name,W)
-        print("{:25s}".format(name),
-              "H Entropy    d {:5.2f} ".format(scipy.stats.entropy(Q.matrix.flatten(),None)),"time",measure(W,1000),gpu_measure(wrt+"2_"+name,args.device))
+        print("{:25s} {:7s}".format(name,str(W.dtype)),
+              "H Entropy    d {:5.2f} ".format(scipy.stats.entropy(Q.matrix.flatten(),None)),
+              "time",measure(W,1000),
+              gpu_measure(wrt+"2_"+name,args.device),
+              measure_p(wrt+"2_"+name))
         R = hier_entropy(Q)
         if args.visualize: ent_visualize(R,"H-shuffle.png")
 
@@ -575,8 +592,11 @@ def search(args):
         R = hier_entropy(Q)
         if args.visualize: ent_visualize(R,"W-shuffle.png")
         sio.mmwrite(wrt+"3_"+name,W)
-        print("{:25s}".format(name),
-              "W Entropy    d {:5.2f} ".format(scipy.stats.entropy(Q.matrix.flatten(),None)),"time",measure(W,1000),gpu_measure(wrt+"3_"+name,args.device))
+        print("{:25s} {:7s}".format(name,str(W.dtype)),
+              "W Entropy    d {:5.2f} ".format(scipy.stats.entropy(Q.matrix.flatten(),None)),"time",
+              measure(W,1000),gpu_measure(wrt+"3_"+name,args.device),
+              measure_p(wrt+"3_"+name)
+        )
         
     W =	WT.copy()
     ## regular shuffle
@@ -602,8 +622,10 @@ def search(args):
         for e  in R[0][-1,:,:].flatten(): 
             Results.append(e)
         sio.mmwrite(wrt+"4_"+name,W)
-        print("{:25s}".format(name),
-              "Entropy post   {:5.2f} ".format(Ent),"time",measure(W,1000),gpu_measure(wrt+"4_"+name,args.device))
+        print("{:25s} {:7s}".format(name,str(W.dtype)),
+              "Entropy post   {:5.2f} ".format(Ent),"time",measure(W,1000),
+              gpu_measure(wrt+"4_"+name,args.device),
+              measure_p(wrt+"4_"+name))
     print("------------------")
     if args.csvfile:
         print(len(ResultsHeader.split(",")),len(Results))
