@@ -6,7 +6,7 @@ import scipy.stats
 import time 
 import matplotlib.pyplot as plt
 import argparse
-
+import sys 
 from collections import namedtuple
 from multiprocessing import Pool
 from functools import reduce    
@@ -51,11 +51,14 @@ Differential = namedtuple(
 parameters = [
     ("-f", "--file",       str,None,    'store',"Input matrix"),
     ("-d", "--device",     int,0,       'store',"GPU Device number "),
+    ("-t", "--trials",     int,10,       'store',"GPU Device number "),
     ("-s", "--save",       str,None,    'store',"Output matrix"),
     ("-csv", "--csvfile",  str,None,    'store',"Input matrix"),
     ("-o", "--pngfile",    str,None,    'store',"Write Graphs in PNG files"),
     ("-m", "--method",     str,None,    'store',"Method"),
     ("-vis", "--visualize",  bool,False,    'store_true',"visualize in pictures"),
+    ("-cpu", "--cpuonly",  bool,False,    'store_true',"visualize in pictures"),
+    ("-gpu", "--gpuonly",  bool,False,    'store_true',"visualize in pictures"),
     ("-vvis", "--vvisualize",  bool,False,    'store_true',"visualize in pictures"),
 ]
 
@@ -406,7 +409,8 @@ def hist2(P,parts=128,C=12):
         
     
 
-def measure(A, IN=10, device=0) :
+def measure(A, IN=10000, args = None) :
+    if args is not None  and args.gpuonly: return "", [0,0]
     
     B = numpy.ones(A.shape[1])
     b = time.time();
@@ -414,24 +418,28 @@ def measure(A, IN=10, device=0) :
         Rf = A*B
     e = time.time();
     coo = (e-b)/IN
+    print("COO", IN,e-b, file=sys.stderr)
     nnz = A.nnz
-    coogflops = (nnz/coo)/1000000000
+    coogflops = (2*nnz/coo)/1000000000
     AC= A.tocsr()
     b = time.time();
     for ll in range(0,IN):
         Rf = AC*B
     e = time.time(); 
     csr = (e-b)/IN
-    csrgflops = (nnz/csr)/1000000000
-
-    return "COO GFLOPS {0:5.2f} CSR GFLOPS {1:5.2f} ".format(coogflops,csrgflops)  
+    print("CSR", IN,e-b, file=sys.stderr)
+    csrgflops = (2*nnz/csr)/1000000000
+    
+    return ("COO GFLOPS {0:5.2f} CSR GFLOPS {1:5.2f} ".format(coogflops,csrgflops),(coogflops,csrgflops))
 
 def measure_p(filename) :
-    
+    if args is not None  and args.gpuonly: return "", [0]
     return compute_parallel([filename])
     
 
-def gpu_measure(filename, device=0) :
+def gpu_measure(filename, device=0,args=None) :
+    
+    if args is not None  and args.cpuonly: return "", [0,0,0,0]
     #import pdb; pdb.set_trace()
     R : dict = {device: {'s' : {}, 'd' : {}}}
     R = gpu_execute(device,filename,R)
@@ -450,7 +458,7 @@ def gpu_measure(filename, device=0) :
         scooflops,dcooflops,scsrflops,dcsrflops
     )
 
-    return S
+    return (S,[scooflops,dcooflops,scsrflops,dcsrflops])
 
 def distance_matrix(args):
     W = sio.mmread(args.file)
@@ -458,8 +466,42 @@ def distance_matrix(args):
     print(P)
     hist2(P,50,24)
 
-def search(args):
+
+def Measure(W,A,H, i, name, args):
+    CPU = measure(W)                           # coogflops,csrgflops  
+    GPU = gpu_measure(name,args.device, args)  # scooflops,dcooflops,scsrflops,dcsrflops
+    PAR = measure_p(name)
+    A[0,i] = CPU[1][0];A[1,i] = CPU[1][1];
+
+    A[2,i] = GPU[1][0];A[3,i] = GPU[1][1];
+    A[4,i] = GPU[1][2];A[5,i] = GPU[1][3]
+
+    A[6,i] = PAR[1][0]
+    A[7,i] = H
     
+    BBB = ("{:25s} {:7s}".format(name,str(W.dtype)),
+           "H {:2.3F}".format(H),
+           CPU[0],
+           GPU[0],
+           PAR[0]
+    )
+    print(*BBB, file=sys.stderr)
+
+def PrintB(B, header = ""):
+    print(header)
+    print("{0:25s} CPU COO    min {1:>6.3f} max {2:>6.3f} mean {3:>6.3f}".format(header,min(B[0,:]), max(B[0,:]),numpy.mean(B[0,:])))
+    print("{0:25s} CPU CSR    min {1:>6.3f} max {2:>6.3f} mean {3:>6.3f}".format(header,min(B[1,:]), max(B[1,:]),numpy.mean(B[1,:])))
+                                                                  
+    print("{0:25s} GPU 32 COO min {1:>6.3f} max {2:>6.3f} mean {3:>6.3f}".format(header,min(B[2,:]), max(B[2,:]),numpy.mean(B[2,:])))
+    print("{0:25s}        COO min {1:>6.3f} max {2:>6.3f} mean {3:>6.3f}".format(header,min(B[4,:]), max(B[4,:]),numpy.mean(B[4,:])))
+    print("{0:25s} GPU 64 CSR min {1:>6.3f} max {2:>6.3f} mean {3:>6.3f}".format(header,min(B[3,:]), max(B[3,:]),numpy.mean(B[3,:])))
+    print("{0:25s}        CSR min {1:>6.3f} max {2:>6.3f} mean {3:>6.3f}".format(header,min(B[5,:]), max(B[5,:]),numpy.mean(B[5,:])))
+                                                                  
+    print("{0:25s} CPU PAR    min {1:>6.3f} max {2:>6.3f} mean {3:>6.3f}".format(header,min(B[6,:]), max(B[6,:]),numpy.mean(B[6,:])))
+    print("{0:25s} H          min {1:>6.3f} max {2:>6.3f} mean {3:>6.3f}".format(header,min(B[7,:]), max(B[7,:]),numpy.mean(B[7,:])))
+
+def search(args):
+        
     extra = False
     
     filename =args.file
@@ -491,42 +533,34 @@ def search(args):
     for e  in R[0][-1,:,:].flatten():
         Results.append(e)
     sio.mmwrite(wrt+"0_"+name,W)
-    print("{:25s} {:7s}".format(name,str(W.dtype)),
-          "Entropy      d {:5.2f} ".format(Ent),
-          "time",measure(W,1000),
-          gpu_measure(wrt+"0_"+name,args.device),
-          measure_p(wrt+"0_"+name))
-    if args.visualize: ent_visualize(R,"regular.png")
     WT = W.copy()
 
+    H = scipy.stats.entropy(Q.matrix.flatten(),None)
+
+    A = numpy.zeros((1+2+4+1)*args.trials).reshape(1+2+4+1,args.trials)
+    for i in range(0,args.trials):
+        Measure(W,A,H,i,wrt+"0_"+name,args)
+        if args.visualize: ent_visualize(R,"regular.png")
+    
+    PrintB(A,"0_"+name)
+    
+    B = numpy.zeros((1+2+4+1)*args.trials).reshape(1+2+4+1,args.trials)
+
+    W = WT.copy()
+
     ## regular shuffle
-    for i in range(0,1):
-        
-        
+    for i in range(0,args.trials):
         numpy.random.shuffle(W.row)
         Q = spatial_hist(W)
-        if args.visualize: visualize(Q,"shuffle.png")
-        D = gradients(Q)
-        if args.visualize: visualize_grad(D,"shuffle-gradient.png")
-        
-        
-        if extra:
-            print("Gradient pre-d",D.m0,D.m1, D.s0,D.s1, D.k)
-            print("Entropy  pre-h",scipy.stats.entropy(Q.height.flatten(),None))
-            print("Gradient pre-h",D.mh,D.sh)
-            print("Entropy  pre-w",scipy.stats.entropy(Q.width.flatten(),None))
-            print("Gradient pre-w",D.mw,D.sw)
-        
+        H = scipy.stats.entropy(Q.matrix.flatten(),None)
         sio.mmwrite(wrt+"1_"+name,W)
-        print("{:25s} {:7s}".format(name,str(W.dtype)),
-              "Entropy  pre-d {:5.2f} ".format(scipy.stats.entropy(Q.matrix.flatten(),None)),
-              "time",measure(W,1000),
-              gpu_measure(wrt+"1_"+name,args.device),
-              measure_p(wrt+"1_"+name)
-        )
-        R = hier_entropy(Q)
-        if args.visualize:  ent_visualize(R,"shuffle.png")
-
+        Measure(W,B,H,i,wrt+"1_"+name,args)
+        if extra:
+            print("R Entropy  h",scipy.stats.entropy(Q.height.flatten(),None))
+            print("R Entropy  w",scipy.stats.entropy(Q.width.flatten(),None))
+        
+        
+    PrintB(B,"1_"+name)    
     ## targeted row shuffle
     S = False
     a = None
@@ -541,26 +575,20 @@ def search(args):
         for i in range(0,len(a)):
             if a[i] == mx:
                 break
-        #print("i h ", i,Q.h)
-        shuffy(W.row,(i+1)*Q.h,Q.H,True)
-        Q = spatial_hist(W)
-        if args.visualize: visualize(Q,"H-shuffle.png")
-        D = gradients(Q)
-        if args.visualize: visualize_grad(D,"H-shuffle-gradient.png")
-        if extra:
-            print("H Gradient d",D.m0,D.m1, D.s0,D.s1, D.k)
-            print("H Entropy  h",scipy.stats.entropy(Q.height.flatten(),None))
-            print("H Gradient h",D.mh,D.sh)
-            print("H Entropy  w",scipy.stats.entropy(Q.width.flatten(),None))
-            print("h Gradient w",D.mw,D.sw)
-        sio.mmwrite(wrt+"2_"+name,W)
-        print("{:25s} {:7s}".format(name,str(W.dtype)),
-              "H Entropy    d {:5.2f} ".format(scipy.stats.entropy(Q.matrix.flatten(),None)),
-              "time",measure(W,1000),
-              gpu_measure(wrt+"2_"+name,args.device),
-              measure_p(wrt+"2_"+name))
-        R = hier_entropy(Q)
-        if args.visualize: ent_visualize(R,"H-shuffle.png")
+        C = numpy.zeros((1+2+4+1)*args.trials).reshape(1+2+4+1,args.trials)
+        for i in range(0,args.trials):
+            #print("i h ", i,Q.h)
+            shuffy(W.row,(i+1)*Q.h,Q.H,True)
+            Q = spatial_hist(W)
+            if args.visualize: visualize(Q,"H-shuffle.png")
+            if extra:
+                print("H Entropy  h",scipy.stats.entropy(Q.height.flatten(),None))
+                print("H Entropy  w",scipy.stats.entropy(Q.width.flatten(),None))
+            sio.mmwrite(wrt+"2_"+name,W)
+            H = scipy.stats.entropy(Q.matrix.flatten(),None)
+            sio.mmwrite(wrt+"2_"+name,W)
+            Measure(W,C,H,i,wrt+"2_"+name,args)
+        PrintB(C,"2_"+name)
 
     ## targeted col shuffle
     a = None
@@ -574,80 +602,51 @@ def search(args):
         for i in range(0,len(a)):
             if a[i] == mx:
                 break
-        #print("i", i,Q.h)
-        shuffy(W.col,(i+1)*Q.w,Q.W,True)
-        Q = spatial_hist(W)
-        if args.visualize: visualize(Q,"W-shuffle.png")
-        D = gradients(Q)
-        if args.visualize: visualize_grad(D,"W-shuffle-gradient.png")
+        D = numpy.zeros((1+2+4+1)*args.trials).reshape(1+2+4+1,args.trials)
+        for i in range(0,args.trials):
+            #print("i", i,Q.h)
+            shuffy(W.col,(i+1)*Q.w,Q.W,True)
+            Q = spatial_hist(W)
+            if args.visualize: visualize(Q,"W-shuffle.png")
+            if (extra):
+                print("W Entropy  h",scipy.stats.entropy(Q.height.flatten(),None))
+                print("W Entropy  w",scipy.stats.entropy(Q.width.flatten(),None))
+            sio.mmwrite(wrt+"3_"+name,W)
+            H = scipy.stats.entropy(Q.matrix.flatten(),None)
+            sio.mmwrite(wrt+"3_"+name,W)
+            Measure(W,D,H,i,wrt+"3_"+name,args)
+        PrintB(D,"3_"+name)
 
-
-
-        if (False):
-            print("W Gradient d",D.m0,D.m1, D.s0,D.s1, D.k)
-            print("W Entropy  h",scipy.stats.entropy(Q.height.flatten(),None))
-            print("W Gradient h",D.mh,D.sh)
-            print("W Entropy  w",scipy.stats.entropy(Q.width.flatten(),None))
-            print("W Gradient w",D.mw,D.sw)
-        R = hier_entropy(Q)
-        if args.visualize: ent_visualize(R,"W-shuffle.png")
-        sio.mmwrite(wrt+"3_"+name,W)
-        print("{:25s} {:7s}".format(name,str(W.dtype)),
-              "W Entropy    d {:5.2f} ".format(scipy.stats.entropy(Q.matrix.flatten(),None)),"time",
-              measure(W,1000),gpu_measure(wrt+"3_"+name,args.device),
-              measure_p(wrt+"3_"+name)
-        )
-        
+    E = numpy.zeros((1+2+4+1)*args.trials).reshape(1+2+4+1,args.trials)
     W =	WT.copy()
     ## regular shuffle
-    for i in range(0,1):
+    for i in range(0,args.trials):
         numpy.random.shuffle(W.col)
         numpy.random.shuffle(W.row)
         Q = spatial_hist(W)
         if args.visualize: visualize(Q,"row-column-shuffle.png")
-        D = gradients(Q)
-        if args.visualize: visualize_grad(D,"row-column-shuffle-gradient.png")
-        Ent = scipy.stats.entropy(Q.matrix.flatten(),None)
+        H = scipy.stats.entropy(Q.matrix.flatten(),None)
                 
         if extra:
-            print("Gradient post-d",D.m0,D.m1, D.s0,D.s1, D.k)
             print("Entropy  post-h",scipy.stats.entropy(Q.height.flatten(),None))
-            print("Gradient post-h",D.mh,D.sh)
             print("Entropy  post-w",scipy.stats.entropy(Q.width.flatten(),None))
-            print("Gradient post-w",D.mw,D.sw)
-        
-        R = hier_entropy(Q)
-        if args.visualize:  ent_visualize(R,"row-column-shuffle.png")
-        Results.append(Ent)
-        for e  in R[0][-1,:,:].flatten(): 
-            Results.append(e)
+
         sio.mmwrite(wrt+"4_"+name,W)
-        print("{:25s} {:7s}".format(name,str(W.dtype)),
-              "Entropy post   {:5.2f} ".format(Ent),"time",measure(W,1000),
-              gpu_measure(wrt+"4_"+name,args.device),
-              measure_p(wrt+"4_"+name))
+        Measure(W,E,H,i,wrt+"4_"+name,args)
+    PrintB(E,"4_"+name)
     print("------------------")
-    if args.csvfile:
-        print(len(ResultsHeader.split(",")),len(Results))
-        with open(args.csvfile,"w") as F:
-            F.write(ResultsHeader)
-            F.write(",".join([str(i) for i in Results]))
-            F.close()
-    
-    if args.save:
-        sio.mmwrite(args.save,W)
-        
+
+    return (A,B,C,D,E)
         
 if __name__ == '__main__':
 
 
     parser = default_compiler_arg_parser()
     args = parser.parse_args()
-        
+
+
     search(args)
-
-
-
+    
         
 
 

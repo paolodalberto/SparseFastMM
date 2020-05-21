@@ -1,37 +1,26 @@
-%%
-%% This is file `sample-manuscript.tex',
-%% generated with the docstrip utility.
-%%
-%% The original source files were:
-%%
-%% samples.dtx  (with options: `manuscript')
-%% 
-%% IMPORTANT NOTICE:
-%% 
-%% For the copyright see the source file.
-%% 
-%% Any modified versions of this file must be renamed
-%% with new filenames distinct from sample-manuscript.tex.
-%% 
-%% For distribution of the original source see the terms
-%% for copying and modification in the file samples.dtx.
-%% 
-%% This generated file may be distributed as long as the
-%% original source files, as listed above, are part of the
-%% same distribution. (The sources need not necessarily be
-%% in the same archive or directory.)
-%%
-%% The first command in your LaTeX source must be the \documentclass command.
+%% This is file `sample-manuscript.tex', generated with the docstrip
+%% utility.  The original source files were: samples.dtx (with
+%% options: `manuscript') IMPORTANT NOTICE: For the copyright see the
+%% source file.  Any modified versions of this file must be renamed
+%% with new filenames distinct from sample-manuscript.tex.  For
+%% distribution of the original source see the terms for copying and
+%% modification in the file samples.dtx.  This generated file may be
+%% distributed as long as the original source files, as listed above,
+%% are part of the same distribution. (The sources need not
+%% necessarily be in the same archive or directory.)  The first
+%% command in your LaTeX source must be the \documentclass command.
 \documentclass[manuscript,screen]{acmart}
 \usepackage{bm}
 
 % Paolo's definition. Yes, I have my way to define stuff. Please take
 % a look
-\input{mydef}
+
 
 
 % Always include hyperref last
-\usepackage[bookmarks=true,breaklinks=true,letterpaper=true,colorlinks,linkcolor=black,citecolor=blue,urlcolor=black]{hyperref}
+%\usepackage[bookmarks=true,breaklinks=true,letterpaper=true,colorlinks,linkcolor=black,citecolor=blue,urlcolor=black]{hyperref}
+%\graphicspath{{../python/PNG/}}
+\input{mydef}
 
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
@@ -82,7 +71,7 @@
 \begin{document}
 
 %%%%%%%%%%%---SETME-----%%%%%%%%%%%%%
-\title{Randomization and Sparse Matrix by Vector Multiplication }
+\title{Randomization of Sparse Matrix by Vector Multiplication }
 
 \author{Abhishek Jain}
 %\email{---}
@@ -103,75 +92,287 @@
 
 \begin{abstract}
 A sparse matrix by vector multiplication (SpMV) is simplified by the
-matrix non-zero elements and how they are stored. From these two,
-there are different strategies to achieve the best computation. The
-applications of SpMV are many, the way to store the matrix are many,
-and the algorithms are many. However, there is no optimality without
-considering the architecture: for example, the CPU is only one among
-... many; here we shall present the effects of choosing among CPU,
-GPU, and FPGAs.
+matrix non-zero elements and how we store them. There are many SpMV
+applications, many matrix storage formats, and thus
+algorithms. However, there is no optimality without considering the
+architecture: for example, the CPU is only one among ... many.
 
-When guided by proper principles, we can randomize by hardware
-properly. By nature, randomization is resilient to counter techniques,
-thus suitable to avoid worst case scenarios and improve performance on
-average; however, it can nudge off an otherwise good solution. Like
-preconditioning, randomization is advantageous when the matrix is
-reused or it is a constant such as in the power method for page
-ranking, Krilov's space, or convolutions for image classifications.
-Randomization is also an optimization that any architecture may take
-advantage although in different ways. Randomization is beneficial in
-specific cases for general purpose architectures and it has a larger
-application to custom architecture.
+By nature, randomization is resilient to counter techniques, thus
+suitable to avoid worst case scenarios, improve performance on
+average, and reduce performance variance; however, it does to the best
+case the same thing it does to the worst case, it can nudge it
+off. Like preconditioning, randomization is advantageous when the
+matrix is reused or a constant such as in the power method, Krilov's
+space, or convolutions for image classifications.  Randomization is
+also an optimization that any architecture may take advantage although
+in different ways.
 
-We shall show there are cases where we can improve by 15\% performance
-for general purpose architectures and by 8x for custom architectures.
+We shall present cases where we can improve by 15\% performance for
+general purpose architectures and by 8x for custom architectures.
 
 \end{abstract}
 
 \maketitle
 
-\section{Introduction}
-The idea should be simple to state: Sparse computations have few
-operations but they still have patterns and shapes. To achieve peak
-performance is to exploit these patterns. In the same fashion,
-specific patterns may reach catastrophic performance.  We are in the
-business in seeking these disagreeable patterns and destroy them.
+\section{Introduction} B.S. Goes here.
+\label{sec:introduction}
+
+\section{Basic Notations}
+\label{sec:notations}
+Let us start by describing the basic notations so we can clear the
+obvious (or not).  A Sparse-matrix vector multiplication {\em SpMV} on
+an (semi) ring based on the operations $(+,*)$ is defined as $\Vc{y} =
+\M \Vc{x}$ so that $y_i = \sum_j M_{i,j}*y_j$ where $M_{i,j} \eq 0$
+are not even represented and stored. Most of the experimental results
+in Section \ref{sec:experimentalresults} are based on the classic
+addition (+) and multiplication (*) in floating point precision using
+32 or 64bits (i.e., single and double floating point precision).  SpMV
+based on semi-ring (min,+) is a short path algorithm based on an
+adjacent matrix of a graph, and using a Boolean algebra we can check
+if two nodes are connected, which is slightly simpler. 
 
 
+
+We identify a sparse matrix $\M$ of size $M\times N$ as having
+$O(M+N)$ non-zero elements, number of non zero {\em nnz}. Thus the
+complexity of $\M \Vc{x}$ is $O(M+N) = 2nnz$. Of course, the
+definition of sparsity may vary. We represent the matrix $\M$ by using
+the Coordinate {\em COO} or and the compressed sparse row {\em
+  CSR}\footnote{a.k.a. Compressed row storage {\rm CRS}.}  format. The
+COO represents the non-zero of a matrix by a triplet $(i,j,val)$, very
+often there are three identical-in-size vectors for the ROW, COLUMN,
+and VALUE. The COO format takes $3\times nnz$ space and two
+consecutive elements in the value array are not bound to be neither in
+the same row nor column. In fact, we know only that $VALUE[i] =
+M_{ROW[i],COLUMN[i]}$.
+
+The CSR stores elements in the same row and with increasing column
+values consecutively. There are three arrays V, COL, and ROW. The ROW
+is sorted in increasing order, its size is $M$, and $ROW[i]$ is an
+index in V and COL describing where row-$i$ starts (i.e., if row $i$
+exists).  We have that $M_{i,*}$ is stored in $V[ROW[i]:ROW[i+1]]$ and
+the column are at $COL[ROW[i]:ROW[i+1]]$ and sorted increasingly. The
+CSR takes $2\times nnz + M$ space and a row vector of the matrix can
+be found in $O(1)$.
+ 
+The computation as $y_i = \sum_j M_{i,j}*x_j$ is a sequence of dot
+products and the CSR representation is a natural:
+
+\[ Index = ROW[i]:ROW[i+1] \]
+\[
+y_i =  \sum_{i\in Index} V[i] * x_{COL[i]}  
+\]
+The matrix row is contiguous (in memory) and contiguous rows are
+contiguous. The access of the (dense) vector $\Vc{x}$ could have no
+pattern. The COO format could use a little preparation: For example,
+we can sort the array by row and add row information to achieve the
+same properties of CSR; however transposing a COO matrix is just a
+swap of the array ROW and COL. Think about matrix multiply. As today,
+each dot product achieves peak performance if the reads of the vector
+$\Vc{x}$ are streamlined as much as possible and so the reads of the
+vector $V$. If we have multiple cores, each could compute a sub set of
+the $y_i$ and a clean data load balancing can go a long way. If we
+have a few functional units, we would like to have a constant stream
+of independent $*$ and $+$ operations but with data already in
+registers: that is, data pre-fetch will go a long way especially for
+$x_{COL[i]}$, which may have an irregular pattern.
+
+
+\section{Randomization}
+\label{sec:randomization}
+We refer to {\em Randomization} as row or column permutations of the
+matrix $\M$ (thus a permutation of $\Vc{y}$ and $\Vc{x}$) and we choose
+these by a pseudo-random process. Why we want to introduce
+uncertainty? The sparsity of our matrix $\M$ has a pattern
+representing the nature of the original problem; such a pattern may
+exploit the wrong computation for an architecture; we could break such
+a pattern so that the only property left is a uniform distribution (of
+some sort). We must avoid the worst case and we would opt for an
+average case instead and we could do this to a class of $\M$. This is
+the gist.
+
+If we know the matrix $\M$ and we know the architecture,
+preconditioning must be a better solution.  Well, it is. If we run
+experiments long enough, we choose the best permutations for the
+architecture, permute $\M$, and go on testing the next.  On one end,
+preconditioning exerts a full understanding of both the matrix (the
+problem) and how the final solution will be computed
+(architecture). This is the culminating point of knowing and we must
+strive to it. On the other end, the simplicity of a random permutation
+requires no information about the matrix, the vector, and the
+architecture. Such a simplicity can be exploited directly in HW. We
+are after an understanding when randomization is just enough: we want
+to let the hardware do its best with the least effort, or at least
+with the appearance to be effortless. Also we shall show there are
+different flavors of random.
+
+
+Interestingly, this work stems from a sincere surprise about
+randomization efficacy and its application on custom SpMV. Here, we
+want to study this problem systematically so that to help future
+hardware designs. Intuitively, if we can achieve a uniform
+distribution of the rows of matrix $\M$ we can have provable
+expectation of its load balancing across multiple cores. If we have a
+uniform distribution of accesses on $\Vc{x}$ we could exploit column
+load balancing and exploit better sorting algorithms: in practice the
+reading of $\Vc{x}_{COL[i]}$ can be reduces to a sorting and we know
+that different sparsity may require different algorithms. This is a
+lot to unpack but this translates as better performance of the
+sequential algorithm without changing the algorithm.
+
+We will show that (different) randomness affects architectures and
+algorithms differently making it a suitable optimization especially
+when the application and hardware are at odds. We want to show that
+there is a randomness hierarchy that we can distinguish as global and
+local; there are simple-to-find cases where the sparsity breaks
+randomness and the matrix has to be split into components.  We want to
+show that this study uses common tool, open software tools and
+sometimes naive experiments; however, we can infer properties
+applicable to proprietary and custom solutions. 
+
+\Doublefigure{.49}{../python/PNG/OPF_3754_mtx_regular}{../python/PNG/lp_osa_07_mtx_regular}{Left:
+  OPF 3754. Right: LP OSA 07. These are histograms where we represent
+  normalized buckets and counts}{fig:one}
 
 \section{Entropy}
-Patterns in sparse matrices are often visually pleasing. We want
-Entropy as a quantitative measure representing matrices patterns. We
-introduce such a measure to summarize the sparsity and to guide
-randomization heuristics.
+\label{sec:entropy}
+Patterns in sparse matrices are often visually pleasing, see Figure
+\ref{fig:one} where we present the height histogram, the width
+histograms and a two-dimensional histogram as heat map. We will let
+someone else using AI picture classification. Intuitively, we would
+like to express a measure of uniform distribution and here we apply
+the basics: {\em Entropy}. Given an histogram $i\in[0,M-1]$ $h_i \in
+\N$, we define $S =\sum_{i=0}^{M-1}h_i$ and thus we have a probability
+distribution function $p_i = \frac{h_i}{S}$. The {\em information} of
+bin $i$ is defined as $I(i) = -\log_2 p_i$. If we say that the
+stochastic variable $X$ has PDF $p_i$ than the entropy of $X$ is
+defined as.
+
+\begin{equation}
+  \label{eq:entropy}
+  H(x) = -\sum_{i=0}^{M-1} p_i\log_2p_i = \sum_{i=0}^{M-1}p_i I(i) =
+  E[I_x]
+\end{equation}
+The maximum entropy is when $\forall i, p_i = p = \frac{1}{M}$; that
+is, we are observing a uniform distributed event. There is no
+conceptual difference when the PDF represents a two dimensional
+distribution. Thus our randomization should aim at higher entropy
+numbers.
+
+The entropy for matrix LP OSA 07 is 8.41 and for OPF 3754 is 8.39. A
+single number is satisfying because concise.  
 
 
 \section{Uniform distribution}
-If we are trying to split a SpMV into two computations with equal work
-load, and then recursively split further, then we must have a uniform
-distribution of non-zeros so that we can achieve a balanced work
-distribution or a quick way to estimate such balance distribution.
+\label{sec:uniform}
+We know that we should {\bf not} compare the entropy numbers of two
+matrices because there entropy does not use any information about the
+order of the buckets. By construction, the matrices are quite
+different in sparsity, ins shapes and their entropy numbers are so
+close. To appreciate their difference, we should compare their
+distributions by Jensen-Shannon measure (which is a symmetric). Or we
+could use a representation of a hierarchical 2d-entropy, see Figure
+\ref{fig:two}, where the entropy is split into 2x2, 4x4 and 8x8 (or
+fewer if the distribution is not square). We have a hierarchical
+entropy heat maps.
+
+\doublefigure{.30}{../python/ENTOPF3754/2d-regular}{../python/ENTlposa07/2d-regular}{Hierarchical
+  2D entropy for OPF 3754 (left) and LP OSA 07 (right). }{fig:two}
+
+We can see a more granular entropy measure summarizes better the
+nature of the matrix. In this work, the entropy vector is used mostly
+for visualization purpose more than for comparison purpose. Of course,
+we can appreciate how the matrix LP OSA 07 has a few very heavy rows
+and they are clustered. This matrix will help up in showing how
+randomization need some tips. Now we apply row and column random
+permutation once by row and one by column: Figure \ref{fig:three}: OPF
+has now entropy 11.27 and LP 9.26. The numerical difference is
+significant. The good news is that for entropy, being an expectation,
+we can use simple techniques like bootstrap to show that the
+difference is significant or we have shown that Jensen-Shannon can be
+used and a significance level is available. What we like to see is the
+the hierarchical entropy heat map is becoming {\em more} uniform for
+at least one of the matrix.
+
+\doublefigure{.30}{../python/ENTOPF3754/2d-row-column-shuffle}{../python/ENTlposa07/2d-row-column-shuffle}{Hierarchical
+  2D entropy after row and column random permutation for OPF 3754
+  (left) and LP OSA 07 (right). }{fig:three}
+
+In practice, permutation need some help especially for relatively
+large matrices. As you can see, the permutation affects locally the
+matrix. Of course, it depends on the implementation of the random
+permutation (we use numpy for this) but it is reasonable a slightly
+modified version of the original is still a random selection but
+unfortunately they seem more likely than they should. We need to
+compensate or help the randomization so that this current
+implementation does not get too lazy.
+
+If we are able to identify the row and column that divide high and low
+density, we could use them as pivot for a shuffle like in a quick-sort
+algorithm. We could apply a sorting algorithm but its complexity will
+the same of SpMV. We use a gradients operations to choose the element
+with maximum steepness, Figure \ref{fig:four} and \ref{fig:five}
+
+LP achieves entropy 8.67 and 9.58 and OPF achieves 10.47 and 11.40.
+
+\doublefigure{.30}{../python/ENTOPF3754/2d-H-shuffle}{../python/ENTlposa07/2d-H-shuffle}{Hierarchical
+  2D entropy after height gradient based shuffle and row random
+  permutation for OPF 3754 (left) and LP OSA 07 (right). }{fig:four}
+
+\doublefigure{.30}{../python/ENTOPF3754/2d-W-shuffle}{../python/ENTlposa07/2d-W-shuffle}{Hierarchical
+  2D entropy after height and width gradient shuffle and row and
+  column random permutation for OPF 3754 (left) and LP OSA 07
+  (right). }{fig:five}
+
+If the goal is to achieve a uniform matrix sparsity, it seems that we
+have the basic tool to compute and to measure such a sparsity. We
+admit that we do not try to find the best permutation. But our real
+goal is to create a work bench where randomization can be tested on
+different architectures and different algorithms.
 
 
 \section{Workload and Parallelism}
-What we do not want to have is a partition into lots of smaller
-computations with very different workloads. Here we may want to
-indicate cases where we could split the matrix into sparse and dense
-formats.
+\label{sec:workload}
+
+What we do not want to have is a partition into lot of smaller
+computations with very different workloads. 
+
+\begin{table}[hbt]
+  \begin{tabular}{lrrrrrrrrrrrrrrrrrr}
+    Matrix           &       &   np  &         & FIJI &        &ELLES  &       & VEGA  &         &      &          & THE   &       & \\ \hline
+    bits             & 64    &       &         & 64   &        &64     &       &64     &         &      &          & Rt \\ \hline    
+                     & H     &   COO &  CSR    & COO  & CSR    &COO    &CSR    &COO    &  CSR    &Cores &   CSR    &  \\ \hline    
+lp osa 07            & 8.41  &  0.41 &  1.28   &*4.27 &*10.44  &*4.92  &*9.21  &*7.92  & *19.28  &   1  &  0.999   &1.03  \\       
+Row-Premute          & 9.26  &  0.36 &  1.34   & 4.20 &  9.74  & 4.68  & 8.65  & 7.85  &  17.25  &   1  &  0.902   &1.03  \\       
+Grad-Row-Permute     & 8.68  & *0.91 &  1.26   & 4.23 &  9.88  & 4.88  & 8.52  & 7.85  &  18.30  &  12  &  1.681   &1.60  \\       
+Grad-Row-Colum       & 9.60  &  0.48 &  1.24   & 4.18 &  9.08  & 4.70  & 7.92  & 7.75  &  16.40  &  15  & *1.799   &1.58  \\       
+Row-Colum-Permute    & 9.26  &  0.37 & *1.35   & 4.20 &  9.75  & 4.70  & 8.45  & 7.79  &  17.23  &   1  &  0.925   &1.03  \\ \hline
+OPF 3754             & 8.39  &  0.37 & *1.45   &*4.43 &*16.17  &*5.74  &*9.24  &*7.87  & *27.12  &  15  &  1.573   &1.93  \\       
+Row-Premute          &11.27  &  0.35 &  1.37   & 4.24 & 12.39  & 5.36  & 7.95  & 7.56  &  20.96  &  14  &  1.516   &1.93  \\       
+Grad-Row-Permute     &10.47  &  0.37 &  0.84   & 4.38 & 14.38  & 5.58  & 8.91  & 7.77  &  24.62  &  13  &  1.724   &1.43  \\       
+Grad-Row-Colum       &11.40  & *0.82 &  0.84   & 4.24 & 11.50  & 5.36  & 7.85  & 7.57  &  21.01  &  14  & *1.726   &1.48  \\       
+Row-Colum-Permute    &11.27  &  0.36 &  1.34   & 4.24 & 12.35  & 5.36  & 8.01  & 7.62  &  21.39  &  14  &  1.458   &1.98  \\ \hline
+  \end{tabular}
+  \end{table}
+
 
 \section{Guiding randomization}
+\label{sec:guide}
 There is random and there is Random.
 
 
 \section{Call for a different strategy}
+\label{sec:strategy}
 We want to find out randomization techniques that are suitable for
 custom hardware but also what are the most common and simple
 heuristics that can justified for any hardware.
 
 
 \section{Experimental Results}
-
+\label{sec:experimentalresults}
 Plots and pots.
+\input{exp.tex}
+
 
 
 %\input{conclusion.tex}

@@ -101,7 +101,7 @@ def f(x):
 def compute_parallel(list,
                      DEVICE= 'cpu',
                      R = {'cpu': {}},
-                     INTERVAL=1000,
+                     INTERVAL=5000,
                      TIMES=1,
                      THREADS=16):
 
@@ -152,7 +152,7 @@ def compute_parallel(list,
                       file=sys.stderr)
                 best.append([res[name][K]['gflops'],K,res[name][K]['time']/res[name][K]['mean']/INTERVAL])
                 del p
-            K = K + 1
+            K = K + (2 if K%2 ==0 else 1)
         #print(name, AC.nnz,sorted(best,key = lambda x: x[0])[-1])
     
         Q = "#P {1:2d} GFLOPS {0:2.3f}  Total/Average {2:2.2f}"
@@ -161,7 +161,7 @@ def compute_parallel(list,
         #print(S)
         result = Q.format(*tuple(S))
         print(result, file= sys.stderr)
-        return  result
+        return  (result, S)
         
         
 if __name__ == '__main__':
