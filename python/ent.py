@@ -700,9 +700,10 @@ def visualize_by_hist(k,B,i ):
     plt.title(k +" "+titles(i))
     plt.legend(loc='upper right')
     
-    T = titles(i)
-    TT = re.sub(" |\.", "_",T)
-    Q = k +"_"+TT+".png"
+    T = k+"_"+titles(i) 
+    TT = re.sub("[\s.]+", "_",T)
+    print(TT,T)
+    Q = TT+".png"
     #print(Q)
     plt.savefig(Q)
     

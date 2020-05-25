@@ -330,31 +330,90 @@ admit that we do not try to find the best permutation. But our real
 goal is to create a work bench where randomization can be tested on
 different architectures and different algorithms.
 
+\section{Measuring the randomization effects}
+\label{sec:measuring}
+
+Whether or not this applied to the reader, when we have timed
+execution of algorithms we came to expect variation.  The introduction
+of randomization may hide behind the ever present random behavior,
+after all these are algorithms on {\em small} inputs and small error
+can be comparable to the overall execution time. Here, we must address
+this concern, so we shall be on sound technical ground. Also, the
+software use to create and the experiments is freely available. 
+
+First, every algorithm is run between 1000 and 5000 times. The time of
+each experiment is in the seconds, providing a granularity of time we
+are confident that error in measuring time (per se) is not
+terrible. Thus, for each experiment we provide an average execution
+time: we measure the time and we divide by the number of trials. Cold
+starts, the first iteration is still accounted. To make the measure
+portable across platform we present GFLOPS, that is, Giga ($10^12$)
+floating operations per second: $2*nnz$ divided by the average time in
+seconds.
+
+Then we repeat the same experiment 32 times. Permutations in {\em
+  numpy} Python are state aware and thus every experiment is
+independent from the previous. The number 32 is an old statistic trick
+and it is a minimum number of independent trials to approximate an
+normal distribution. In practice, they are not but the number is
+sufficient for most of the cases and it is an excellent starting
+point.
+
+In Figure \ref{fig:five}, We show CPU performance using COO and CSR
+SpMV algorithms for the matrix OPF 3754. We can see that the CSR
+algorithms are consistent and the Regular (i.e., the original) has
+always the best performance. For the COO, permutations introduce a
+long tails. In Figure \ref{fig:six}, Randomization is harmful to the
+GPU implementation. If the load balance is fixed (i.e., by dividing
+the matrix by row and in equal row), randomization is beneficial.
+
+\doublefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_COO.png}{../python/PNG2/OPF_3754_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (left) for OPF 3754}{fig:five}
+
+\doublefigure{.45}{../python/PNG2/OPF_3754_mtx_GPU_64_COO.png}{../python/PNG2/OPF_3754_mtx_GPU_64_CSR.png}{GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:six}
+
+\singlefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_PAR.png}{ Parallel
+  CPU CSR (left) for OPF 3754}{fig:seven}
+
+For matrix LP OSA 07, randomization helps clearly only for CPU CSR as
+we show in Figure \ref{fig:eight}
+
+\singlefigure{.45}{../python/PNG2/lp_osa_07_mtx_CPU_CSR.png}{   CPU CSR (left) for LP OSA 07}{fig:eight}
+
+A clear 
+
+\doublefigure{.45}{../python/PNG2/mult_dcop_01_mtx_CPU_COO.png}{../python/PNG2/mult_dcop_01_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (left) for MULT DCOP 01}{fig:9}
+
+\doublefigure{.45}{../python/PNG2/mult_dcop_01_mtx_GPU_64_COO.png}{../python/PNG2/mult_dcop_01_mtx_GPU_64_CSR.png}{GPU 64bits COO (left) and GPU CSR (left) for MULT DCOP 01}{fig:10}
+
+\singlefigure{.45}{../python/PNG2/mult_dcop_01_mtx_CPU_PAR.png}{ Parallel
+  CPU CSR (left) for MULT DCOP 01 }{fig:11}
+
 
 \section{Workload and Parallelism}
 \label{sec:workload}
 
 What we do not want to have is a partition into lot of smaller
-computations with very different workloads. 
+computations with very different workloads.
 
-\begin{table}[hbt]
-  \begin{tabular}{lrrrrrrrrrrrrrrrrrr}
-    Matrix           &       &   np  &         & FIJI &        &ELLES  &       & VEGA  &         &      &          & THE   &       & \\ \hline
-    bits             & 64    &       &         & 64   &        &64     &       &64     &         &      &          & Rt \\ \hline    
-                     & H     &   COO &  CSR    & COO  & CSR    &COO    &CSR    &COO    &  CSR    &Cores &   CSR    &  \\ \hline    
-lp osa 07            & 8.41  &  0.41 &  1.28   &*4.27 &*10.44  &*4.92  &*9.21  &*7.92  & *19.28  &   1  &  0.999   &1.03  \\       
-Row-Premute          & 9.26  &  0.36 &  1.34   & 4.20 &  9.74  & 4.68  & 8.65  & 7.85  &  17.25  &   1  &  0.902   &1.03  \\       
-Grad-Row-Permute     & 8.68  & *0.91 &  1.26   & 4.23 &  9.88  & 4.88  & 8.52  & 7.85  &  18.30  &  12  &  1.681   &1.60  \\       
-Grad-Row-Colum       & 9.60  &  0.48 &  1.24   & 4.18 &  9.08  & 4.70  & 7.92  & 7.75  &  16.40  &  15  & *1.799   &1.58  \\       
-Row-Colum-Permute    & 9.26  &  0.37 & *1.35   & 4.20 &  9.75  & 4.70  & 8.45  & 7.79  &  17.23  &   1  &  0.925   &1.03  \\ \hline
-OPF 3754             & 8.39  &  0.37 & *1.45   &*4.43 &*16.17  &*5.74  &*9.24  &*7.87  & *27.12  &  15  &  1.573   &1.93  \\       
-Row-Premute          &11.27  &  0.35 &  1.37   & 4.24 & 12.39  & 5.36  & 7.95  & 7.56  &  20.96  &  14  &  1.516   &1.93  \\       
-Grad-Row-Permute     &10.47  &  0.37 &  0.84   & 4.38 & 14.38  & 5.58  & 8.91  & 7.77  &  24.62  &  13  &  1.724   &1.43  \\       
-Grad-Row-Colum       &11.40  & *0.82 &  0.84   & 4.24 & 11.50  & 5.36  & 7.85  & 7.57  &  21.01  &  14  & *1.726   &1.48  \\       
-Row-Colum-Permute    &11.27  &  0.36 &  1.34   & 4.24 & 12.35  & 5.36  & 8.01  & 7.62  &  21.39  &  14  &  1.458   &1.98  \\ \hline
-  \end{tabular}
-  \end{table}
 
+%%\begin{table}[hbt]
+%%  \begin{tabular}{lrrrrrrrrrrrrrrrrrr}
+%%    Matrix           &       &   np  &         & FIJI &        &ELLES  &       & VEGA  &         &      &          & THE   &       & \\ \hline
+%%    bits             & 64    &       &         & 64   &        &64     &       &64     &         &      &          & Rt \\ \hline    
+%%                     & H     &   COO &  CSR    & COO  & CSR    &COO    &CSR    &COO    &  CSR    &Cores &   CSR    &  \\ \hline    
+%%lp osa 07            & 8.41  &  0.41 &  1.28   &*4.27 &*10.44  &*4.92  &*9.21  &*7.92  & *19.28  &   1  &  0.999   &1.03  \\       
+%%Row-Premute          & 9.26  &  0.36 &  1.34   & 4.20 &  9.74  & 4.68  & 8.65  & 7.85  &  17.25  &   1  &  0.902   &1.03  \\       
+%%Grad-Row-Permute     & 8.68  & *0.91 &  1.26   & 4.23 &  9.88  & 4.88  & 8.52  & 7.85  &  18.30  &  12  &  1.681   &1.60  \\       
+%%Grad-Row-Colum       & 9.60  &  0.48 &  1.24   & 4.18 &  9.08  & 4.70  & 7.92  & 7.75  &  16.40  &  15  & *1.799   &1.58  \\       
+%%Row-Colum-Permute    & 9.26  &  0.37 & *1.35   & 4.20 &  9.75  & 4.70  & 8.45  & 7.79  &  17.23  &   1  &  0.925   &1.03  \\ \hline
+%%OPF 3754             & 8.39  &  0.37 & *1.45   &*4.43 &*16.17  &*5.74  &*9.24  &*7.87  & *27.12  &  15  &  1.573   &1.93  \\       
+%%Row-Premute          &11.27  &  0.35 &  1.37   & 4.24 & 12.39  & 5.36  & 7.95  & 7.56  &  20.96  &  14  &  1.516   &1.93  \\       
+%%Grad-Row-Permute     &10.47  &  0.37 &  0.84   & 4.38 & 14.38  & 5.58  & 8.91  & 7.77  &  24.62  &  13  &  1.724   &1.43  \\       
+%%Grad-Row-Colum       &11.40  & *0.82 &  0.84   & 4.24 & 11.50  & 5.36  & 7.85  & 7.57  &  21.01  &  14  & *1.726   &1.48  \\       
+%%Row-Colum-Permute    &11.27  &  0.36 &  1.34   & 4.24 & 12.35  & 5.36  & 8.01  & 7.62  &  21.39  &  14  &  1.458   &1.98  \\ \hline
+%%  \end{tabular}
+%%  \end{table}
+%%\end{comment}
 
 \section{Guiding randomization}
 \label{sec:guide}
