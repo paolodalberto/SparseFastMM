@@ -99,9 +99,9 @@ def f(x):
 
 
 def compute_parallel(list,
+                     INTERVAL=5000,
                      DEVICE= 'cpu',
                      R = {'cpu': {}},
-                     INTERVAL=5000,
                      TIMES=1,
                      THREADS=16):
 
@@ -160,7 +160,7 @@ def compute_parallel(list,
         
         #print(S)
         result = Q.format(*tuple(S))
-        print(result, file= sys.stderr)
+        print(result, file= sys.stderr, flush=True)
         return  (result, S)
         
         

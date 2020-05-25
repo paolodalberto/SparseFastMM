@@ -85,27 +85,30 @@ MTX/SHUFFLED/4_lp_osa_07.mtx
 DIRFILE = FILES # "MTX/*.mtx"
 DEVICE  = "1"
 RESFILE = "result-"+str(DEVICE)+".json"
-STUBcsr ="""/home/paolo/FastMM/Epyc/rocSPARSE/build/release/clients/staging/rocsparse-bench -d %s -r %s -f csrmv --mtx %s -i 10000  -v 0 | grep -P "(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+" | grep -v -i "device" | grep -v with """
-STUBcoo ="""/home/paolo/FastMM/Epyc/rocSPARSE/build/release/clients/staging/rocsparse-bench -d %s -r %s -f coomv --mtx %s -i 10000   -v 0 | grep -P "(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+" | grep -v -i "device" | grep -v with """
+STUBcsr ="""/home/paolo/FastMM/Epyc/rocSPARSE/build/release/clients/staging/rocsparse-bench -d %s -r %s -f csrmv --mtx %s -i %d  -v 0 | grep -P "(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+" | grep -v -i "device" | grep -v with """
+STUBcoo ="""/home/paolo/FastMM/Epyc/rocSPARSE/build/release/clients/staging/rocsparse-bench -d %s -r %s -f coomv --mtx %s -i %d   -v 0 | grep -P "(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+(.+\s)+" | grep -v -i "device" | grep -v with """
 
 
 #print("result file", RESFILE)
 
 def gpu_execute(DEVICE : int = 0,
                 FILES  : str = FILES,
-                R : dict = {0: {'s' : {}, 'd' : {}}}) :
+                R : dict = {0: {'s' : {}, 'd' : {}}},
+                iterations = 100,
+                Precision = ['s','d']) :
 
     L = FILES.split()
     res = R[DEVICE]
-    #print(L)
+
              
-    for precision in ['s','d']:
+    for precision in Precision:
         pres = res[precision]
         
         for f in L:
-            
-            command = STUBcsr %(DEVICE, precision, f)
+            print(f, file=sys.stderr, flush=True)
             try:
+                command = STUBcsr %(DEVICE, precision, f, iterations)
+                print(command, file=sys.stderr, flush=True)
                 myCmd = os.popen(command).read().split("\n")
                 rhead  = ['device','matrix', 'precisio','layout']
                 r = [DEVICE,f,precision,'csr']
@@ -119,7 +122,7 @@ def gpu_execute(DEVICE : int = 0,
                 )
                 
                 pres['csr'] = Result(*(r))
-                print(pres['csr'],file=sys.stderr)
+                print(pres['csr'],file=sys.stderr, flush=True)
                 result = {}
             
                 for i in range(0,len(rhead)):
@@ -127,12 +130,12 @@ def gpu_execute(DEVICE : int = 0,
                     except: result[rhead[i]] = r[i]
                 pres['csr'] = result
             except Exception as e:
-                print(e, myCmd,file=sys.stderr)
+                print(e, myCmd,file=sys.stderr, flush=True)
                 pres[f+'csr'] = None
     
             try:
-
-                command = STUBcoo %(DEVICE, precision, f)
+                command = STUBcoo %(DEVICE, precision, f,iterations)
+                print(command, file=sys.stderr, flush=True)
                 myCmd = os.popen(command).read().split("\n")
                 rhead  = ['device','matrix', 'precision','layout']
                 r = [DEVICE,f,precision,'coo']
@@ -144,7 +147,7 @@ def gpu_execute(DEVICE : int = 0,
                     rhead
                 )
                 pres['coo'] = Result(*(r))
-                print(pres['coo'],file=sys.stderr)
+                print(pres['coo'],file=sys.stderr, flush=True)
                 result = {}
             
                 for i in range(0,len(rhead)):
@@ -153,7 +156,7 @@ def gpu_execute(DEVICE : int = 0,
                 pres['coo'] = result
             except Exception as e:
                 print(e, myCmd,file=sys.stderr)
-                print(precision,f,"Skip", e,file=sys.stderr)
+                print(precision,f,"Skip", e,file=sys.stderr, flush=True)
                 pres['coo'] = None
             #print(pres[f])        
     
