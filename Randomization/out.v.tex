@@ -1,0 +1,925 @@
+\section{Vega VII}
+\label{sec:vega}
+\small
+\begin{verbatim}
+mult_dcop_03.mtx
+ Regular
+                          CPU COO    min  0.728 max  0.880 mean  0.757
+                          CPU CSR    min  1.563 max  1.581 mean  1.577
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.540 max  8.670 mean  8.619
+                                 CSR min 18.320 max 18.930 mean 18.620
+                          CPU PAR    min  1.170 max  1.269 mean  1.226
+                          H          min  9.689 max  9.689 mean  9.689
+ Row-Premute
+                          CPU COO    min  0.710 max  0.845 mean  0.724
+                          CPU CSR    min  1.549 max  1.597 mean  1.589
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.360 max  8.540 mean  8.442
+                                 CSR min 16.260 max 16.780 mean 16.551
+                          CPU PAR    min  1.205 max  1.319 mean  1.263
+                          H          min 10.737 max 10.742 mean 10.740
+ Row-Gradient
+                          CPU COO    min  0.706 max  1.603 mean  0.806
+                          CPU CSR    min  1.493 max  1.534 mean  1.528
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.430 max  8.610 mean  8.527
+                                 CSR min 17.070 max 18.970 mean 18.115
+                          CPU PAR    min  1.331 max  1.695 mean  1.513
+                          H          min 10.576 max 10.585 mean 10.580
+ Column-Gradient
+                          CPU COO    min  0.694 max  1.632 mean  0.797
+                          CPU CSR    min  1.491 max  1.534 mean  1.529
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.350 max  8.520 mean  8.429
+                                 CSR min 15.970 max 18.180 mean 17.124
+                          CPU PAR    min  1.321 max  1.728 mean  1.514
+                          H          min 10.826 max 10.840 mean 10.833
+ Row-Column-Permute
+                          CPU COO    min  0.688 max  0.757 mean  0.696
+                          CPU CSR    min  1.490 max  1.595 mean  1.584
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.380 max  8.500 mean  8.445
+                                 CSR min 16.230 max 16.780 mean 16.513
+                          CPU PAR    min  1.192 max  1.274 mean  1.237
+                          H          min 10.737 max 10.742 mean 10.740
+mult_dcop_01.mtx
+ Regular
+                          CPU COO    min  0.710 max  1.453 mean  0.761
+                          CPU CSR    min  1.561 max  1.581 mean  1.578
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.520 max  8.670 mean  8.597
+                                 CSR min 18.320 max 18.870 mean 18.636
+                          CPU PAR    min  1.163 max  1.246 mean  1.212
+                          H          min  9.689 max  9.689 mean  9.689
+ Row-Premute
+                          CPU COO    min  0.699 max  1.305 mean  0.745
+                          CPU CSR    min  1.585 max  1.597 mean  1.590
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.360 max  8.520 mean  8.446
+                                 CSR min 16.260 max 16.780 mean 16.528
+                          CPU PAR    min  1.192 max  1.298 mean  1.242
+                          H          min 10.738 max 10.742 mean 10.740
+ Row-Gradient
+                          CPU COO    min  0.709 max  1.656 mean  0.819
+                          CPU CSR    min  1.527 max  1.535 mean  1.530
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.450 max  8.680 mean  8.527
+                                 CSR min 16.520 max 19.480 mean 17.984
+                          CPU PAR    min  1.280 max  1.704 mean  1.485
+                          H          min 10.572 max 10.585 mean 10.581
+ Column-Gradient
+                          CPU COO    min  0.698 max  1.042 mean  0.737
+                          CPU CSR    min  1.458 max  1.536 mean  1.528
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.340 max  8.600 mean  8.443
+                                 CSR min 16.360 max 18.450 mean 17.247
+                          CPU PAR    min  1.307 max  1.712 mean  1.494
+                          H          min 10.823 max 10.841 mean 10.835
+ Row-Column-Permute
+                          CPU COO    min  0.683 max  1.247 mean  0.749
+                          CPU CSR    min  1.583 max  1.595 mean  1.590
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.370 max  8.500 mean  8.435
+                                 CSR min 16.250 max 16.780 mean 16.518
+                          CPU PAR    min  1.206 max  1.291 mean  1.243
+                          H          min 10.738 max 10.742 mean 10.740
+mult_dcop_02.mtx
+ Regular
+                          CPU COO    min  1.615 max  1.677 mean  1.652
+                          CPU CSR    min  1.539 max  1.579 mean  1.575
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.530 max  8.700 mean  8.614
+                                 CSR min 18.290 max 18.890 mean 18.597
+                          CPU PAR    min  1.120 max  1.248 mean  1.211
+                          H          min  9.689 max  9.689 mean  9.689
+ Row-Premute
+                          CPU COO    min  0.684 max  0.780 mean  0.705
+                          CPU CSR    min  1.558 max  1.596 mean  1.588
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.360 max  8.490 mean  8.433
+                                 CSR min 16.240 max 16.750 mean 16.552
+                          CPU PAR    min  1.182 max  1.277 mean  1.242
+                          H          min 10.737 max 10.742 mean 10.740
+ Row-Gradient
+                          CPU COO    min  0.704 max  1.373 mean  0.790
+                          CPU CSR    min  1.518 max  1.535 mean  1.529
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.420 max  8.590 mean  8.517
+                                 CSR min 16.680 max 19.550 mean 17.907
+                          CPU PAR    min  1.328 max  1.713 mean  1.484
+                          H          min 10.572 max 10.585 mean 10.581
+ Column-Gradient
+                          CPU COO    min  0.697 max  1.460 mean  0.742
+                          CPU CSR    min  1.517 max  1.534 mean  1.527
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.330 max  8.490 mean  8.420
+                                 CSR min 16.020 max 18.390 mean 17.303
+                          CPU PAR    min  1.321 max  1.709 mean  1.557
+                          H          min 10.823 max 10.843 mean 10.835
+ Row-Column-Permute
+                          CPU COO    min  0.691 max  0.746 mean  0.698
+                          CPU CSR    min  1.568 max  1.595 mean  1.587
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.350 max  8.500 mean  8.436
+                                 CSR min 16.250 max 16.780 mean 16.517
+                          CPU PAR    min  1.187 max  1.280 mean  1.228
+                          H          min 10.739 max 10.743 mean 10.740
+lp_fit2d.mtx
+ Regular
+                          CPU COO    min  0.774 max  0.804 mean  0.793
+                          CPU CSR    min  2.538 max  2.550 mean  2.547
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.060 max  7.170 mean  7.101
+                                 CSR min 15.650 max 18.700 mean 18.031
+                          CPU PAR    min  1.537 max  1.645 mean  1.590
+                          H          min 11.109 max 11.109 mean 11.109
+ Row-Premute
+                          CPU COO    min  0.740 max  0.776 mean  0.746
+                          CPU CSR    min  3.302 max  3.328 mean  3.317
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.040 max  7.180 mean  7.098
+                                 CSR min 15.690 max 18.580 mean 16.732
+                          CPU PAR    min  1.327 max  1.482 mean  1.422
+                          H          min 11.098 max 11.105 mean 11.101
+ Row-Gradient
+                          CPU COO    min  0.739 max  2.092 mean  1.091
+                          CPU CSR    min  2.539 max  2.546 mean  2.543
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.040 max  7.150 mean  7.100
+                                 CSR min 15.520 max 18.560 mean 17.547
+                          CPU PAR    min  1.401 max  1.661 mean  1.525
+                          H          min 11.109 max 11.109 mean 11.109
+ Column-Gradient
+                          CPU COO    min  0.726 max  2.065 mean  1.011
+                          CPU CSR    min  2.539 max  2.550 mean  2.546
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.800 max  7.140 mean  7.080
+                                 CSR min 15.480 max 18.560 mean 16.866
+                          CPU PAR    min  1.391 max  1.737 mean  1.563
+                          H          min 11.329 max 11.333 mean 11.331
+ Row-Column-Permute
+                          CPU COO    min  0.746 max  0.782 mean  0.754
+                          CPU CSR    min  3.310 max  3.324 mean  3.318
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.030 max  7.160 mean  7.100
+                                 CSR min 15.730 max 18.530 mean 17.362
+                          CPU PAR    min  1.340 max  1.451 mean  1.401
+                          H          min 11.099 max 11.104 mean 11.102
+bloweya.mtx
+ Regular
+                          CPU COO    min  0.727 max  1.815 mean  0.892
+                          CPU CSR    min  2.867 max  2.936 mean  2.917
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          CPU PAR    min  1.680 max  1.751 mean  1.719
+                          H          min  7.205 max  7.205 mean  7.205
+ Row-Premute
+                          CPU COO    min  0.678 max  1.483 mean  0.746
+                          CPU CSR    min  2.311 max  2.326 mean  2.320
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.840 max  7.270 mean  6.930
+                                 CSR min 15.650 max 16.800 mean 16.233
+                          CPU PAR    min  1.649 max  1.730 mean  1.682
+                          H          min 11.026 max 11.031 mean 11.029
+ Row-Gradient
+                          CPU COO    min  0.708 max  1.209 mean  0.779
+                          CPU CSR    min  1.648 max  1.735 mean  1.709
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.920 max  7.080 mean  7.015
+                                 CSR min 16.950 max 19.500 mean 17.794
+                          CPU PAR    min  1.497 max  1.743 mean  1.608
+                          H          min 10.298 max 10.304 mean 10.301
+ Column-Gradient
+                          CPU COO    min  0.709 max  1.536 mean  0.817
+                          CPU CSR    min  1.705 max  1.753 mean  1.735
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.800 max  7.120 mean  6.865
+                                 CSR min 15.480 max 17.710 mean 16.470
+                          CPU PAR    min  1.446 max  1.718 mean  1.591
+                          H          min 10.880 max 10.886 mean 10.883
+ Row-Column-Permute
+                          CPU COO    min  0.670 max  1.024 mean  0.706
+                          CPU CSR    min  2.199 max  2.340 mean  2.326
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.880 max  6.980 mean  6.933
+                                 CSR min 15.610 max 16.900 mean 16.227
+                          CPU PAR    min  1.598 max  1.668 mean  1.632
+                          H          min 11.025 max 11.032 mean 11.029
+lp_osa_07.mtx
+ Regular
+                          CPU COO    min  0.715 max  1.798 mean  0.885
+                          CPU CSR    min  2.495 max  2.551 mean  2.547
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.650 max  7.790 mean  7.718
+                                 CSR min 16.390 max 18.350 mean 17.093
+                          CPU PAR    min  0.963 max  1.012 mean  0.995
+                          H          min  8.412 max  8.412 mean  8.412
+ Row-Premute
+                          CPU COO    min  0.720 max  2.078 mean  1.104
+                          CPU CSR    min  2.656 max  2.679 mean  2.669
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.610 max  7.690 mean  7.647
+                                 CSR min 15.910 max 17.210 mean 16.750
+                          CPU PAR    min  0.890 max  0.940 mean  0.918
+                          H          min  9.255 max  9.258 mean  9.256
+ Row-Gradient
+                          CPU COO    min  0.725 max  2.078 mean  1.041
+                          CPU CSR    min  2.487 max  2.502 mean  2.495
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.570 max  7.730 mean  7.655
+                                 CSR min 15.370 max 18.100 mean 16.803
+                          CPU PAR    min  1.435 max  1.796 mean  1.592
+                          H          min  8.637 max  8.678 mean  8.672
+ Column-Gradient
+                          CPU COO    min  0.724 max  1.990 mean  1.000
+                          CPU CSR    min  2.425 max  2.477 mean  2.448
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.510 max  7.660 mean  7.596
+                                 CSR min 14.410 max 16.290 mean 15.267
+                          CPU PAR    min  1.238 max  1.774 mean  1.534
+                          H          min  9.447 max  9.603 mean  9.576
+ Row-Column-Permute
+                          CPU COO    min  0.738 max  1.950 mean  1.071
+                          CPU CSR    min  2.522 max  2.709 mean  2.675
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.600 max  7.690 mean  7.641
+                                 CSR min 15.820 max 17.190 mean 16.572
+                          CPU PAR    min  0.891 max  0.944 mean  0.924
+                          H          min  9.255 max  9.258 mean  9.256
+ex19.mtx
+ Regular
+                          CPU COO    min  0.732 max  1.837 mean  1.076
+                          CPU CSR    min  2.563 max  2.586 mean  2.577
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 11.340 max 11.860 mean 11.441
+                                 CSR min 36.010 max 40.960 mean 38.048
+                          CPU PAR    min  2.019 max  2.204 mean  2.130
+                          H          min  8.228 max  8.228 mean  8.228
+ Row-Premute
+                          CPU COO    min  0.718 max  0.751 mean  0.732
+                          CPU CSR    min  2.488 max  2.507 mean  2.498
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 10.810 max 11.090 mean 10.949
+                                 CSR min 24.860 max 26.410 mean 25.527
+                          CPU PAR    min  1.978 max  2.290 mean  2.135
+                          H          min 11.836 max 11.840 mean 11.838
+ Row-Gradient
+                          CPU COO    min  0.722 max  1.794 mean  0.769
+                          CPU CSR    min  2.407 max  2.421 mean  2.416
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 11.210 max 11.480 mean 11.317
+                                 CSR min 31.920 max 34.690 mean 33.246
+                          CPU PAR    min  2.184 max  2.302 mean  2.232
+                          H          min 10.742 max 10.757 mean 10.748
+ Column-Gradient
+                          CPU COO    min  0.720 max  0.916 mean  0.742
+                          CPU CSR    min  2.395 max  2.410 mean  2.402
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 10.840 max 11.070 mean 10.946
+                                 CSR min 24.340 max 26.140 mean 25.393
+                          CPU PAR    min  2.184 max  2.272 mean  2.223
+                          H          min 11.873 max 11.882 mean 11.878
+ Row-Column-Permute
+                          CPU COO    min  0.707 max  0.748 mean  0.714
+                          CPU CSR    min  2.458 max  2.511 mean  2.506
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 10.880 max 11.070 mean 10.957
+                                 CSR min 24.890 max 26.490 mean 25.642
+                          CPU PAR    min  2.209 max  2.282 mean  2.240
+                          H          min 11.834 max 11.840 mean 11.838
+brainpc2.mtx
+ Regular
+                          CPU COO    min  0.732 max  0.751 mean  0.744
+                          CPU CSR    min  2.885 max  2.916 mean  2.909
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          CPU PAR    min  1.276 max  1.299 mean  1.286
+                          H          min  7.478 max  7.478 mean  7.478
+ Row-Premute
+                          CPU COO    min  0.727 max  0.855 mean  0.736
+                          CPU CSR    min  2.385 max  2.411 mean  2.397
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.120 max  8.410 mean  8.206
+                                 CSR min 18.670 max 19.960 mean 19.536
+                          CPU PAR    min  1.293 max  1.340 mean  1.314
+                          H          min  9.809 max  9.813 mean  9.811
+ Row-Gradient
+                          CPU COO    min  0.696 max  1.546 mean  0.785
+                          CPU CSR    min  1.361 max  1.420 mean  1.411
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.190 max  8.550 mean  8.302
+                                 CSR min 18.700 max 21.000 mean 19.890
+                          CPU PAR    min  1.435 max  1.666 mean  1.549
+                          H          min  9.721 max  9.727 mean  9.723
+ Column-Gradient
+                          CPU COO    min  0.698 max  1.467 mean  0.746
+                          CPU CSR    min  1.377 max  1.423 mean  1.414
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.110 max  8.290 mean  8.187
+                                 CSR min 18.090 max 20.190 mean 19.217
+                          CPU PAR    min  1.345 max  1.681 mean  1.518
+                          H          min 10.369 max 10.372 mean 10.370
+ Row-Column-Permute
+                          CPU COO    min  0.698 max  1.390 mean  0.788
+                          CPU CSR    min  2.387 max  2.410 mean  2.399
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  8.120 max  8.260 mean  8.191
+                                 CSR min 18.530 max 19.960 mean 19.307
+                          CPU PAR    min  1.295 max  1.347 mean  1.319
+                          H          min  9.809 max  9.813 mean  9.811
+shermanACb.mtx
+ Regular
+                          CPU COO    min  0.712 max  1.201 mean  0.756
+                          CPU CSR    min  1.558 max  1.601 mean  1.596
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.080 max  7.370 mean  7.184
+                                 CSR min 17.580 max 19.480 mean 18.770
+                          CPU PAR    min  1.286 max  1.511 mean  1.447
+                          H          min  8.600 max  8.600 mean  8.600
+ Row-Premute
+                          CPU COO    min  0.689 max  0.890 mean  0.704
+                          CPU CSR    min  1.600 max  1.630 mean  1.618
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.000 max  7.180 mean  7.061
+                                 CSR min 15.760 max 17.240 mean 16.625
+                          CPU PAR    min  1.296 max  1.419 mean  1.365
+                          H          min 10.376 max 10.380 mean 10.379
+ Row-Gradient
+                          CPU COO    min  0.704 max  1.615 mean  0.806
+                          CPU CSR    min  1.355 max  1.370 mean  1.362
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.020 max  7.160 mean  7.083
+                                 CSR min  0.000 max 16.290 mean 15.076
+                          CPU PAR    min  1.256 max  1.520 mean  1.405
+                          H          min  9.915 max  9.925 mean  9.921
+ Column-Gradient
+                          CPU COO    min  0.702 max  1.626 mean  0.844
+                          CPU CSR    min  1.327 max  1.374 mean  1.364
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.920 max  7.210 mean  7.030
+                                 CSR min  0.000 max 15.260 mean 14.279
+                          CPU PAR    min  1.283 max  1.531 mean  1.385
+                          H          min 10.572 max 10.595 mean 10.590
+ Row-Column-Permute
+                          CPU COO    min  0.707 max  1.532 mean  0.924
+                          CPU CSR    min  1.606 max  1.634 mean  1.624
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.970 max  7.110 mean  7.045
+                                 CSR min 15.850 max 17.310 mean 16.783
+                          CPU PAR    min  1.286 max  1.406 mean  1.357
+                          H          min 10.377 max 10.382 mean 10.379
+cvxqp3.mtx
+ Regular
+                          CPU COO    min  0.697 max  0.720 mean  0.712
+                          CPU CSR    min  2.624 max  2.643 mean  2.638
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.060 max  6.220 mean  6.121
+                                 CSR min 19.450 max 22.710 mean 21.277
+                          CPU PAR    min  1.733 max  1.860 mean  1.804
+                          H          min  8.646 max  8.646 mean  8.646
+ Row-Premute
+                          CPU COO    min  0.695 max  1.577 mean  0.894
+                          CPU CSR    min  2.452 max  2.471 mean  2.464
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.870 max  6.060 mean  5.930
+                                 CSR min 17.510 max 19.130 mean 18.516
+                          CPU PAR    min  1.723 max  1.833 mean  1.774
+                          H          min 11.028 max 11.033 mean 11.030
+ Row-Gradient
+                          CPU COO    min  0.693 max  1.523 mean  0.788
+                          CPU CSR    min  1.287 max  1.305 mean  1.296
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.920 max  6.000 mean  5.962
+                                 CSR min 16.810 max 18.410 mean 17.561
+                          CPU PAR    min  1.378 max  1.485 mean  1.429
+                          H          min 11.061 max 11.069 mean 11.064
+ Column-Gradient
+                          CPU COO    min  0.693 max  1.521 mean  0.772
+                          CPU CSR    min  1.291 max  1.302 mean  1.297
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.900 max  6.060 mean  5.960
+                                 CSR min 16.620 max 18.330 mean 17.592
+                          CPU PAR    min  1.372 max  1.464 mean  1.409
+                          H          min 11.127 max 11.135 mean 11.130
+ Row-Column-Permute
+                          CPU COO    min  0.704 max  1.503 mean  0.875
+                          CPU CSR    min  2.447 max  2.468 mean  2.459
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.880 max  5.980 mean  5.931
+                                 CSR min 17.550 max 19.140 mean 18.227
+                          CPU PAR    min  1.639 max  1.743 mean  1.704
+                          H          min 11.028 max 11.035 mean 11.030
+case9.mtx
+ Regular
+                          CPU COO    min  0.721 max  1.800 mean  1.177
+                          CPU CSR    min  3.021 max  3.046 mean  3.036
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          CPU PAR    min  1.508 max  1.605 mean  1.573
+                          H          min  7.380 max  7.380 mean  7.380
+ Row-Premute
+                          CPU COO    min  0.724 max  1.100 mean  0.765
+                          CPU CSR    min  2.581 max  2.626 mean  2.609
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.170 max  7.340 mean  7.253
+                                 CSR min 17.360 max 18.500 mean 18.014
+                          CPU PAR    min  1.494 max  1.607 mean  1.558
+                          H          min 10.043 max 10.047 mean 10.044
+ Row-Gradient
+                          CPU COO    min  0.716 max  1.701 mean  0.804
+                          CPU CSR    min  1.824 max  1.840 mean  1.832
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.220 max  7.510 mean  7.303
+                                 CSR min 17.540 max 20.710 mean 19.302
+                          CPU PAR    min  1.384 max  1.593 mean  1.526
+                          H          min  9.681 max  9.706 mean  9.694
+ Column-Gradient
+                          CPU COO    min  0.711 max  1.029 mean  0.746
+                          CPU CSR    min  1.817 max  1.834 mean  1.827
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.110 max  7.270 mean  7.193
+                                 CSR min 16.530 max 18.590 mean 17.574
+                          CPU PAR    min  1.390 max  1.574 mean  1.511
+                          H          min 10.612 max 10.659 mean 10.634
+ Row-Column-Permute
+                          CPU COO    min  0.719 max  1.391 mean  0.756
+                          CPU CSR    min  2.546 max  2.625 mean  2.611
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.190 max  7.320 mean  7.248
+                                 CSR min 17.500 max 18.640 mean 18.040
+                          CPU PAR    min  1.465 max  1.573 mean  1.533
+                          H          min 10.041 max 10.046 mean 10.044
+TSOPF_FS_b9_c6.mtx
+ Regular
+                          CPU COO    min  0.705 max  0.734 mean  0.718
+                          CPU CSR    min  3.028 max  3.052 mean  3.045
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          CPU PAR    min  1.528 max  1.602 mean  1.568
+                          H          min  7.380 max  7.380 mean  7.380
+ Row-Premute
+                          CPU COO    min  0.733 max  1.640 mean  0.777
+                          CPU CSR    min  2.450 max  2.543 mean  2.525
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.200 max  7.320 mean  7.268
+                                 CSR min 17.420 max 18.540 mean 18.102
+                          CPU PAR    min  1.474 max  1.595 mean  1.546
+                          H          min 10.042 max 10.046 mean 10.044
+ Row-Gradient
+                          CPU COO    min  0.712 max  0.926 mean  0.750
+                          CPU CSR    min  1.819 max  1.846 mean  1.832
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.210 max  7.370 mean  7.298
+                                 CSR min 17.550 max 20.740 mean 19.089
+                          CPU PAR    min  1.256 max  1.554 mean  1.495
+                          H          min  9.666 max  9.704 mean  9.690
+ Column-Gradient
+                          CPU COO    min  0.710 max  1.690 mean  0.791
+                          CPU CSR    min  1.813 max  1.836 mean  1.830
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.130 max  7.310 mean  7.211
+                                 CSR min 16.550 max 18.690 mean 17.617
+                          CPU PAR    min  1.385 max  1.539 mean  1.506
+                          H          min 10.611 max 10.659 mean 10.634
+ Row-Column-Permute
+                          CPU COO    min  0.709 max  1.531 mean  0.963
+                          CPU CSR    min  2.506 max  2.648 mean  2.622
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.140 max  7.330 mean  7.244
+                                 CSR min 17.410 max 18.520 mean 18.148
+                          CPU PAR    min  1.466 max  1.574 mean  1.528
+                          H          min 10.041 max 10.046 mean 10.044
+OPF_6000.mtx
+ Regular
+                          CPU COO    min  0.714 max  0.731 mean  0.720
+                          CPU CSR    min  2.667 max  2.770 mean  2.720
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 12.310 max 12.550 mean 12.425
+                                 CSR min 39.860 max 43.770 mean 42.075
+                          CPU PAR    min  1.735 max  1.945 mean  1.845
+                          H          min  8.799 max  8.799 mean  8.799
+ Row-Premute
+                          CPU COO    min  0.689 max  0.710 mean  0.695
+                          CPU CSR    min  2.358 max  2.413 mean  2.392
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 11.430 max 11.770 mean 11.549
+                                 CSR min 24.470 max 25.580 mean 24.785
+                          CPU PAR    min  1.758 max  1.896 mean  1.829
+                          H          min 11.872 max 11.877 mean 11.875
+ Row-Gradient
+                          CPU COO    min  0.716 max  0.775 mean  0.739
+                          CPU CSR    min  1.651 max  1.689 mean  1.675
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 12.100 max 12.410 mean 12.205
+                                 CSR min 31.670 max 34.910 mean 33.370
+                          CPU PAR    min  2.079 max  2.286 mean  2.207
+                          H          min 11.111 max 11.116 mean 11.113
+ Column-Gradient
+                          CPU COO    min  0.715 max  1.021 mean  0.743
+                          CPU CSR    min  1.655 max  1.674 mean  1.666
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 11.340 max 11.560 mean 11.463
+                                 CSR min 23.770 max 25.470 mean 24.489
+                          CPU PAR    min  2.056 max  2.172 mean  2.118
+                          H          min 12.040 max 12.047 mean 12.043
+ Row-Column-Permute
+                          CPU COO    min  0.677 max  0.785 mean  0.687
+                          CPU CSR    min  2.325 max  2.434 mean  2.369
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 11.450 max 11.650 mean 11.538
+                                 CSR min 24.330 max 25.560 mean 25.008
+                          CPU PAR    min  1.631 max  1.776 mean  1.709
+                          H          min 11.873 max 11.877 mean 11.875
+OPF_3754.mtx
+ Regular
+                          CPU COO    min  0.726 max  0.774 mean  0.747
+                          CPU CSR    min  2.898 max  2.919 mean  2.908
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.680 max  7.820 mean  7.766
+                                 CSR min 25.070 max 29.030 mean 26.756
+                          CPU PAR    min  1.437 max  1.508 mean  1.471
+                          H          min  8.393 max  8.393 mean  8.393
+ Row-Premute
+                          CPU COO    min  0.714 max  1.574 mean  0.817
+                          CPU CSR    min  2.686 max  2.711 mean  2.699
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.410 max  7.570 mean  7.484
+                                 CSR min 19.600 max 21.190 mean 20.307
+                          CPU PAR    min  1.443 max  1.505 mean  1.469
+                          H          min 11.267 max 11.272 mean 11.269
+ Row-Gradient
+                          CPU COO    min  0.723 max  1.232 mean  0.775
+                          CPU CSR    min  1.672 max  1.691 mean  1.685
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.600 max  7.760 mean  7.716
+                                 CSR min 23.160 max 25.590 mean 24.304
+                          CPU PAR    min  1.675 max  1.736 mean  1.703
+                          H          min 10.463 max 10.472 mean 10.468
+ Column-Gradient
+                          CPU COO    min  0.726 max  1.431 mean  0.778
+                          CPU CSR    min  1.671 max  1.685 mean  1.679
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.410 max  7.530 mean  7.467
+                                 CSR min 18.140 max 20.350 mean 19.315
+                          CPU PAR    min  1.650 max  1.736 mean  1.699
+                          H          min 11.393 max 11.401 mean 11.397
+ Row-Column-Permute
+                          CPU COO    min  0.711 max  1.458 mean  0.751
+                          CPU CSR    min  2.678 max  2.717 mean  2.700
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  7.400 max  7.540 mean  7.471
+                                 CSR min 19.560 max 21.150 mean 20.453
+                          CPU PAR    min  1.440 max  1.499 mean  1.467
+                          H          min 11.266 max 11.272 mean 11.269
+c-47.mtx
+ Regular
+                          CPU COO    min  0.754 max  1.829 mean  1.204
+                          CPU CSR    min  2.610 max  2.624 mean  2.618
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  9.530 max  9.870 mean  9.640
+                                 CSR min 23.990 max 25.910 mean 24.992
+                          CPU PAR    min  1.311 max  1.380 mean  1.357
+                          H          min  8.364 max  8.364 mean  8.364
+ Row-Premute
+                          CPU COO    min  0.740 max  0.885 mean  0.755
+                          CPU CSR    min  2.574 max  2.611 mean  2.597
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  9.320 max  9.510 mean  9.397
+                                 CSR min 19.960 max 21.190 mean 20.696
+                          CPU PAR    min  1.303 max  1.371 mean  1.345
+                          H          min 10.059 max 10.062 mean 10.061
+ Row-Gradient
+                          CPU COO    min  0.723 max  0.984 mean  0.753
+                          CPU CSR    min  1.781 max  1.809 mean  1.803
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  9.380 max  9.660 mean  9.464
+                                 CSR min 15.770 max 19.090 mean 18.037
+                          CPU PAR    min  1.775 max  1.924 mean  1.868
+                          H          min 10.205 max 10.233 mean 10.219
+ Column-Gradient
+                          CPU COO    min  0.715 max  0.926 mean  0.757
+                          CPU CSR    min  1.729 max  1.802 mean  1.791
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  9.080 max  9.270 mean  9.158
+                                 CSR min 13.980 max 15.780 mean 14.938
+                          CPU PAR    min  1.751 max  1.906 mean  1.846
+                          H          min 11.213 max 11.232 mean 11.222
+ Row-Column-Permute
+                          CPU COO    min  0.732 max  1.598 mean  0.785
+                          CPU CSR    min  2.594 max  2.602 mean  2.599
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  9.340 max  9.460 mean  9.394
+                                 CSR min 19.950 max 21.500 mean 20.544
+                          CPU PAR    min  1.326 max  1.374 mean  1.354
+                          H          min 10.059 max 10.062 mean 10.061
+mhd4800a.mtx
+ Regular
+                          CPU COO    min  0.759 max  0.795 mean  0.780
+                          CPU CSR    min  2.479 max  2.565 mean  2.557
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.490 max  5.650 mean  5.552
+                                 CSR min 16.700 max 19.460 mean 18.004
+                          CPU PAR    min  1.456 max  1.523 mean  1.492
+                          H          min  7.132 max  7.132 mean  7.132
+ Row-Premute
+                          CPU COO    min  0.695 max  0.943 mean  0.726
+                          CPU CSR    min  2.480 max  2.488 mean  2.485
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.410 max  5.490 mean  5.453
+                                 CSR min 15.700 max 17.520 mean 16.678
+                          CPU PAR    min  1.422 max  1.514 mean  1.474
+                          H          min 10.959 max 10.966 mean 10.963
+ Row-Gradient
+                          CPU COO    min  0.723 max  2.029 mean  0.990
+                          CPU CSR    min  2.411 max  2.427 mean  2.421
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.490 max  5.560 mean  5.534
+                                 CSR min 16.350 max 19.560 mean 17.784
+                          CPU PAR    min  1.441 max  1.509 mean  1.477
+                          H          min  9.512 max  9.526 mean  9.520
+ Column-Gradient
+                          CPU COO    min  0.721 max  1.802 mean  0.871
+                          CPU CSR    min  2.393 max  2.408 mean  2.404
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.410 max  5.480 mean  5.453
+                                 CSR min 15.680 max 17.870 mean 16.540
+                          CPU PAR    min  1.429 max  1.488 mean  1.468
+                          H          min 10.931 max 10.945 mean 10.938
+ Row-Column-Permute
+                          CPU COO    min  0.728 max  1.646 mean  1.037
+                          CPU CSR    min  2.472 max  2.488 mean  2.480
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.410 max  5.480 mean  5.449
+                                 CSR min 15.760 max 17.560 mean 16.654
+                          CPU PAR    min  1.428 max  1.513 mean  1.474
+                          H          min 10.959 max 10.967 mean 10.963
+gen4.mtx
+ Regular
+                          CPU COO    min  0.737 max  1.977 mean  1.431
+                          CPU CSR    min  2.674 max  2.688 mean  2.681
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.900 max  6.000 mean  5.954
+                                 CSR min 13.650 max 15.410 mean 14.657
+                          CPU PAR    min  1.468 max  1.521 mean  1.491
+                          H          min  9.234 max  9.234 mean  9.234
+ Row-Premute
+                          CPU COO    min  0.740 max  2.048 mean  1.121
+                          CPU CSR    min  2.777 max  2.798 mean  2.790
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.910 max  5.970 mean  5.944
+                                 CSR min 13.700 max 15.370 mean 14.541
+                          CPU PAR    min  1.468 max  1.546 mean  1.502
+                          H          min 10.250 max 10.255 mean 10.252
+ Row-Gradient
+                          CPU COO    min  0.740 max  1.790 mean  0.994
+                          CPU CSR    min  2.663 max  2.682 mean  2.674
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.890 max  6.160 mean  5.946
+                                 CSR min 13.780 max 17.520 mean 15.601
+                          CPU PAR    min  1.479 max  1.619 mean  1.569
+                          H          min  9.939 max  9.955 mean  9.948
+ Column-Gradient
+                          CPU COO    min  0.743 max  1.991 mean  0.981
+                          CPU CSR    min  2.620 max  2.654 mean  2.646
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.840 max  5.910 mean  5.885
+                                 CSR min 13.130 max 17.040 mean 15.008
+                          CPU PAR    min  1.477 max  1.607 mean  1.559
+                          H          min 10.858 max 10.876 mean 10.864
+ Row-Column-Permute
+                          CPU COO    min  0.742 max  2.010 mean  1.124
+                          CPU CSR    min  2.789 max  2.800 mean  2.795
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  5.900 max  5.980 mean  5.941
+                                 CSR min 13.640 max 15.410 mean 14.556
+                          CPU PAR    min  1.462 max  1.540 mean  1.504
+                          H          min 10.250 max 10.253 mean 10.252
+Maragal_6.mtx
+ Regular
+                          CPU COO    min  0.725 max  0.741 mean  0.729
+                          CPU CSR    min  2.345 max  2.409 mean  2.372
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 18.200 max 18.770 mean 18.357
+                                 CSR min 38.310 max 40.240 mean 39.477
+                          CPU PAR    min  0.789 max  0.813 mean  0.797
+                          H          min  9.930 max  9.930 mean  9.930
+ Row-Premute
+                          CPU COO    min  0.709 max  0.779 mean  0.715
+                          CPU CSR    min  2.675 max  2.715 mean  2.696
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 17.810 max 18.030 mean 17.935
+                                 CSR min 29.650 max 30.580 mean 30.109
+                          CPU PAR    min  0.857 max  0.940 mean  0.904
+                          H          min 10.777 max 10.779 mean 10.778
+ Row-Gradient
+                          CPU COO    min  0.710 max  1.566 mean  0.755
+                          CPU CSR    min  2.042 max  2.159 mean  2.120
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 18.460 max 18.960 mean 18.665
+                                 CSR min 25.650 max 27.330 mean 26.549
+                          CPU PAR    min  2.257 max  2.612 mean  2.416
+                          H          min 11.251 max 11.301 mean 11.285
+ Column-Gradient
+                          CPU COO    min  0.711 max  0.743 mean  0.725
+                          CPU CSR    min  2.036 max  2.161 mean  2.110
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 17.840 max 18.860 mean 18.149
+                                 CSR min 19.410 max 20.690 mean 20.066
+                          CPU PAR    min  2.174 max  2.546 mean  2.349
+                          H          min 12.011 max 12.072 mean 12.052
+ Row-Column-Permute
+                          CPU COO    min  0.712 max  0.971 mean  0.737
+                          CPU CSR    min  2.732 max  2.751 mean  2.743
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 17.720 max 18.070 mean 17.911
+                                 CSR min 29.600 max 30.500 mean 29.961
+                          CPU PAR    min  0.827 max  0.954 mean  0.913
+                          H          min 10.776 max 10.778 mean 10.777
+aft01.mtx
+ Regular
+                          CPU COO    min  0.735 max  2.079 mean  1.069
+                          CPU CSR    min  3.132 max  3.154 mean  3.145
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.390 max  6.610 mean  6.457
+                                 CSR min 19.990 max 23.250 mean 21.820
+                          CPU PAR    min  1.746 max  1.865 mean  1.812
+                          H          min  7.811 max  7.811 mean  7.811
+ Row-Premute
+                          CPU COO    min  0.714 max  1.648 mean  0.840
+                          CPU CSR    min  2.864 max  2.892 mean  2.883
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.280 max  6.380 mean  6.329
+                                 CSR min 17.980 max 19.700 mean 19.105
+                          CPU PAR    min  1.729 max  1.850 mean  1.782
+                          H          min 11.162 max 11.168 mean 11.165
+ Row-Gradient
+                          CPU COO    min  0.735 max  1.806 mean  0.878
+                          CPU CSR    min  2.706 max  2.744 mean  2.726
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.390 max  6.500 mean  6.433
+                                 CSR min 19.780 max 22.870 mean 20.936
+                          CPU PAR    min  1.710 max  1.865 mean  1.785
+                          H          min 10.251 max 10.267 mean 10.257
+ Column-Gradient
+                          CPU COO    min  0.728 max  1.792 mean  0.986
+                          CPU CSR    min  2.521 max  2.720 mean  2.703
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.280 max  6.370 mean  6.327
+                                 CSR min 18.000 max 19.720 mean 19.040
+                          CPU PAR    min  1.649 max  1.741 mean  1.702
+                          H          min 11.113 max 11.121 mean 11.117
+ Row-Column-Permute
+                          CPU COO    min  0.714 max  1.525 mean  0.957
+                          CPU CSR    min  2.876 max  2.892 mean  2.884
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min  6.280 max  6.370 mean  6.322
+                                 CSR min 17.960 max 19.670 mean 18.670
+                          CPU PAR    min  1.667 max  1.754 mean  1.710
+                          H          min 11.162 max 11.168 mean 11.165
+TSOPF_RS_b39_c7.mtx
+ Regular
+                          CPU COO    min  0.771 max  0.793 mean  0.780
+                          CPU CSR    min  3.219 max  3.232 mean  3.227
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 11.070 max 11.200 mean 11.142
+                                 CSR min 37.050 max 42.100 mean 39.040
+                          CPU PAR    min  1.910 max  2.027 mean  1.982
+                          H          min  7.304 max  7.304 mean  7.304
+ Row-Premute
+                          CPU COO    min  0.701 max  0.722 mean  0.707
+                          CPU CSR    min  2.931 max  2.952 mean  2.942
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 10.860 max 11.030 mean 10.928
+                                 CSR min 28.730 max 30.880 mean 29.483
+                          CPU PAR    min  1.760 max  1.922 mean  1.851
+                          H          min 10.537 max 10.541 mean 10.539
+ Row-Gradient
+                          CPU COO    min  0.747 max  0.808 mean  0.757
+                          CPU CSR    min  2.606 max  2.648 mean  2.624
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 10.850 max 11.120 mean 10.999
+                                 CSR min 33.910 max 37.600 mean 35.909
+                          CPU PAR    min  2.154 max  2.245 mean  2.203
+                          H          min  9.636 max  9.646 mean  9.642
+ Column-Gradient
+                          CPU COO    min  0.718 max  1.693 mean  0.802
+                          CPU CSR    min  2.502 max  2.585 mean  2.547
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 10.700 max 10.990 mean 10.804
+                                 CSR min 27.230 max 29.380 mean 28.488
+                          CPU PAR    min  2.128 max  2.227 mean  2.172
+                          H          min 11.131 max 11.222 mean 11.208
+ Row-Column-Permute
+                          CPU COO    min  0.709 max  0.726 mean  0.716
+                          CPU CSR    min  2.917 max  2.958 mean  2.940
+                          GPU 32 COO min  0.000 max  0.000 mean  0.000
+                                 CSR min  0.000 max  0.000 mean  0.000
+                          GPU 64 COO min 10.840 max 11.030 mean 10.930
+                                 CSR min 28.780 max 30.810 mean 29.578
+                          CPU PAR    min  1.757 max  1.834 mean  1.792
+                          H          min 10.537 max 10.540 mean 10.539
+\end{verbatim}
