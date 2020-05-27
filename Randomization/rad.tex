@@ -346,7 +346,7 @@ confident that error in measuring time (per se) is under
 control. Thus, for each experiment we provide an average execution
 time: we measure the time and we divide by the number of trials. Cold
 starts, the first iteration, are still accounted. To make the measure
-portable across platform we present GFLOPS, that is, Giga ($10^12$)
+portable across platform we present GFLOPS, that is, Giga ($10^{12}$)
 floating operations per second: $2*nnz$ divided by the average time in
 seconds.
 
@@ -363,10 +363,11 @@ thus is the regular; {\bf R} stands for random Row permutation; {\bf
   G-R} stands for gradient-based row shuffle and random row
 permutation; {\bf G-C} stands for gradient-based column shuffle and
 random column permutation; {\bf R-C} stands for random row and column
-permutation. Gradient based approach shall we be clarified further in
-the experimental results section
+permutation. We shall clarify the gradient based approach in the
+experimental results section
 \ref{sec:experimentalresults}. Intuitively, we help the random
-permutation by a quick targeting of high and low volume of the matrix.
+permutation by a quick targeting of high and low volume of the
+histogram (and thus the matrix).
 
 
 In Figure \ref{fig:five}, We show CPU performance
@@ -411,12 +412,12 @@ randomization. Here we describe the work loads, the applications, we
 use to test the effects of the randomization.
 
 \subsection{Python COO and CSR algorithms}
-
+\label{sec:pythoncoocsr}
 The simplicity to compute the SpMV by the code $z = A*b$ in Python is
 very rewarding. By change of the matrix storage format, $AC =
 A.tocsr(); z = AC*b$, we have a different algorithm. The performance
 exploitation is moved to the lower level.  The CSR implementation is
-often two times faster but there are edges cases where the COO and COO
+often two times faster but there are edge cases where the COO and COO
 with randomization can go beyond and be surprisingly better: MUL DCOP
 03 is an example where COO can do well.
 
@@ -428,6 +429,7 @@ algorithm we could tailor the input distribution. Here we just play
 with it.
 
 \subsection{Parallel CSR using up to 16 cores}
+\label{sec:parcpu}
 Python provides the concept of Pool to exploit a naive parallel
 computation. We notice that work given to a Pool are split accordingly
 to the number of elements to separate HW cores. We also noticed that
@@ -442,6 +444,7 @@ core does all the work.
 
 
 \subsection{GPU COO and CSR algorithms}
+\label{sec:gpucoocsr}
 In this work, we use AMD GPUs and {\em rocSPARSE} is their current
 software. The software has a few glitches but overall can be used for
 different generation of AMD GPUs. We use the COO and CSR algorithms
@@ -463,13 +466,13 @@ is not balanced and a little randomization could help and it helps.
 
 For the majority of the cases we investigated and reported in the
 following sections, Randomization does not work and it affects the
-performance negatively. However, there are cases that do work and do
-work for different algorithms and architectures. If you are in the
-business of preconditioning, permutations are pretty cheap. Of course,
-permutation changes the computation order and this may affect
-precision: for low precision matrices such as half floating point
-(fp16) or smaller we may re-evaluate. For the semiring (min,+) and for
-integer arithmetic the computation order does not matter.
+performance negatively. However, there are cases where randomization
+does work and does work for different algorithms and architectures. If
+you are in the business of preconditioning, permutations are pretty
+cheap. Of course, permutation changes the computation order and this
+may affect precision: for low precision matrices such as half floating
+point (fp16) or smaller we may re-evaluate. For the semiring (min,+)
+and for integer arithmetic the computation order does not matter.
 
 
 
@@ -482,8 +485,39 @@ heuristics that can justified for any hardware.
 
 \section{Experimental Results}
 \label{sec:experimentalresults}
-Plots and pots.
-\input{out.v.tex}
+The main hardware setup is a AMD Threadripper with 16 cores and Radeon
+GPUs Vega 20, 2xFiji, and 2xEllesmere. Vega is designed so that 64bit
+precision is not neglected and has 1TB/s HBM memory, Fiji has 512GB/s
+HBM and more 32bit precision oriented, and the Ellesmere uses DDR.
+
+There are 4 basic randomization formats:
+\begin{itemize}
+  \item {\bf Random Row Permutation}, we take the original matrix and
+    permute the rows.
+  \item {\bf Random Row and Column Permutation}, we take the original
+    matrix and permute the row and the column.
+  \item {\bf Gradient based row permutation}, we compute the row
+    histogram and we compute the gradient: $h_{i+1} - h_i$. We find a
+    single point where the gradient is maximum, this is the pivot for
+    a shuffle like a magician would shuffle a deck of cards.  Then the
+    two parts are permuted.
+  \item {\bf Gradient based row and column permutation}, As above but
+    also for the columns.
+\end{itemize}
+
+For large matrices (large number of columns and rows) a permutation
+tends to be a close version to the original. It is still considered a
+random permutation. The gradient allows us to at least quickly
+describe two area of the original matrix where there is a clear and
+de-marked density variation, for example to uniform distributed sub
+matrices but one denser than the other. A shuffle redistribute every
+other sample/card to different parts and these can be permuted
+locally.
+
+
+    
+We report in the following the performance results, we introduce a
+{\bf *} following the best performance. \input{out.v.tex}
 
 
 
