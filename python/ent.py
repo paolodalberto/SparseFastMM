@@ -50,6 +50,7 @@ Differential = namedtuple(
 
 parameters = [
     ("-f", "--file",       str,None,    'store',"Input matrix"),
+    ("-tmp", "--temp",     str,"SHUFFLED",    'store',"Temporary directory"),
     ("-d", "--device",     int,0,       'store',"GPU Device number "),
     ("-t", "--trials",     int,10,       'store',"GPU Device number "),
     ("-s", "--save",       str,None,    'store',"Output matrix"),
@@ -524,7 +525,7 @@ def search(filename,args):
     
     location = filename[:filename.rfind(marker)]
     name     = filename[filename.rfind(marker)+1:]
-    wrt = location+"/SHUFFLED/"
+    wrt = location+"/"+args.temp + "/"
     
     W = sio.mmread(filename)
     Q = spatial_hist(W)
@@ -665,12 +666,14 @@ def titles(i):
     elif i == 7 : return "H"
 
 
-def vis(filename):
+def vis(filename, args = None,ran = (0,1,2,3,4,5,6) ):
     import pickle
     A = pickle.load(open(filename, "rb"))
-    ran = (0,1,3,5,6)
-    #    import pdb; pdb.set_trace()    
+    #import pdb; pdb.set_trace()    
 
+    if args and args.gpuonly: ran = (2,3,4,5)
+    if args and args.cpuonly: ran = (0,1,6)
+    
     Ts = ["Regular", "Row-Premute", "Row-Gradient", "Column-Gradient", "Row-Column-Permute", "Entropy"]
     for k,Vs in A.items():
         print(k)
@@ -702,7 +705,7 @@ def visualize_by_hist(k,B,i ):
     
     T = k+"_"+titles(i) 
     TT = re.sub("[\s.]+", "_",T)
-    print(TT,T)
+    print(TT,T, file=sys.stderr)
     Q = TT+".png"
     #print(Q)
     plt.savefig(Q)
@@ -737,5 +740,5 @@ if __name__ == '__main__':
         
     if args.visualizebinary:
         for file in args.file.split():
-            vis(file)
+            vis(file,args)
     

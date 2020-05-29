@@ -98,17 +98,18 @@ algorithms. However, there is no optimality without considering the
 architecture: for example, the CPU is only one among ... many.
 
 By nature, randomization is resilient to counter techniques, thus
-suitable to avoid worst case scenarios, improve performance on
-average, and reduce performance variance; however, it does to the best
-case the same thing it does to the worst case, it can nudge it
-off. Like preconditioning, randomization is advantageous when the
-matrix is reused or a constant such as in the power method, Krilov's
-space, or convolutions for image classifications.  Randomization is
-also an optimization that any architecture may take advantage although
-in different ways.
+suitable to avoid worst case scenarios because we tend to reduce to an
+average case; however, it does to the best case the same thing it does
+to the worst case, it can nudge it off. Like preconditioning,
+randomization is advantageous when the matrix is reused or a constant
+such as in the power method, Krilov's space, or convolutions for image
+classifications. Differently from preconditioning we randomize row and
+column of the matrix. We shall show that randomization is an
+optimization that any architecture may take advantage although in
+different ways.
 
-We shall present cases where we can improve by 15\% performance for
-general purpose architectures and by 8x for custom architectures.
+We shall present cases where we can improve performance by 15\%, yes
+by permuting row and column of the original sparse matrix.
 
 \end{abstract}
 
@@ -117,21 +118,21 @@ general purpose architectures and by 8x for custom architectures.
 \section{Introduction} B.S. Goes here.
 \label{sec:introduction}
 
+
+
 \section{Basic Notations}
 \label{sec:notations}
 Let us start by describing the basic notations so we can clear the
-obvious (or not).  A Sparse-matrix vector multiplication {\em SpMV} on
-an (semi) ring based on the operations $(+,*)$ is defined as $\Vc{y} =
-\M \Vc{x}$ so that $y_i = \sum_j M_{i,j}*y_j$ where $M_{i,j} \eq 0$
-are not even represented and stored. Most of the experimental results
-in Section \ref{sec:experimentalresults} are based on the classic
-addition (+) and multiplication (*) in floating point precision using
-32 or 64bits (i.e., single and double floating point precision).  SpMV
+obvious (or not).  A Sparse-matrix by vector multiplication {\em SpMV}
+on an (semi) ring based on the operations $(+,*)$ is defined as
+$\Vc{y} = \M \Vc{x}$ so that $y_i = \sum_j M_{i,j}*y_j$ where $M_{i,j}
+\eq 0$ are not even represented and stored. Most of the experimental
+results in Section \ref{sec:experimentalresults} are based on the
+classic addition (+) and multiplication (*) in floating point
+precision using 64bits (i.e., double floating point precision).  SpMV
 based on semi-ring (min,+) is a short path algorithm based on an
 adjacent matrix of a graph, and using a Boolean algebra we can check
-if two nodes are connected, which is slightly simpler. 
-
-
+if two nodes are connected, which is slightly simpler.
 
 We identify a sparse matrix $\M$ of size $M\times N$ as having
 $O(M+N)$ non-zero elements, number of non zero {\em nnz}. Thus the
@@ -266,33 +267,34 @@ single number is satisfying because concise.
 \section{Uniform distribution}
 \label{sec:uniform}
 We know that we should {\bf not} compare the entropy numbers of two
-matrices because there entropy does not use any information about the
-order of the buckets. By construction, the matrices are quite
-different in sparsity, ins shapes and their entropy numbers are so
-close. To appreciate their difference, we should compare their
-distributions by Jensen-Shannon measure (which is a symmetric). Or we
-could use a representation of a hierarchical 2d-entropy, see Figure
-\ref{fig:two}, where the entropy is split into 2x2, 4x4 and 8x8 (or
-fewer if the distribution is not square). We have a hierarchical
-entropy heat maps.
+matrices because entropy does not use any information about the order
+of the buckets only their probabilities. By construction, the matrices
+are quite different in sparsity and in shapes, however their entropy
+numbers are very close. To appreciate their difference, we should
+compare their distributions by Jensen-Shannon measure (which is a
+symmetric measure, please do not use Kullback-Leibler KL
+divergence). Or we could use a representation of a hierarchical
+2d-entropy, see Figure \ref{fig:two}, where the entropy is split into
+2x2, 4x4 and 8x8 (or fewer if the distribution is not square). We have
+a hierarchical entropy heat maps.
 
 \doublefigure{.30}{../python/ENTOPF3754/2d-regular}{../python/ENTlposa07/2d-regular}{Hierarchical
   2D entropy for OPF 3754 (left) and LP OSA 07 (right). }{fig:two}
 
-We can see a more granular entropy measure summarizes better the
-nature of the matrix. In this work, the entropy vector is used mostly
-for visualization purpose more than for comparison purpose. Of course,
-we can appreciate how the matrix LP OSA 07 has a few very heavy rows
-and they are clustered. This matrix will help up in showing how
-randomization need some tips. Now we apply row and column random
-permutation once by row and one by column: Figure \ref{fig:three}: OPF
-has now entropy 11.27 and LP 9.26. The numerical difference is
-significant. The good news is that for entropy, being an expectation,
-we can use simple techniques like bootstrap to show that the
-difference is significant or we have shown that Jensen-Shannon can be
-used and a significance level is available. What we like to see is the
-the hierarchical entropy heat map is becoming {\em more} uniform for
-at least one of the matrix.
+We can see a more granular entropy summarizes better the nature of the
+matrix. In this work, the entropy vector is used mostly for
+visualization purpose more than for comparison purpose. Of course, we
+can appreciate how the matrix LP OSA 07 has a few very heavy rows and
+they are clustered. This matrix will help us showing how randomization
+need some tips. Now we apply row and column random permutation once by
+row and one by column: Figure \ref{fig:three}: OPF has now entropy
+11.27 and LP 9.26. The numerical difference is significant. The good
+news is that for entropy, being an expectation, we can use simple
+techniques like bootstrap to show that the difference is significant
+or we have shown that Jensen-Shannon can be used and a significance
+level is available. What we like to see is the the hierarchical
+entropy heat map is becoming {\em more} uniform for at least one of
+the matrix.
 
 \doublefigure{.30}{../python/ENTOPF3754/2d-row-column-shuffle}{../python/ENTlposa07/2d-row-column-shuffle}{Hierarchical
   2D entropy after row and column random permutation for OPF 3754
@@ -325,10 +327,11 @@ LP achieves entropy 8.67 and 9.58 and OPF achieves 10.47 and 11.40.
   (right). }{fig:five}
 
 If the goal is to achieve a uniform matrix sparsity, it seems that we
-have the basic tool to compute and to measure such a sparsity. We
+have the basic tools to compute and to measure such a sparsity. We
 admit that we do not try to find the best permutation. But our real
 goal is to create a work bench where randomization can be tested on
-different architectures and different algorithms.
+different architectures and different algorithms. A randomization with
+a measurable uniform distribution is preferable than just random.
 
 \section{Measuring the randomization effects}
 \label{sec:measuring}
@@ -358,9 +361,9 @@ approximate an normal distribution. In practice, they are not but the
 number is sufficient for most of the cases and it is an excellent
 starting point.
 
-A short legend: {\bf Reg} is the matrix without any permutation and
-thus is the regular; {\bf R} stands for random Row permutation; {\bf
-  G-R} stands for gradient-based row shuffle and random row
+A short hand legend: {\bf Reg} is the matrix without any permutation
+and thus is the regular; {\bf R} stands for random Row permutation;
+{\bf G-R} stands for gradient-based row shuffle and random row
 permutation; {\bf G-C} stands for gradient-based column shuffle and
 random column permutation; {\bf R-C} stands for random row and column
 permutation. We shall clarify the gradient based approach in the
@@ -370,18 +373,22 @@ permutation by a quick targeting of high and low volume of the
 histogram (and thus the matrix).
 
 
-In Figure \ref{fig:five}, We show CPU performance
-using COO and CSR SpMV algorithms for the matrix OPF 3754. We can see
-that the CSR algorithms are consistent and the Regular (i.e., the
-original) has always the best performance. For the COO, permutations
-introduce a long tails. In Figure \ref{fig:six}, Randomization is
-harmful to the GPU implementation. If the load balance is fixed (i.e.,
-by dividing the matrix by row and in equal row), randomization is
-beneficial.
+In Figure \ref{fig:five}, We show CPU performance using COO and CSR
+SpMV algorithms for the matrix OPF 3754. We can see that the CSR
+algorithms are consistent and the Regular (i.e., the original) has
+always the best performance. For the COO, permutations introduce a
+long tails. In Figure \ref{fig:six}, Randomization is harmful to the
+GPU implementation. If the load balance is fixed (i.e., by dividing
+the matrix by row and in equal row), randomization is beneficial. This
+legend is used in the pictures to be concise, in the tables in the
+following sections, we use a verbose description.
 
 \doublefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_COO.png}{../python/PNG2/OPF_3754_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (left) for OPF 3754}{fig:five}
 
-\doublefigure{.45}{../python/PNG2/OPF_3754_mtx_GPU_64_COO.png}{../python/PNG2/OPF_3754_mtx_GPU_64_CSR.png}{GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:six}
+\doublefigure{.45}{../python/PNG2/OPF_3754_mtx_GPU_64_COO.png}{../python/PNG2/OPF_3754_mtx_GPU_64_CSR.png}{Vega
+  20, GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:six}
+\doublefigure{.45}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:six1}
+\doublefigure{.45}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:six2}
 
 \singlefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_PAR.png}{ Parallel
   CPU CSR (left) for OPF 3754}{fig:seven}
@@ -390,6 +397,10 @@ For matrix LP OSA 07, randomization helps clearly only for CPU CSR as
 we show in Figure \ref{fig:eight}
 
 \singlefigure{.45}{../python/PNG2/lp_osa_07_mtx_CPU_CSR.png}{   CPU CSR (left) for LP OSA 07}{fig:eight}
+\doublefigure{.45}{../python/PNG2/lp_osa_07_mtx_GPU_64_COO.png}{../python/PNG2/lp_osa_07_mtx_GPU_64_CSR.png}{Vega 20, GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:eight1}
+\doublefigure{.45}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:eight1}
+\doublefigure{.45}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:eight1}
+
 
 An example, the matrix MULT DCOP 01, is where randomization is useful
 for the CPU, GPU, and the parallel version Figure \ref{fig:9},
@@ -397,7 +408,9 @@ for the CPU, GPU, and the parallel version Figure \ref{fig:9},
 
 \doublefigure{.45}{../python/PNG2/mult_dcop_01_mtx_CPU_COO.png}{../python/PNG2/mult_dcop_01_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (left) for MULT DCOP 01}{fig:9}
 
-\doublefigure{.45}{../python/PNG2/mult_dcop_01_mtx_GPU_64_COO.png}{../python/PNG2/mult_dcop_01_mtx_GPU_64_CSR.png}{GPU 64bits COO (left) and GPU CSR (left) for MULT DCOP 01}{fig:10}
+\doublefigure{.45}{../python/PNG2/mult_dcop_01_mtx_GPU_64_COO.png}{../python/PNG2/mult_dcop_01_mtx_GPU_64_CSR.png}{Vega 20, GPU 64bits COO (left) and GPU CSR (left) for MULT DCOP 01}{fig:10}
+\doublefigure{.45}{../python/ELLEPNG/mult_dcop_01_mtx_GPU_64_COO.png}{../python/ELLEPNG/mult_dcop_01_mtx_GPU_64_CSR.png}{Ellesmere,  GPU 64bits COO (left) and GPU CSR (left) for MULT DCOP 01}{fig:101}
+\doublefigure{.45}{../python/FIJIPNG/mult_dcop_01_mtx_GPU_64_COO.png}{../python/FIJIPNG/mult_dcop_01_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (left) for MULT DCOP 01}{fig:102}
 
 \singlefigure{.45}{../python/PNG2/mult_dcop_01_mtx_CPU_PAR.png}{ Parallel
   CPU CSR (left) for MULT DCOP 01 }{fig:11}
@@ -518,7 +531,8 @@ locally.
     
 We report in the following the performance results, we introduce a
 {\bf *} following the best performance. \input{out.v.tex}
-
+\input{out.elle.tex}
+\input{out.fiji.tex} 
 
 
 
