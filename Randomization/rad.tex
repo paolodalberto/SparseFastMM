@@ -95,7 +95,7 @@ A sparse matrix by vector multiplication (SpMV) is simplified by the
 matrix non-zero elements and how we store them. There are many SpMV
 applications, many matrix storage formats, and thus
 algorithms. However, there is no optimality without considering the
-architecture: for example, the CPU is only one among ... many.
+architecture: for example, the CPU is one among many.
 
 By nature, randomization is resilient to counter techniques, thus
 suitable to avoid worst case scenarios because we tend to reduce to an
@@ -109,17 +109,69 @@ optimization that any architecture may take advantage although in
 different ways. Most importantly, any developer can consider and
 deploy.
 
-We shall present cases where we can improve performance by 15\%, yes
-by just permuting rows and columns of the original sparse matrix.
+We shall present cases where we can improve performance by 15\% on
+AMD-based systems; by just permuting rows and columns of the original
+sparse matrix we can achieve better performance.
 
 \end{abstract}
 
 \maketitle
 
-\section{Introduction} B.S. Goes here.
+\section{Introduction} 
 \label{sec:introduction}
 
+The obious questions are what is randomization and why would we use
+it? We shall provide formal definitions in the following sections, in
+this context, we randomly permute rows and column of a sparse matrix
+before a (sparse) matrix by a (dense) vector operation. We do this
+because randomization is the poor man's preconditioning and we do not
+mean it in a pejorative sense.
 
+Preconditioning is a method to help the convergence of an iterative
+solution, for example a sequence of matrix by vector operations.  Each
+iteration does a better job in searching the space and converging to a
+solution. In general, it means better numerical properties and well
+defined properties of the matrix itself. It does not mean that each
+iteration is faster. We are interested in this latter scenario we want
+to make each iteration faster. From a mathematical and scientific
+point of view may seem uninteresting. From the engineering and
+deployment is just the beginning, and what follows may well provide
+the basis for the application of any solution into the real world.
+
+At this stage, we have too many nobs and tools to tune: algorithms,
+data structures, and dedicated hardware (CPU, GPUs, Custom). This is a
+(very) hard problem and we are not here for the solution of the
+inverse problem: find the best Hardware-Software solution for the one
+matrix by vector product. We are here to provide tools, we may say
+naive tools, to help understand how the structure of the matrix may
+affect the HW-SW solution. Randomization, or versions of it, is
+already used by custom hardware to re-organize the data flow to reduce
+communications and computation bottle necks. We come to play in this
+arena to show {\em how} to use randomization if at all.
+
+For the readers in the field of algorithms, sparse matrix by (dense)
+vector is basically a sorting algorithm. Bare with us, Sorting is a
+method to find if an element is in a list without prior or limited
+knowledge of the list contents. Sorting is used to prepare the matrix
+and to find elements in between sparse matrices and sparse vectors. In
+custom architectures, sorting networks are used for routing elements
+of the matrix and vector to the proper functional unit. Interestingly,
+The best sorting algorithm is a function of the distribution of
+elements. If you are stuck with a sorting algorithm and the wrong
+distribution, randomization may change the distribution, and you do
+not need to talk to any HW designer
+
+We organize our works as follows: In Section \ref{sec:notations}, we
+define the matrix by vector operation; in Section
+\ref{sec:randomization}, we define what we mean for randomization. We
+us randomization to create a uniform distribution Section
+\ref{sec:uniform} and we measure uniformity by nothing else than
+entropy Section \ref{sec:entropy}. We present how we drive our
+experiments to show the effects of randomization in Section
+\ref{sec:measuring}. In this section we present a summary of the
+results. We present our work loads, benchmarks, in Section
+\ref{sec:workload} and the complete set of measures in Section
+\ref{sec:experimentalresults} for an AMD CPU and GPUs system.
 
 \section{Basic Notations}
 \label{sec:notations}
@@ -190,8 +242,7 @@ representing the nature of the original problem; such a pattern may
 exploit the wrong computation for an architecture; we could break such
 a pattern so that the only property left is a uniform distribution (of
 some sort). We must avoid the worst case and we would opt for an
-average case instead and we could do this to a class of $\M$. This is
-the gist.
+average case instead and we could do this to a class of $\M$. 
 
 If we know the matrix $\M$ and we know the architecture,
 preconditioning must be a better solution.  Well, it is. If we run
@@ -219,8 +270,10 @@ uniform distribution of accesses on $\Vc{x}$ we could exploit column
 load balancing and exploit better sorting algorithms: in practice the
 reading of $\Vc{x}_{COL[i]}$ can be reduces to a sorting and we know
 that different sparsity may require different algorithms. This is a
-lot to unpack but this translates as better performance of the
-sequential algorithm without changing the algorithm.
+lot to unpack but this translates to a better performance of the
+sequential algorithm without changing the algorithm or better HW
+utilization.
+
 
 We will show that (different) randomness affects architectures and
 algorithms differently making it a suitable optimization especially
@@ -232,6 +285,7 @@ show that this study uses common tool, open software tools and
 sometimes naive experiments; however, we can infer properties
 applicable to proprietary and custom solutions. 
 
+\newpage 
 \Doublefigure{.49}{../python/PNG/OPF_3754_mtx_regular}{../python/PNG/lp_osa_07_mtx_regular}{Left:
   OPF 3754. Right: LP OSA 07. These are histograms where we represent
   normalized buckets and counts}{fig:one}
@@ -259,10 +313,10 @@ The maximum entropy is when $\forall i, p_i = p = \frac{1}{M}$; that
 is, we are observing a uniform distributed event. There is no
 conceptual difference when the PDF represents a two dimensional
 distribution. Thus our randomization should aim at higher entropy
-numbers.
-
-The entropy for matrix LP OSA 07 is 8.41 and for OPF 3754 is 8.39. A
-single number is satisfying because concise.  
+numbers. The entropy for matrix LP OSA 07 is 8.41 and for OPF 3754 is
+8.39. We use the entropy specified in the Scipy stats module.  A
+single number is concise and satisfying. If you are pondering why they
+are so close contrary to their sparsity we discuss this next.
 
 
 \section{Uniform distribution}
@@ -271,33 +325,35 @@ We know that we should {\bf not} compare the entropy numbers of two
 matrices because entropy does not use any information about the order
 of the buckets only their probabilities. By construction, the matrices
 are quite different in sparsity and in shapes, however their entropy
-numbers are very close. To appreciate their difference, we should
-compare their distributions by Jensen-Shannon measure (which is a
-symmetric measure, please do not use Kullback-Leibler KL
+numbers are very close.  Two matrices with the same number of
+non-zeros, spaced well enough in the proper number of bin, will have
+the same entropy. To appreciate their different sparsity, we should
+compare their entropy distributions by Jensen-Shannon measure (which
+is a symmetric measure, please do not use Kullback-Leibler KL
 divergence). Or we could use a representation of a hierarchical
 2d-entropy, see Figure \ref{fig:two}, where the entropy is split into
 2x2, 4x4 and 8x8 (or fewer if the distribution is not square). We have
 a hierarchical entropy heat maps.
 
-\doublefigure{.30}{../python/ENTOPF3754/2d-regular}{../python/ENTlposa07/2d-regular}{Hierarchical
+\doublefigure{.40}{../python/ENTOPF3754/2d-regular}{../python/ENTlposa07/2d-regular}{Hierarchical
   2D entropy for OPF 3754 (left) and LP OSA 07 (right). }{fig:two}
 
-We can see a more granular entropy summarizes better the nature of the
-matrix. In this work, the entropy vector is used mostly for
-visualization purpose more than for comparison purpose. Of course, we
-can appreciate how the matrix LP OSA 07 has a few very heavy rows and
-they are clustered. This matrix will help us showing how randomization
-need some tips. Now we apply row and column random permutation once by
-row and one by column: Figure \ref{fig:three}: OPF has now entropy
-11.27 and LP 9.26. The numerical difference is significant. The good
-news is that for entropy, being an expectation, we can use simple
-techniques like bootstrap to show that the difference is significant
-or we have shown that Jensen-Shannon can be used and a significance
-level is available. What we like to see is the the hierarchical
-entropy heat map is becoming {\em more} uniform for at least one of
-the matrix.
+We can see that a granular entropy summarizes better the nature of the
+matrix because it keep some spatial information. In this work, the
+entropy vector is used mostly for visualization purpose more than for
+comparison purpose. Of course, we can appreciate how the matrix LP OSA
+07 has a few very heavy rows and they are clustered. This matrix will
+help us showing how randomization need some tips. Now we apply row and
+column random permutation once by row and one by column: Figure
+\ref{fig:three}: OPF has now entropy 11.27 and LP 9.26. The numerical
+difference is significant. The good news is that for entropy, being an
+expectation, we can use simple techniques like bootstrap to show that
+the difference is significant or we have shown that Jensen-Shannon can
+be used and a significance level is available. What we like to see is
+the the hierarchical entropy heat map is becoming {\em more} uniform
+for at least one of the matrix.
 
-\doublefigure{.30}{../python/ENTOPF3754/2d-row-column-shuffle}{../python/ENTlposa07/2d-row-column-shuffle}{Hierarchical
+\doublefigure{.40}{../python/ENTOPF3754/2d-row-column-shuffle}{../python/ENTlposa07/2d-row-column-shuffle}{Hierarchical
   2D entropy after row and column random permutation for OPF 3754
   (left) and LP OSA 07 (right). }{fig:three}
 
@@ -318,35 +374,39 @@ with maximum steepness, Figure \ref{fig:four} and \ref{fig:five}
 
 LP achieves entropy 8.67 and 9.58 and OPF achieves 10.47 and 11.40.
 
-\doublefigure{.30}{../python/ENTOPF3754/2d-H-shuffle}{../python/ENTlposa07/2d-H-shuffle}{Hierarchical
+\doublefigure{.40}{../python/ENTOPF3754/2d-H-shuffle}{../python/ENTlposa07/2d-H-shuffle}{Hierarchical
   2D entropy after height gradient based shuffle and row random
   permutation for OPF 3754 (left) and LP OSA 07 (right). }{fig:four}
 
-\doublefigure{.30}{../python/ENTOPF3754/2d-W-shuffle}{../python/ENTlposa07/2d-W-shuffle}{Hierarchical
+\doublefigure{.40}{../python/ENTOPF3754/2d-W-shuffle}{../python/ENTlposa07/2d-W-shuffle}{Hierarchical
   2D entropy after height and width gradient shuffle and row and
   column random permutation for OPF 3754 (left) and LP OSA 07
   (right). }{fig:five}
 
-If the goal is to achieve a uniform matrix sparsity, it seems that we
-have the basic tools to compute and to measure such a sparsity. We
-admit that we do not try to find the best permutation. But our real
-goal is to create a work bench where randomization can be tested on
-different architectures and different algorithms. A randomization with
-a measurable uniform distribution is preferable than just random.
+If the goal is to achieve a uniformly sparse matrix, it seems that we
+have the tools to compute and to measure such a sparsity. We admit
+that we do not try to find the best permutation. But our real goal is
+to create a work bench where randomization can be tested on different
+architectures and different algorithms. A randomization with a
+measurable uniform distribution is preferable than just random. We are
+interested to find out when random is enough or not enough. Also,
+consider that to achieve a uniform distribution, we do not need a
+random transformation and any permutation balancing the number of
+non-zero is possible, but for now not looked for.
 
 \section{Measuring the randomization effects}
 \label{sec:measuring}
 
-Whether or not this applied to the reader, when we have timed
-execution of algorithms we came to expect variation.  The introduction
-of randomization may hide behind the ever present random behavior,
-after all these are algorithms on {\em small} inputs and small error
-can be comparable to the overall execution time. Here, we must address
-this concern even before describing the experiments.
+Whether or not this ever applied to the reader, when we have timed
+algorithms (i.e., measure execution time), we came to expect
+variation.  The introduction of randomization may hide behind the ever
+present variance, after all these are algorithms on {\em small} inputs
+and small error can be comparable to the overall execution time. Here,
+we must address this concern even before describing the experiments.
 
-First, every algorithm is run between 1000 and 5000 times. The time of
-each experiments is in the seconds, providing a granularity we are
-confident that error in measuring time (per se) is under
+First, we execute every algorithm between 1000 and 5000 times. The
+time of each experiment is in the seconds, providing a granularity for
+which we are confident the measuring time error is under
 control. Thus, for each experiment we provide an average execution
 time: we measure the time and we divide by the number of trials. Cold
 starts, the first iteration, are still accounted. To make the measure
@@ -378,35 +438,47 @@ histogram (and thus the matrix).
 In Figure \ref{fig:five}, We show CPU performance using COO and CSR
 SpMV algorithms for the matrix OPF 3754. We can see that the CSR
 algorithms are consistent and the Regular (i.e., the original) has
-always the best performance. For the COO, permutations introduce a
-long tails. In Figure \ref{fig:six}, Randomization is harmful to the
-GPU implementation. The OPF 375 matrix is mostly diagonal, thus the
-vector $\Vc{x}$ is read in close quarters, randomization breaks it.
-If the load balance is fixed (i.e., by dividing the matrix by row and
-in equal row), randomization is beneficial.
-
+always the best performance. For the COO, permutations introduce long
+tails, thus performance advantage. 
 \doublefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_COO.png}{../python/PNG2/OPF_3754_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (left) for OPF 3754}{fig:five}
+
+In Figure \ref{fig:six}, \ref{fig:six1} and \ref{fig:six2},
+randomization is harmful to the GPU implementation. The OPF 375 matrix
+is mostly diagonal, thus the vector $\Vc{x}$ is read in close
+quarters, randomization breaks it.  If the load balance is fixed
+(i.e., by dividing the matrix by row and in equal row), randomization
+is beneficial.
 
 \doublefigure{.45}{../python/PNG2/OPF_3754_mtx_GPU_64_COO.png}{../python/PNG2/OPF_3754_mtx_GPU_64_CSR.png}{Vega
   20, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six}
 \doublefigure{.45}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six1}
 \doublefigure{.45}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six2}
 
+If we take the original matrix and split into part having the same
+number of rows, and execute them in parallel using different cores, we
+can see in Figure \ref{fig:seven} that randomization is quite useful.
 \singlefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_PAR.png}{ Parallel
   CPU CSR for OPF 3754}{fig:seven}
+
 
 For matrix LP OSA 07, randomization helps clearly only for CPU CSR as
 we show in Figure \ref{fig:eight}
 
 \singlefigure{.45}{../python/PNG2/lp_osa_07_mtx_CPU_CSR.png}{   CPU CSR  for LP OSA 07}{fig:eight}
+
+In Figure \ref{fig:eight1}, \ref{fig:eight2}, and \ref{fig:eight3}, we
+can see that randomization is harmful but for one GPU, we can show
+that a single exception is possible (40\% improvement).
+
+
 \doublefigure{.45}{../python/PNG2/lp_osa_07_mtx_GPU_64_COO.png}{../python/PNG2/lp_osa_07_mtx_GPU_64_CSR.png}{Vega 20, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight1}
-\doublefigure{.45}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight1}
-\doublefigure{.45}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight1}
+\doublefigure{.45}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight2}
+\doublefigure{.45}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight3}
 
 
 An example, the matrix MULT DCOP 01, is where randomization is useful
 for the CPU, GPU, and the parallel version Figure \ref{fig:9},
-\ref{fig:10}, and \ref{fig:11} and the gains can be up to
+\ref{fig:10} - \ref{fig:11} and the gains can be up to
 10-15\%. Consider, we can achieve these improvements without any
 insights to the architecture, the alfgorithms and their relationships.
 
@@ -457,19 +529,30 @@ for a different initial distribution. If we knew what is the sorting
 algorithm we could tailor the input distribution. Here we just play
 with it.
 
+In Section \ref{sec:experimentalresults}, we present all the results
+for CPU and GPUS. Keep in mind that these problems are hard, in the
+sense they do not have fancy performance sheets (these architectures
+can achieve Tera FLOPs sustained performance for dense computations).
+If we go through diligently, we can see that there is a 15x
+performance difference between the single thread CPU and Vega 20 GPU
+(i.e, 3 vs 40 GFLOPS).
+
 \subsection{Parallel CSR using up to 16 cores}
 \label{sec:parcpu}
 Python provides the concept of Pool to exploit a naive parallel
 computation. We notice that work given to a Pool is split accordingly
 to the number of elements to separate HW cores. We also noticed that
-the work load can move from a core to another, thus may not be
-ideal. Also we notice that Pool introduce a noticeable overhead: a
-Pool of 1, never achieves the performance of the single thread $z =
-AC*b$. Using Pool allows us to investigate how a naive row
-partitioning without counting can scale up with number of
-cores. Randomization goal is to distribute the work uniformly: a
-balanced work distribution avoid the unfortunate case where a single
-core does all the work.
+the work load move from a core to another, thus not ideal. Also we
+notice that Pool introduce a noticeable overhead: a Pool of 1, never
+achieves the performance of the single thread $z = AC*b$. Using Pool
+allows us to investigate how a naive row partitioning without counting
+can scale up with number of cores. We tested by splitting evenly the
+rows to 1--16 cores (one thread per core) and we present the
+performance for only the best one. The randomization goal is to
+distribute the work uniformly: a balanced work distribution avoid the
+unfortunate case where a single core does all the work. We are pleased
+by the simplicity of the benchmark and we know we can do better. 
+
 
 
 \subsection{GPU COO and CSR algorithms}
@@ -477,35 +560,36 @@ core does all the work.
 In this work, we use AMD GPUs and {\em rocSPARSE} is their current
 software. The software has a few glitches but overall can be used for
 different generation of AMD GPUs. We use the COO and CSR algorithms
-and when possible or useful we provide performance measure for single
-and double precision (mostly double precision). The ideas of using
-different GPUs is important to verify that the randomization can be
-applied independently of the HW. We are not here to compare
-performance with other GPUs or even between CPUs and GPUs. Often the
-limitation is the software.
+and we provide performance measure for double precision only. The
+ideas of using different GPUs: it is important to verify that the
+randomization can be applied independently of the HW. We are not here
+to compare performance across GPUs and CPUs. Often the limitation is
+the software, how the software can exploit the hardware or how the
+software will make easy to use a specific GPU. For example, the Fiji
+architecture is clearly superior to the Ellesmere, however the latter
+have better support and the system overall is more stable and user
+friendly using and inferior HW.
 
-The performance of the CSR algorithm is about two time faster than the
-COO. Most of the algorithms use the CSR format to count the number of
-sparse elements in a row and thus they can decide the work load
-partition accordingly. Counting give you an edge but without changing
-the order of the computation there could be cases where the work load
-is not balanced and a little randomization could help and it helps.
+The performance of the CSR algorithm is about two times faster than the
+COO. Most of the algorithms count the number of sparse elements in a
+row and thus they can decide the work load partition
+accordingly. Counting give you an edge but without changing the order
+of the computation there could be cases where the work load is not
+balanced and a little randomization could help and it does.
 
 %\subsection{ FPGA ? (not necessary)}
 \subsection{Randomization sometimes works}
 
 For the majority of the cases we investigated and reported in the
-following sections, Randomization does not work and it affects the
-performance negatively. However, there are cases where randomization
-does work and does work for different algorithms and architectures. If
-you are in the business of preconditioning, permutations are pretty
-cheap. Of course, permutation changes the computation order and this
-may affect precision but please remember that these are sparse
-matrices and the number of multiplication and accumulations are
-practically a small constant.  For the semiring (min,+) and for
-integer arithmetic the computation order does not matter because there
-is no intermediary error.
+following sections, Randomization does not work. However, there are
+cases where randomization does work and does work for different
+algorithms and architectures. If you are in the business of
+preconditioning, permutations are pretty cheap. If you can find a good
+one just consider like a preconditioning matrix, which it is. 
 
+This shows also that HW has to be more conscious, well the HW designer
+should, and accept that there are options at software level, at matrix
+level and beyond. 
 
 
 %\section{Call for a different strategy}
@@ -517,10 +601,19 @@ is no intermediary error.
 
 \section{Experimental Results}
 \label{sec:experimentalresults}
-The main hardware setup is a AMD Threadripper with 16 cores and Radeon
-GPUs Vega 20, 2xFiji, and 2xEllesmere. Vega is designed so that 64bit
-precision is not neglected and has 1TB/s HBM memory, Fiji has 512GB/s
-HBM and more 32bit precision oriented, and the Ellesmere uses DDR.
+The main hardware setup is a AMD Threadripper with 16 cores. We have
+three Radeon GPUs: Vega 20 7nm, Pro 2xFiji, and Pro 2xEllesmere.
+
+Vega 20 can deliver 3.5TFLOPS in double precision and it has 1TB/s HBM
+memory. Each Fiji provides 0.5 TFLOPS in double precision and has
+512GB/s HBM, the card has two chips.  The Ellesmere provides 0.3TFLOPS
+in double precision and has 224GB/s DDR5, the card has two chips. In
+the performance plots presented earlier and in the following, you will
+notice that the performance gap between these GPUs is not so
+marked. We can safely state that $vega \sim 2\times Fiji$ and $Fiji \sim
+2\times ellesmere$
+
+
 
 There are 4 basic randomization formats:
 \begin{itemize}
