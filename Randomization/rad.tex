@@ -106,10 +106,11 @@ such as in the power method, Krilov's space, or convolutions for image
 classifications. Differently from preconditioning we randomize row and
 column of the matrix. We shall show that randomization is an
 optimization that any architecture may take advantage although in
-different ways.
+different ways. Most importantly, any developer can consider and
+deploy.
 
 We shall present cases where we can improve performance by 15\%, yes
-by permuting row and column of the original sparse matrix.
+by just permuting rows and columns of the original sparse matrix.
 
 \end{abstract}
 
@@ -300,7 +301,7 @@ the matrix.
   2D entropy after row and column random permutation for OPF 3754
   (left) and LP OSA 07 (right). }{fig:three}
 
-In practice, permutation need some help especially for relatively
+In practice, permutations need some help especially for relatively
 large matrices. As you can see, the permutation affects locally the
 matrix. Of course, it depends on the implementation of the random
 permutation (we use numpy for this) but it is reasonable a slightly
@@ -354,10 +355,10 @@ floating operations per second: $2*nnz$ divided by the average time in
 seconds.
 
 Then we repeat the same experiment 32 times. Permutations in {\em
-  numpy} Python use a seed that time sensitive and thus every
+  numpy} Python uses a seed that is time sensitive: thus every
 experiment is independent from the previous. The number 32 is an old
 statistic trick and it is a minimum number of independent trials to
-approximate an normal distribution. In practice, they are not but the
+approximate a normal distribution. In practice, they are not but the
 number is sufficient for most of the cases and it is an excellent
 starting point.
 
@@ -366,9 +367,10 @@ and thus is the regular; {\bf R} stands for random Row permutation;
 {\bf G-R} stands for gradient-based row shuffle and random row
 permutation; {\bf G-C} stands for gradient-based column shuffle and
 random column permutation; {\bf R-C} stands for random row and column
-permutation. We shall clarify the gradient based approach in the
-experimental results section
-\ref{sec:experimentalresults}. Intuitively, we help the random
+permutation.  This legend is used in the pictures to be concise, in
+the tables in the following sections, we use a verbose description. We
+shall clarify the gradient based approach in the experimental results
+section \ref{sec:experimentalresults}. Intuitively, we help the random
 permutation by a quick targeting of high and low volume of the
 histogram (and thus the matrix).
 
@@ -379,42 +381,54 @@ algorithms are consistent and the Regular (i.e., the original) has
 always the best performance. For the COO, permutations introduce a
 long tails. In Figure \ref{fig:six}, Randomization is harmful to the
 GPU implementation. If the load balance is fixed (i.e., by dividing
-the matrix by row and in equal row), randomization is beneficial. This
-legend is used in the pictures to be concise, in the tables in the
-following sections, we use a verbose description.
+the matrix by row and in equal row), randomization is beneficial.
 
 \doublefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_COO.png}{../python/PNG2/OPF_3754_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (left) for OPF 3754}{fig:five}
 
 \doublefigure{.45}{../python/PNG2/OPF_3754_mtx_GPU_64_COO.png}{../python/PNG2/OPF_3754_mtx_GPU_64_CSR.png}{Vega
-  20, GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:six}
-\doublefigure{.45}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:six1}
-\doublefigure{.45}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:six2}
+  20, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six}
+\doublefigure{.45}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six1}
+\doublefigure{.45}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six2}
 
 \singlefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_PAR.png}{ Parallel
-  CPU CSR (left) for OPF 3754}{fig:seven}
+  CPU CSR for OPF 3754}{fig:seven}
 
 For matrix LP OSA 07, randomization helps clearly only for CPU CSR as
 we show in Figure \ref{fig:eight}
 
-\singlefigure{.45}{../python/PNG2/lp_osa_07_mtx_CPU_CSR.png}{   CPU CSR (left) for LP OSA 07}{fig:eight}
-\doublefigure{.45}{../python/PNG2/lp_osa_07_mtx_GPU_64_COO.png}{../python/PNG2/lp_osa_07_mtx_GPU_64_CSR.png}{Vega 20, GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:eight1}
-\doublefigure{.45}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:eight1}
-\doublefigure{.45}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (left) for OPF 3754}{fig:eight1}
+\singlefigure{.45}{../python/PNG2/lp_osa_07_mtx_CPU_CSR.png}{   CPU CSR  for LP OSA 07}{fig:eight}
+\doublefigure{.45}{../python/PNG2/lp_osa_07_mtx_GPU_64_COO.png}{../python/PNG2/lp_osa_07_mtx_GPU_64_CSR.png}{Vega 20, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight1}
+\doublefigure{.45}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight1}
+\doublefigure{.45}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight1}
 
 
 An example, the matrix MULT DCOP 01, is where randomization is useful
 for the CPU, GPU, and the parallel version Figure \ref{fig:9},
-\ref{fig:10}, and \ref{fig:11}. 
+\ref{fig:10}, and \ref{fig:11} and the gains can be up to
+10-15\%. Consider, we can achieve these improvements without any
+insights to the architecture, the alfgorithms and their relationships.
 
-\doublefigure{.45}{../python/PNG2/mult_dcop_01_mtx_CPU_COO.png}{../python/PNG2/mult_dcop_01_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (left) for MULT DCOP 01}{fig:9}
 
-\doublefigure{.45}{../python/PNG2/mult_dcop_01_mtx_GPU_64_COO.png}{../python/PNG2/mult_dcop_01_mtx_GPU_64_CSR.png}{Vega 20, GPU 64bits COO (left) and GPU CSR (left) for MULT DCOP 01}{fig:10}
-\doublefigure{.45}{../python/ELLEPNG/mult_dcop_01_mtx_GPU_64_COO.png}{../python/ELLEPNG/mult_dcop_01_mtx_GPU_64_CSR.png}{Ellesmere,  GPU 64bits COO (left) and GPU CSR (left) for MULT DCOP 01}{fig:101}
-\doublefigure{.45}{../python/FIJIPNG/mult_dcop_01_mtx_GPU_64_COO.png}{../python/FIJIPNG/mult_dcop_01_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (left) for MULT DCOP 01}{fig:102}
+\doublefigure{.45}{../python/PNG2/mult_dcop_01_mtx_CPU_COO.png}{../python/PNG2/mult_dcop_01_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (right) for MULT DCOP 01}{fig:9}
+
+\doublefigure{.45}{../python/PNG2/mult_dcop_01_mtx_GPU_64_COO.png}{../python/PNG2/mult_dcop_01_mtx_GPU_64_CSR.png}{Vega 20, GPU 64bits COO (left) and GPU CSR (right) for MULT DCOP 01}{fig:10}
+\doublefigure{.45}{../python/ELLEPNG/mult_dcop_01_mtx_GPU_64_COO.png}{../python/ELLEPNG/mult_dcop_01_mtx_GPU_64_CSR.png}{Ellesmere,  GPU 64bits COO (left) and GPU CSR (right) for MULT DCOP 01}{fig:101}
+\doublefigure{.45}{../python/FIJIPNG/mult_dcop_01_mtx_GPU_64_COO.png}{../python/FIJIPNG/mult_dcop_01_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (right) for MULT DCOP 01}{fig:102}
 
 \singlefigure{.45}{../python/PNG2/mult_dcop_01_mtx_CPU_PAR.png}{ Parallel
-  CPU CSR (left) for MULT DCOP 01 }{fig:11}
+  CPU CSR  for MULT DCOP 01 }{fig:11}
 
+What does it mean when randomization does not work? The matrices we
+use in this work are not chosen randomly (pun not intended), they are
+the matrices that are difficult to handle in our custom SpMV engines
+using a combination of sorting networks and systolic arrays. If
+randomization does not work in our simplified work bench, will not
+work in our specialized architecture because the reorganization of the
+matrix or the input and output vector does not have the necessary
+parallelism, data locality, and data streaming. We need to do
+something else. In this case disrupting the memory pattern is not
+sufficient. Thus, if we cannot beat the pattern, we must exploit it,
+well not in this work.
 
 \section{Workloads}
 \label{sec:workload}
