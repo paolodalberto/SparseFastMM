@@ -380,8 +380,10 @@ SpMV algorithms for the matrix OPF 3754. We can see that the CSR
 algorithms are consistent and the Regular (i.e., the original) has
 always the best performance. For the COO, permutations introduce a
 long tails. In Figure \ref{fig:six}, Randomization is harmful to the
-GPU implementation. If the load balance is fixed (i.e., by dividing
-the matrix by row and in equal row), randomization is beneficial.
+GPU implementation. The OPF 375 matrix is mostly diagonal, thus the
+vector $\Vc{x}$ is read in close quarters, randomization breaks it.
+If the load balance is fixed (i.e., by dividing the matrix by row and
+in equal row), randomization is beneficial.
 
 \doublefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_COO.png}{../python/PNG2/OPF_3754_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (left) for OPF 3754}{fig:five}
 
@@ -458,7 +460,7 @@ with it.
 \subsection{Parallel CSR using up to 16 cores}
 \label{sec:parcpu}
 Python provides the concept of Pool to exploit a naive parallel
-computation. We notice that work given to a Pool are split accordingly
+computation. We notice that work given to a Pool is split accordingly
 to the number of elements to separate HW cores. We also noticed that
 the work load can move from a core to another, thus may not be
 ideal. Also we notice that Pool introduce a noticeable overhead: a
@@ -479,7 +481,8 @@ and when possible or useful we provide performance measure for single
 and double precision (mostly double precision). The ideas of using
 different GPUs is important to verify that the randomization can be
 applied independently of the HW. We are not here to compare
-performance with other GPUs or even between CPUs and GPUs.
+performance with other GPUs or even between CPUs and GPUs. Often the
+limitation is the software.
 
 The performance of the CSR algorithm is about two time faster than the
 COO. Most of the algorithms use the CSR format to count the number of
@@ -497,17 +500,19 @@ performance negatively. However, there are cases where randomization
 does work and does work for different algorithms and architectures. If
 you are in the business of preconditioning, permutations are pretty
 cheap. Of course, permutation changes the computation order and this
-may affect precision: for low precision matrices such as half floating
-point (fp16) or smaller we may re-evaluate. For the semiring (min,+)
-and for integer arithmetic the computation order does not matter.
+may affect precision but please remember that these are sparse
+matrices and the number of multiplication and accumulations are
+practically a small constant.  For the semiring (min,+) and for
+integer arithmetic the computation order does not matter because there
+is no intermediary error.
 
 
 
-\section{Call for a different strategy}
-\label{sec:strategy}
-We want to find out randomization techniques that are suitable for
-custom hardware but also what are the most common and simple
-heuristics that can justified for any hardware.
+%\section{Call for a different strategy}
+%\label{sec:strategy}
+%We want to find out randomization techniques that are suitable for
+%custom hardware but also what are the most common and simple
+%heuristics that can justified for any hardware.
 
 
 \section{Experimental Results}

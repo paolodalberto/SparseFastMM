@@ -5,8 +5,8 @@
 \begin{verbatim}
 aft01.mtx
  Regular
-                          GPU 64 COO min  4.080 max  4.280 mean  4.186
-                                 CSR min  9.660 max 12.660 mean 11.485
+                          GPU 64 COO min  4.080 max* 4.280 mean  4.186
+                                 CSR min  9.660 max*12.660 mean 11.485
                           H          min  7.811 max  7.811 mean  7.811
  Row-Premute
                           GPU 64 COO min  3.860 max  4.090 mean  4.001
@@ -23,7 +23,7 @@ aft01.mtx
  Row-Column-Permute
                           GPU 64 COO min  3.850 max  4.080 mean  3.990
                                  CSR min  5.420 max  6.760 mean  5.977
-                          H          min 11.162 max 11.169 mean 11.165
+                          H          min 11.162 max*11.169 mean 11.165
 bloweya.mtx
  Regular
                           GPU 64 COO min  0.000 max  0.000 mean  0.000
@@ -34,8 +34,8 @@ bloweya.mtx
                                  CSR min  3.710 max  4.570 mean  4.399
                           H          min 11.025 max 11.031 mean 11.028
  Row-Gradient
-                          GPU 64 COO min  3.800 max  4.120 mean  3.962
-                                 CSR min  4.340 max  4.670 mean  4.546
+                          GPU 64 COO min  3.800 max* 4.120 mean  3.962
+                                 CSR min  4.340 max* 4.670 mean  4.546
                           H          min 10.296 max 10.307 mean 10.300
  Column-Gradient
                           GPU 64 COO min  3.880 max  4.100 mean  3.978
@@ -44,15 +44,15 @@ bloweya.mtx
  Row-Column-Permute
                           GPU 64 COO min  3.800 max  3.980 mean  3.885
                                  CSR min  4.130 max  4.540 mean  4.399
-                          H          min 11.025 max 11.033 mean 11.029
+                          H          min 11.025 max*11.033 mean 11.029
 brainpc2.mtx
  Regular
                           GPU 64 COO min  0.000 max  0.000 mean  0.000
                                  CSR min  0.000 max  0.000 mean  0.000
                           H          min  7.478 max  7.478 mean  7.478
  Row-Premute
-                          GPU 64 COO min  3.840 max  6.750 mean  4.110
-                                 CSR min  4.260 max  4.500 mean  4.437
+                          GPU 64 COO min  3.840 max* 6.750 mean  4.110
+                                 CSR min  4.260 max* 4.500 mean  4.437
                           H          min  9.809 max  9.813 mean  9.811
  Row-Gradient
                           GPU 64 COO min  0.640 max  4.030 mean  3.864
@@ -61,14 +61,14 @@ brainpc2.mtx
  Column-Gradient
                           GPU 64 COO min  0.640 max  4.070 mean  3.898
                                  CSR min  4.230 max  4.500 mean  4.386
-                          H          min 10.368 max 10.372 mean 10.370
+                          H          min 10.368 max*10.372 mean 10.370
  Row-Column-Permute
                           GPU 64 COO min  3.980 max  4.110 mean  4.027
                                  CSR min  4.320 max  4.490 mean  4.437
                           H          min  9.809 max  9.813 mean  9.811
 c-47.mtx
  Regular
-                          GPU 64 COO min  3.980 max  4.080 mean  4.026
+                          GPU 64 COO min  3.980 max* 4.080 mean  4.026
                                  CSR min  4.760 max  4.850 mean  4.812
                           H          min  8.364 max  8.364 mean  8.364
  Row-Premute
@@ -82,10 +82,10 @@ c-47.mtx
  Column-Gradient
                           GPU 64 COO min  3.860 max  3.990 mean  3.936
                                  CSR min  4.350 max  4.610 mean  4.525
-                          H          min 11.204 max 11.241 mean 11.222
+                          H          min 11.204 max*11.241 mean 11.222
  Row-Column-Permute
                           GPU 64 COO min  3.890 max  4.020 mean  3.953
-                                 CSR min  4.490 max  4.920 mean  4.840
+                                 CSR min  4.490 max* 4.920 mean  4.840
                           H          min 10.058 max 10.063 mean 10.061
 case9.mtx
  Regular
@@ -97,21 +97,21 @@ case9.mtx
                                  CSR min  5.080 max  6.520 mean  6.342
                           H          min 10.042 max 10.047 mean 10.044
  Row-Gradient
-                          GPU 64 COO min  4.810 max  4.940 mean  4.876
-                                 CSR min  6.100 max  6.560 mean  6.307
+                          GPU 64 COO min  4.810 max* 4.940 mean  4.876
+                                 CSR min  6.100 max* 6.560 mean  6.307
                           H          min  9.681 max  9.704 mean  9.694
  Column-Gradient
                           GPU 64 COO min  4.810 max  4.930 mean  4.869
                                  CSR min  4.820 max  6.460 mean  6.208
-                          H          min 10.554 max 10.661 mean 10.638
+                          H          min 10.554 max*10.661 mean 10.638
  Row-Column-Permute
                           GPU 64 COO min  4.810 max  4.940 mean  4.864
                                  CSR min  5.930 max  6.520 mean  6.379
                           H          min 10.041 max 10.047 mean 10.044
 cvxqp3.mtx
  Regular
-                          GPU 64 COO min  3.350 max  3.590 mean  3.483
-                                 CSR min  5.430 max  9.260 mean  8.333
+                          GPU 64 COO min  3.350 max* 3.590 mean  3.483
+                                 CSR min  5.430 max* 9.260 mean  8.333
                           H          min  8.646 max  8.646 mean  8.646
  Row-Premute
                           GPU 64 COO min  3.230 max  3.480 mean  3.371
@@ -124,14 +124,14 @@ cvxqp3.mtx
  Column-Gradient
                           GPU 64 COO min  3.240 max  3.480 mean  3.374
                                  CSR min  6.980 max  7.900 mean  7.557
-                          H          min 11.126 max 11.134 mean 11.130
+                          H          min 11.126 max*11.134 mean 11.130
  Row-Column-Permute
                           GPU 64 COO min  3.110 max  3.470 mean  3.365
                                  CSR min  4.810 max  8.210 mean  7.742
                           H          min 11.026 max 11.032 mean 11.030
 ex19.mtx
  Regular
-                          GPU 64 COO min  2.450 max  2.610 mean  2.564
+                          GPU 64 COO min  2.450 max* 2.610 mean  2.564
                                  CSR min  4.490 max  4.760 mean  4.714
                           H          min  8.228 max  8.228 mean  8.228
  Row-Premute
@@ -140,12 +140,12 @@ ex19.mtx
                           H          min 11.835 max 11.840 mean 11.838
  Row-Gradient
                           GPU 64 COO min  2.240 max  2.390 mean  2.329
-                                 CSR min  4.570 max  4.850 mean  4.807
+                                 CSR min  4.570 max* 4.850 mean  4.807
                           H          min 10.742 max 10.752 mean 10.747
  Column-Gradient
                           GPU 64 COO min  2.010 max  2.050 mean  2.034
                                  CSR min  4.570 max  4.760 mean  4.701
-                          H          min 11.872 max 11.881 mean 11.878
+                          H          min 11.872 max*11.881 mean 11.878
  Row-Column-Permute
                           GPU 64 COO min  2.000 max  2.040 mean  2.023
                                  CSR min  0.770 max  4.780 mean  4.594
@@ -153,27 +153,27 @@ ex19.mtx
 gen4.mtx
  Regular
                           GPU 64 COO min  4.880 max  4.980 mean  4.900
-                                 CSR min 10.020 max 11.300 mean 10.716
+                                 CSR min 10.020 max*11.300 mean 10.716
                           H          min  9.234 max  9.234 mean  9.234
  Row-Premute
                           GPU 64 COO min  4.860 max  4.930 mean  4.890
                                  CSR min  0.330 max 11.200 mean 10.038
                           H          min 10.249 max 10.254 mean 10.252
  Row-Gradient
-                          GPU 64 COO min  4.860 max  4.990 mean  4.908
+                          GPU 64 COO min  4.860 max* 4.990 mean  4.908
                                  CSR min  9.160 max 11.240 mean 10.435
                           H          min  9.939 max  9.961 mean  9.947
  Column-Gradient
                           GPU 64 COO min  4.780 max  4.880 mean  4.816
                                  CSR min  7.770 max 10.570 mean  9.407
-                          H          min 10.851 max 10.876 mean 10.864
+                          H          min 10.851 max*10.876 mean 10.864
  Row-Column-Permute
                           GPU 64 COO min  4.850 max  4.950 mean  4.886
                                  CSR min 10.220 max 11.280 mean 10.748
                           H          min 10.250 max 10.255 mean 10.252
 lp_fit2d.mtx
  Regular
-                          GPU 64 COO min  4.360 max  4.640 mean  4.515
+                          GPU 64 COO min  4.360 max* 4.640 mean  4.515
                                  CSR min 10.080 max 10.900 mean 10.491
                           H          min 11.109 max 11.109 mean 11.109
  Row-Premute
@@ -186,16 +186,16 @@ lp_fit2d.mtx
                           H          min 11.109 max 11.109 mean 11.109
  Column-Gradient
                           GPU 64 COO min  4.250 max  4.640 mean  4.499
-                                 CSR min  8.510 max 11.010 mean 10.505
-                          H          min 11.328 max 11.333 mean 11.331
+                                 CSR min  8.510 max*11.010 mean 10.505
+                          H          min 11.328 max*11.333 mean 11.331
  Row-Column-Permute
                           GPU 64 COO min  4.350 max  4.640 mean  4.511
                                  CSR min 10.040 max 10.790 mean 10.468
                           H          min 11.097 max 11.106 mean 11.101
 lp_osa_07.mtx
  Regular
-                          GPU 64 COO min  0.460 max  3.640 mean  3.456
-                                 CSR min  5.570 max  8.530 mean  8.106
+                          GPU 64 COO min  0.460 max* 3.640 mean  3.456
+                                 CSR min  5.570 max* 8.530 mean  8.106
                           H          min  8.412 max  8.412 mean  8.412
  Row-Premute
                           GPU 64 COO min  3.140 max  3.450 mean  3.367
@@ -208,7 +208,7 @@ lp_osa_07.mtx
  Column-Gradient
                           GPU 64 COO min  3.330 max  3.500 mean  3.416
                                  CSR min  6.730 max  7.540 mean  7.199
-                          H          min  9.542 max  9.604 mean  9.581
+                          H          min  9.542 max* 9.604 mean  9.581
  Row-Column-Permute
                           GPU 64 COO min  3.290 max  3.430 mean  3.365
                                  CSR min  7.390 max  8.060 mean  7.832
@@ -220,12 +220,12 @@ Maragal_6.mtx
                           H          min  9.930 max  9.930 mean  9.930
  Row-Premute
                           GPU 64 COO min  4.220 max  4.240 mean  4.225
-                                 CSR min  4.750 max 13.040 mean  5.133
+                                 CSR min  4.750 max*13.040 mean  5.133
                           H          min 10.776 max 10.778 mean 10.777
  Row-Gradient
-                          GPU 64 COO min  4.180 max  4.450 mean  4.245
+                          GPU 64 COO min  4.180 max* 4.450 mean  4.245
                                  CSR min  4.880 max  4.940 mean  4.915
-                          H          min 11.259 max 11.302 mean 11.281
+                          H          min 11.259 max*11.302 mean 11.281
  Column-Gradient
                           GPU 64 COO min  4.200 max  4.250 mean  4.236
                                  CSR min  4.800 max  4.890 mean  4.859
@@ -236,13 +236,13 @@ Maragal_6.mtx
                           H          min 10.776 max 10.778 mean 10.778
 mhd4800a.mtx
  Regular
-                          GPU 64 COO min  4.570 max  4.710 mean  4.608
-                                 CSR min 12.690 max 13.940 mean 13.369
+                          GPU 64 COO min  4.570 max* 4.710 mean  4.608
+                                 CSR min 12.690 max*13.940 mean 13.369
                           H          min  7.132 max  7.132 mean  7.132
  Row-Premute
                           GPU 64 COO min  4.420 max  4.520 mean  4.445
                                  CSR min 10.520 max 10.880 mean 10.696
-                          H          min 10.960 max 10.968 mean 10.963
+                          H          min 10.960 max*10.968 mean 10.963
  Row-Gradient
                           GPU 64 COO min  4.570 max  4.690 mean  4.605
                                  CSR min  4.550 max 13.350 mean 12.479
@@ -265,13 +265,13 @@ mult_dcop_01.mtx
                                  CSR min  3.610 max  4.150 mean  3.785
                           H          min 10.738 max 10.742 mean 10.740
  Row-Gradient
-                          GPU 64 COO min  3.510 max  3.660 mean  3.579
+                          GPU 64 COO min  3.510 max* 3.660 mean  3.579
                                  CSR min  3.650 max  4.160 mean  3.806
                           H          min 10.576 max 10.585 mean 10.580
  Column-Gradient
                           GPU 64 COO min  3.460 max  3.650 mean  3.584
-                                 CSR min  3.660 max  4.240 mean  3.799
-                          H          min 10.826 max 10.842 mean 10.836
+                                 CSR min  3.660 max* 4.240 mean  3.799
+                          H          min 10.826 max*10.842 mean 10.836
  Row-Column-Permute
                           GPU 64 COO min  3.470 max  3.580 mean  3.532
                                  CSR min  3.600 max  3.980 mean  3.743
@@ -286,20 +286,20 @@ mult_dcop_02.mtx
                                  CSR min  0.620 max  4.290 mean  4.132
                           H          min 10.738 max 10.743 mean 10.740
  Row-Gradient
-                          GPU 64 COO min  3.310 max  3.670 mean  3.593
-                                 CSR min  4.130 max  4.430 mean  4.331
+                          GPU 64 COO min  3.310 max* 3.670 mean  3.593
+                                 CSR min  4.130 max* 4.430 mean  4.331
                           H          min 10.576 max 10.584 mean 10.580
  Column-Gradient
                           GPU 64 COO min  0.550 max  3.660 mean  3.486
                                  CSR min  3.890 max  4.410 mean  4.275
-                          H          min 10.831 max 10.843 mean 10.836
+                          H          min 10.831 max*10.843 mean 10.836
  Row-Column-Permute
                           GPU 64 COO min  3.470 max  3.590 mean  3.542
                                  CSR min  4.190 max  4.290 mean  4.242
                           H          min 10.738 max 10.742 mean 10.740
 mult_dcop_03.mtx
  Regular
-                          GPU 64 COO min  3.360 max  3.660 mean  3.550
+                          GPU 64 COO min  3.360 max* 3.660 mean  3.550
                                  CSR min  3.650 max  4.090 mean  3.813
                           H          min  9.689 max  9.689 mean  9.689
  Row-Premute
@@ -312,16 +312,16 @@ mult_dcop_03.mtx
                           H          min 10.572 max 10.584 mean 10.580
  Column-Gradient
                           GPU 64 COO min  3.430 max  3.650 mean  3.562
-                                 CSR min  3.670 max  4.290 mean  3.793
-                          H          min 10.828 max 10.840 mean 10.834
+                                 CSR min  3.670 max* 4.290 mean  3.793
+                          H          min 10.828 max*10.840 mean 10.834
  Row-Column-Permute
                           GPU 64 COO min  3.370 max  3.610 mean  3.502
                                  CSR min  3.610 max  3.970 mean  3.744
                           H          min 10.738 max 10.741 mean 10.740
 OPF_3754.mtx
  Regular
-                          GPU 64 COO min  4.700 max  4.930 mean  4.842
-                                 CSR min  6.230 max  6.600 mean  6.411
+                          GPU 64 COO min  4.700 max* 4.930 mean  4.842
+                                 CSR min  6.230 max* 6.600 mean  6.411
                           H          min  8.393 max  8.393 mean  8.393
  Row-Premute
                           GPU 64 COO min  4.620 max  4.890 mean  4.787
@@ -334,19 +334,19 @@ OPF_3754.mtx
  Column-Gradient
                           GPU 64 COO min  4.580 max  4.870 mean  4.756
                                  CSR min  5.630 max  6.180 mean  6.055
-                          H          min 11.394 max 11.401 mean 11.397
+                          H          min 11.394 max*11.401 mean 11.397
  Row-Column-Permute
                           GPU 64 COO min  4.610 max  4.900 mean  4.780
                                  CSR min  5.010 max  6.300 mean  6.113
                           H          min 11.268 max 11.272 mean 11.270
 OPF_6000.mtx
  Regular
-                          GPU 64 COO min  3.780 max  3.920 mean  3.864
+                          GPU 64 COO min  3.780 max* 3.920 mean  3.864
                                  CSR min  4.270 max  4.360 mean  4.332
                           H          min  8.799 max  8.799 mean  8.799
  Row-Premute
                           GPU 64 COO min  3.770 max  3.870 mean  3.821
-                                 CSR min  3.970 max 11.050 mean  4.439
+                                 CSR min  3.970 max*11.050 mean  4.439
                           H          min 11.872 max 11.877 mean 11.875
  Row-Gradient
                           GPU 64 COO min  3.700 max  3.870 mean  3.795
@@ -355,14 +355,14 @@ OPF_6000.mtx
  Column-Gradient
                           GPU 64 COO min  3.690 max  3.870 mean  3.804
                                  CSR min  4.260 max  4.340 mean  4.308
-                          H          min 12.041 max 12.045 mean 12.043
+                          H          min 12.041 max*12.045 mean 12.043
  Row-Column-Permute
                           GPU 64 COO min  3.780 max  3.860 mean  3.819
                                  CSR min  4.090 max  4.290 mean  4.259
                           H          min 11.873 max 11.877 mean 11.876
 shermanACb.mtx
  Regular
-                          GPU 64 COO min  2.920 max  3.140 mean  3.048
+                          GPU 64 COO min  2.920 max* 3.140 mean  3.048
                                  CSR min  5.550 max  5.980 mean  5.803
                           H          min  8.600 max  8.600 mean  8.600
  Row-Premute
@@ -371,12 +371,12 @@ shermanACb.mtx
                           H          min 10.377 max 10.381 mean 10.379
  Row-Gradient
                           GPU 64 COO min  2.800 max  3.040 mean  2.944
-                                 CSR min  5.330 max  6.020 mean  5.742
+                                 CSR min  5.330 max* 6.020 mean  5.742
                           H          min  9.919 max  9.925 mean  9.922
  Column-Gradient
                           GPU 64 COO min  2.720 max  3.010 mean  2.926
                                  CSR min  0.000 max  5.840 mean  5.513
-                          H          min 10.587 max 10.596 mean 10.591
+                          H          min 10.587 max*10.596 mean 10.591
  Row-Column-Permute
                           GPU 64 COO min  2.780 max  3.030 mean  2.939
                                  CSR min  4.860 max  5.810 mean  5.667
@@ -392,19 +392,19 @@ TSOPF_FS_b9_c6.mtx
                           H          min 10.042 max 10.047 mean 10.044
  Row-Gradient
                           GPU 64 COO min  4.830 max  4.930 mean  4.875
-                                 CSR min  5.790 max  6.560 mean  6.289
+                                 CSR min  5.790 max* 6.560 mean  6.289
                           H          min  9.675 max  9.706 mean  9.692
  Column-Gradient
-                          GPU 64 COO min  4.790 max  4.960 mean  4.880
+                          GPU 64 COO min  4.790 max* 4.960 mean  4.880
                                  CSR min  5.760 max  6.450 mean  6.204
-                          H          min 10.601 max 10.661 mean 10.626
+                          H          min 10.601 max*10.661 mean 10.626
  Row-Column-Permute
                           GPU 64 COO min  4.330 max  4.950 mean  4.845
                                  CSR min  5.740 max  6.500 mean  6.375
                           H          min 10.041 max 10.046 mean 10.044
 TSOPF_RS_b39_c7.mtx
  Regular
-                          GPU 64 COO min  4.300 max  4.430 mean  4.364
+                          GPU 64 COO min  4.300 max* 4.430 mean  4.364
                                  CSR min  4.480 max  4.750 mean  4.716
                           H          min  7.304 max  7.304 mean  7.304
  Row-Premute
@@ -413,12 +413,12 @@ TSOPF_RS_b39_c7.mtx
                           H          min 10.536 max 10.541 mean 10.539
  Row-Gradient
                           GPU 64 COO min  3.970 max  4.420 mean  4.338
-                                 CSR min  4.620 max  4.820 mean  4.789
+                                 CSR min  4.620 max* 4.820 mean  4.789
                           H          min  9.638 max  9.644 mean  9.641
  Column-Gradient
                           GPU 64 COO min  4.240 max  4.430 mean  4.368
                                  CSR min  4.710 max  4.770 mean  4.736
-                          H          min 11.129 max 11.222 mean 11.205
+                          H          min 11.129 max*11.222 mean 11.205
  Row-Column-Permute
                           GPU 64 COO min  4.260 max  4.410 mean  4.359
                                  CSR min  4.660 max  4.760 mean  4.738
