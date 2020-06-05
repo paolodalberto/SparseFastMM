@@ -99,19 +99,17 @@ architecture: for example, the CPU is one among many.
 
 By nature, randomization is resilient to counter techniques, thus
 suitable to avoid worst case scenarios because we tend to reduce to an
-average case; however, it does to the best case the same thing it does
-to the worst case, it can nudge it off. Like preconditioning,
-randomization is advantageous when the matrix is reused or a constant
-such as in the power method, Krilov's space, or convolutions for image
-classifications. Differently from preconditioning we randomize row and
-column of the matrix. We shall show that randomization is an
-optimization that any architecture may take advantage although in
-different ways. Most importantly, any developer can consider and
-deploy.
-
-We shall present cases where we can improve performance by 15\% on
-AMD-based systems; by just permuting rows and columns of the original
-sparse matrix we can achieve better performance.
+average case; however, randomization does to the best case scenario
+the same thing it does to the worst case, it can nudge the optimal
+solution off. Like preconditioning, randomization is advantageous when
+the matrix is reused or a constant such as in the power method,
+Krilov's space, or convolutions for image classifications. Differently
+from preconditioning we do not change the values of the matrix, we
+randomize row and column of the matrix. We shall show that
+randomization is an optimization that any architecture may take
+advantage although in different ways. Most importantly, any developer
+can consider and deploy. We shall present cases where we can improve
+performance by 15\% on AMD-based systems.
 
 \end{abstract}
 
@@ -132,11 +130,9 @@ solution, for example a sequence of matrix by vector operations.  Each
 iteration does a better job in searching the space and converging to a
 solution. In general, it means better numerical properties and well
 defined properties of the matrix itself. It does not mean that each
-iteration is faster. We are interested in this latter scenario we want
-to make each iteration faster. From a mathematical and scientific
-point of view may seem uninteresting. From the engineering and
-deployment is just the beginning, and what follows may well provide
-the basis for the application of any solution into the real world.
+iteration is faster.  We want to make each iteration faster. From a
+mathematical and scientific point of view may seem uninteresting. From
+the engineering and deployment point of view is just the beginning.
 
 At this stage, we have too many nobs and tools to tune: algorithms,
 data structures, and dedicated hardware (CPU, GPUs, Custom). This is a
@@ -161,17 +157,17 @@ elements. If you are stuck with a sorting algorithm and the wrong
 distribution, randomization may change the distribution, and you do
 not need to talk to any HW designer
 
-We organize our works as follows: In Section \ref{sec:notations}, we
+We organize our work as follows: In Section \ref{sec:notations}, we
 define the matrix by vector operation; in Section
 \ref{sec:randomization}, we define what we mean for randomization. We
-us randomization to create a uniform distribution Section
+use randomization to create a uniform distribution in Section
 \ref{sec:uniform} and we measure uniformity by nothing else than
-entropy Section \ref{sec:entropy}. We present how we drive our
+entropy in Section \ref{sec:entropy}. We present how we drive our
 experiments to show the effects of randomization in Section
-\ref{sec:measuring}. In this section we present a summary of the
-results. We present our work loads, benchmarks, in Section
-\ref{sec:workload} and the complete set of measures in Section
-\ref{sec:experimentalresults} for an AMD CPU and GPUs system.
+\ref{sec:measuring}. In the last sections we present a summary of the
+results: we present our work loads, benchmarks, in Section
+\ref{sec:workload}, and the complete set of measures for an AMD CPU
+and GPUs system in Section \ref{sec:experimentalresults} .
 
 \section{Basic Notations}
 \label{sec:notations}
@@ -214,7 +210,7 @@ products and the CSR representation is a natural:
 
 \[ Index = ROW[i]:ROW[i+1] \]
 \[
-y_i =  \sum_{i\in Index} V[i] * x_{COL[i]}  
+y_i =  \sum_{\ell\in Index} V[\ell] * x_{COL[\ell]}  
 \]
 The matrix row is contiguous (in memory) and contiguous rows are
 contiguous. The access of the (dense) vector $\Vc{x}$ could have no
@@ -276,14 +272,15 @@ utilization.
 
 
 We will show that (different) randomness affects architectures and
-algorithms differently making it a suitable optimization especially
-when the application and hardware are at odds. We want to show that
-there is a randomness hierarchy that we can distinguish as global and
-local; there are simple-to-find cases where the sparsity breaks
-randomness and the matrix has to be split into components.  We want to
-show that this study uses common tool, open software tools and
-sometimes naive experiments; however, we can infer properties
-applicable to proprietary and custom solutions. 
+algorithms differently, making randomization a suitable optimization
+especially when the application and hardware are at odds, hardware is
+difficult to change and the matrix sparsity is simple to change. We
+want to show that there is a randomness hierarchy that we can
+distinguish as global and local; there are simple-to-find cases where
+the sparsity breaks randomness and the matrix has to be split into
+components.  We want to show that this study uses common tool, open
+software tools and sometimes naive experiments; however, we can infer
+properties applicable to proprietary and custom solutions.
 
 \newpage 
 \Doublefigure{.49}{../python/PNG/OPF_3754_mtx_regular}{../python/PNG/lp_osa_07_mtx_regular}{Left:
@@ -480,7 +477,7 @@ An example, the matrix MULT DCOP 01, is where randomization is useful
 for the CPU, GPU, and the parallel version Figure \ref{fig:9},
 \ref{fig:10} - \ref{fig:11} and the gains can be up to
 10-15\%. Consider, we can achieve these improvements without any
-insights to the architecture, the alfgorithms and their relationships.
+insights to the architecture, the algorithms and their relationships.
 
 
 \doublefigure{.45}{../python/PNG2/mult_dcop_01_mtx_CPU_COO.png}{../python/PNG2/mult_dcop_01_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (right) for MULT DCOP 01}{fig:9}
@@ -515,8 +512,8 @@ use to test the effects of the randomization.
 \subsection{Python COO and CSR algorithms}
 \label{sec:pythoncoocsr}
 The simplicity to compute the SpMV by the code $z = A*b$ in Python is
-very rewarding. By change of the matrix storage format, $AC =
-A.tocsr(); z = AC*b$, we have a different algorithm. The performance
+very rewarding. By change of the matrix storage format, $A =
+A.tocsr(); z = A*b$, we have a different algorithm. The performance
 exploitation is moved to the lower level.  The CSR implementation is
 often two times faster but there are edge cases where the COO and COO
 with randomization can go beyond and be surprisingly better: MUL DCOP
@@ -544,14 +541,14 @@ computation. We notice that work given to a Pool is split accordingly
 to the number of elements to separate HW cores. We also noticed that
 the work load move from a core to another, thus not ideal. Also we
 notice that Pool introduce a noticeable overhead: a Pool of 1, never
-achieves the performance of the single thread $z = AC*b$. Using Pool
+achieves the performance of the single thread $z = A*b$. Using Pool
 allows us to investigate how a naive row partitioning without counting
-can scale up with number of cores. We tested by splitting evenly the
-rows to 1--16 cores (one thread per core) and we present the
-performance for only the best one. The randomization goal is to
+can scale up with number of cores. We tested by splitting the rows to
+1--16 cores evenly (one thread per core) and we present the
+performance for only the best configuration. The randomization goal is to
 distribute the work uniformly: a balanced work distribution avoid the
 unfortunate case where a single core does all the work. We are pleased
-by the simplicity of the benchmark and we know we can do better. 
+by the simplicity of the benchmark and we know we can do better.
 
 
 
@@ -568,7 +565,7 @@ the software, how the software can exploit the hardware or how the
 software will make easy to use a specific GPU. For example, the Fiji
 architecture is clearly superior to the Ellesmere, however the latter
 have better support and the system overall is more stable and user
-friendly using and inferior HW.
+friendly.
 
 The performance of the CSR algorithm is about two times faster than the
 COO. Most of the algorithms count the number of sparse elements in a
@@ -620,31 +617,31 @@ There are 4 basic randomization formats:
   \item {\bf Random Row Permutation}, we take the original matrix and
     permute the rows.
   \item {\bf Random Row and Column Permutation}, we take the original
-    matrix and permute the row and the column.
+    matrix and permute the rows and the columns.
   \item {\bf Gradient based row permutation}, we compute the row
     histogram and we compute the gradient: $h_{i+1} - h_i$. We find a
     single point where the gradient is maximum, this is the pivot for
-    a shuffle like a magician would shuffle a deck of cards.  Then the
-    two parts are permuted.
+    a shuffle like a magician would shuffle a deck of cards.  Then we
+    permute the two parts randomly.
   \item {\bf Gradient based row and column permutation}, As above but
     also for the columns.
 \end{itemize}
 
 For large matrices (large number of columns and rows) a permutation
-tends to be a close version to the original. It is still considered a
-random permutation. The gradient allows us to at least quickly
-describe two area of the original matrix where there is a clear and
-de-marked density variation, for example to uniform distributed sub
-matrices but one denser than the other. A shuffle redistribute every
-other sample/card to different parts and these can be permuted
-locally.
+tends to be a close variation of the original, still a random
+permutation. The gradient allows us to describe two area of the
+original matrix where there is a clear and de-marked density
+variation: for example, there are two uniform distributed sub matrices
+but one denser than the other. A shuffle redistribute every other
+sample/card to different parts and these can be permuted locally.
 
 
     
 We report in the following the performance results, we introduce a
-{\bf *} following the best performance. \input{out.v.tex}
-\input{out.elle.tex}
-\input{out.fiji.tex} 
+{\bf *} following the best performance. This is tedious to read and,
+we assure, to write. The code and the results are available as
+software repository. \input{out.v.tex} \input{out.elle.tex}
+\input{out.fiji.tex}
 
 
 
