@@ -11,7 +11,8 @@
 %% command in your LaTeX source must be the \documentclass command.
 \documentclass[manuscript,screen]{acmart}
 \usepackage{bm}
-
+\usepackage{lineno}
+\linenumbers
 % Paolo's definition. Yes, I have my way to define stuff. Please take
 % a look
 
@@ -133,6 +134,25 @@ defined properties of the matrix itself. It does not mean that each
 iteration is faster.  We want to make each iteration faster. From a
 mathematical and scientific point of view may seem uninteresting. From
 the engineering and deployment point of view is just the beginning.
+
+There is a common thread in the scientific community how to speed it
+up: multi-core systems. These are composed by multi-cores processors
+and GPUs. The main goal is to achieve a balanced work distribution
+and, when applicable, minimal communication
+\cite{DBLP:journals/siamsc/KayaaslanAU18,DBLP:conf/ieeehpcs/PageK18}. When
+storage strategy and algorithms must be considered together then GPUs
+provide the work horse for the current trust and research
+\cite{DBLP:journals/topc/AnztCYDFNTTW20}. This research is towards
+optimal solutions and the authors strive for a clear and complete
+understanding of the software--hardware relation, and usually the
+hardware is composed of symmetric computational units. Interestingly,
+the SpMV's space and time complexity, which are small, may not warrant
+more performance because we end up using only one thousandth the
+capacity of the hardware. We may deploy efficient solutions: not
+necessarily faster but overall tailored for this.  {\bf FPGA or custom
+  hardware one paragraph }
+
+
 
 At this stage, we have too many nobs and tools to tune: algorithms,
 data structures, and dedicated hardware (CPU, GPUs, Custom). This is a
@@ -327,7 +347,7 @@ non-zeros, spaced well enough in the proper number of bin, will have
 the same entropy. To appreciate their different sparsity, we should
 compare their entropy distributions by Jensen-Shannon measure (which
 is a symmetric measure, please do not use Kullback-Leibler KL
-divergence). Or we could use a representation of a hierarchical
+divergence) \cite{dalberto2012nonparametric}. Or we could use a representation of a hierarchical
 2d-entropy, see Figure \ref{fig:two}, where the entropy is split into
 2x2, 4x4 and 8x8 (or fewer if the distribution is not square). We have
 a hierarchical entropy heat maps.
@@ -432,12 +452,12 @@ permutation by a quick targeting of high and low volume of the
 histogram (and thus the matrix).
 
 
-In Figure \ref{fig:five}, We show CPU performance using COO and CSR
+In Figure \ref{fig:five1}, We show CPU performance using COO and CSR
 SpMV algorithms for the matrix OPF 3754. We can see that the CSR
 algorithms are consistent and the Regular (i.e., the original) has
 always the best performance. For the COO, permutations introduce long
 tails, thus performance advantage. 
-\doublefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_COO.png}{../python/PNG2/OPF_3754_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (left) for OPF 3754}{fig:five}
+\doublefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_COO.png}{../python/PNG2/OPF_3754_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (left) for OPF 3754}{fig:five1}
 
 In Figure \ref{fig:six}, \ref{fig:six1} and \ref{fig:six2},
 randomization is harmful to the GPU implementation. The OPF 375 matrix
