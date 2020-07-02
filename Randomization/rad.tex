@@ -135,9 +135,9 @@ iteration is faster.  We want to make each iteration faster. From a
 mathematical and scientific point of view may seem uninteresting. From
 the engineering and deployment point of view is just the beginning.
 
-There is a common thread in the scientific community how to speed it
-up: multi-core systems. These are composed by multi-cores processors
-and GPUs. The main goal is to achieve a balanced work distribution
+There is a common thread in the scientific community to faster
+computations: multi-core systems. These are composed by multi-cores
+processors and GPUs. The main goal is a balanced work distribution
 and, when applicable, minimal communication
 \cite{DBLP:journals/siamsc/KayaaslanAU18,DBLP:conf/ieeehpcs/PageK18}. When
 storage strategy and algorithms must be considered together then GPUs
@@ -149,38 +149,66 @@ hardware is composed of symmetric computational units. Interestingly,
 the SpMV's space and time complexity, which are small, may not warrant
 more performance because we end up using only one thousandth the
 capacity of the hardware. We may deploy efficient solutions: not
-necessarily faster but overall tailored for this.  {\bf FPGA or custom
-  hardware one paragraph }
+necessarily faster but overall tailored for this. 
   
-The peak performance of any SpMV accelerator depends primarily on the available DRAM bandwidth and the capability of the accelerator to effectively use it.
-Because SpMV is memory-bound, a more important metric than peak performance alone is the fraction of DRAM bandwidth utilized, which captures the overall
-efficiency of the architecture. GPU platforms, such as V100 and A100, exhibit very high DRAM bandwidth, 900 GB/s and 1600 GBps, respectively. 
-Although utilizing this much bandwidth efficiently is difficult for large scale and highly sparse matrices due to very high random access pattern.
-Custom architectures, implemented on either FPGA platforms or as ASIC devices, can provide the capability to maximize the utilization of bandwidth due to highly customized datapath and memory hierarchy design. Several FPGA based implementations exist where authors have shown very high bandwidth utilization. 
-Most of the existing accelerators were designed for saturating relatively low memory bandwidth available on FPGA plaforms (less than 80 GB/s).
-Modern FPGA platforms from vendors utilize multiple HBM stacks to provide large DRAM bandwidth. However there is no implementation (currently available) which can saturate all of the available DRAM bandwidth for SpMV kernel on HBM-enabled FPGA platforms. Scalability of accelerator design remains a major concern which is an active area of research.
+The peak performance of any SpMV accelerator depends primarily on the
+available memory bandwidth (i.e., DRAM such as DDR or HBM) and the
+capability of the accelerator to effectively use it.  Because SpMV is
+memory-bound, a more important metric than peak performance alone is
+the fraction of bandwidth utilized, which captures the overall
+efficiency of the architecture. GPU platforms exhibit very high
+bandwidth, see the experimental Section \ref{sec:experimentalresults}:
+Ellesmere DDR5 224GB/s, Fiji HBM 512GB/s, and Vega 20 HBM 1TB/s.
+Although utilizing this much bandwidth efficiently is difficult for
+large scale and highly sparse matrices due to very high random access
+pattern.  Custom architectures based on FPGA or ASIC devices can
+maximize bandwidth utilization by highly customized data-paths and
+memory hierarchy designs {\bf MISSING CITATION \cite{} }. Most of the
+existing accelerators saturates relatively low memory bandwidth
+available on FPGA platforms (less than 80 GB/s) {\bf MISSING CITATION
+  \cite{} }.  Modern FPGA platforms have multiple HBM stacks to
+provide large memory bandwidth. However there is no implementation
+(currently available) that saturates all of the available DRAM
+bandwidth for SpMV kernel on HBM-enabled FPGA platforms. Scalability
+of accelerator design remains a major concern and it is an active area
+of research.
 
-FPGA platforms used in very early work exhibit very low peak performance due to the scarcity of external memory bandwidth. 
-For example, Microsoft's early implementation of SpMV uses an FPGA platform which has only 2 DDR2-400 memory with a resulting bandwidth of 6.4 GB/s. 
-Since the accelerator is running at 100 MHz, it is able to consume 64 Bytes of matrix data from DRAM every cycle which corresponds to around 5 non-zeros every cycle (each non-zero constitute around 12-13 Bytes). Assuming there is no stall coming from the SpMV compute pipeline, peak performance could be 10 FP64 operations every cycle at 100 MHz (each non-zero require one FP64 multiplication and one FP64 addition) which results in a peak performance of around 1 GFLOPS only. 
+FPGA platforms used in early works exhibit low peak performance due to
+the scarcity of external memory bandwidth.  For example, Microsoft's
+implementation of SpMV uses an FPGA platform which has only 2 DDR2-400
+memory with a resulting bandwidth of 6.4 GB/s {\bf MISSING CITATION
+  \cite{}}.  The accelerator is running at 100 MHz, it reads 64 Bytes
+of data every cycle, which corresponds to 5 non-zeros every cycle (a
+non-zero is about 12 Bytes). At best, the peak performance is 10
+double precision operations every cycle at 100 MHz, which is 1 GFLOPS
+(only). In 2009, The Convey systems released Convey HC-1 FPGA platform
+with 16 DDR2-677 memories resulting in overall 80 GB/s memory
+bandwidth {\bf MISSING CITATION \cite{} }. The accelerator logic is
+allowed to run at 150 MHz, it consumes 512 Bytes of data every cycle,
+which corresponds to around 40 non-zeros every cycle.  At best, the
+peak performance is 80 double precision operations every cycle at 150
+MHz, which is 12 GFLOPS.
 
-In 2009, The Convey systems released Convey HC-1 FPGA platform with 16 DDR2-677 memories resulting in overall 80 GB/s memory bandwidth.
-Many research groups have used convey machines (HC-1 and HC-2) since then to implement SpMV accelerators.
-Since the accelerator logic is allowed to run at 150 MHz, it is able to consume 512 Bytes of matrix data from all of the DDRs combined every cycle which corresponds to around 40 non-zeros every cycle (each non-zero constitute around 12-13 Bytes). 
-Assuming there is no stall coming from the SpMV compute pipeline, peak performance could be 80 FP64 operations every cycle at 150 MHz (each non-zero require one FP64 multiplication and one FP64 addition) which results in a peak performance of around 12 GFLOPS. 
-
-One of the key building block is a multi-ported buffer (in most of the custom SpMV accelerators) which is generally used to store vector entries. 
-During execution, multiple column indexes (generally streamed in from DRAM) are used as addresses to read corresponding vector entries.
-Designing a buffer with very large number of read ports is challenging. 
-It has been suggested to use banking as a mechanism to store partitioned vector entries. 
-Although banking could allow very high throughput indexing into the vector but there are usually conflicts when multiple addresses within a batch belong to a single bank.
-Many approaches exist to reduce these conflicts using some sort of hashing mechanisms. However another problem arise when load is highly imbalanced across the banks.
-When we distribute SpMV computations across 'p' nodes, some of the nodes finish early and some of nodes (let's say 'k') late because of unbalanced load in row/column major traversal. This is very common for matrices where few rows of columns are highly dense than others. k nodes out of p finish late and refer to as "straggler nodes".
-Using random permutation of column/row we are trying to balance the load across p workers so that there is no straggler.
+One of the key building block for custom solutions is a multi-ported
+buffer used to store vector entries.  During execution, multiple
+column indexes are used as addresses to read corresponding vector
+entries; we shall provide more details in Section \ref{sec:notations}.
+Designing a buffer with very large number of read ports is
+challenging.  One solution is {\em banking} as a mechanism to store
+partitioned vector entries.  Although banking could allow very high
+throughput indexing unless the same entry is required multiple times
+and its reads are purely sequential and loss of bandwidth.  For
+example, hashing techniques and data duplication are possible
+solutions. However another problem arise: when we distribute SpMV
+computations across $p$-nodes, some of the nodes finish early and $k$
+nodes finish later because of unbalanced load in row/column major
+traversal. This is common for matrices where few rows or columns are
+dense. The $k$ nodes out of $p$ finish late and refer to as {\em
+  straggler nodes}.  Using random permutation of column/row we are
+trying to balance the load across $p$ workers so that there is no
+straggler. From this hardware prospective, randomization is an
+optimization and provide a clear context our current work.
  
-
-
-
 At this stage, we have too many nobs and tools to tune: algorithms,
 data structures, and dedicated hardware (CPU, GPUs, Custom). This is a
 (very) hard problem and we are not here for the solution of the
