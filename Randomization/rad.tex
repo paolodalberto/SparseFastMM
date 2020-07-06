@@ -72,7 +72,7 @@
 \begin{document}
 
 %%%%%%%%%%%---SETME-----%%%%%%%%%%%%%
-\title{Randomization of Sparse Matrix by Vector Multiplication }
+\title{Entropy Maximization in Sparse Matrix by Vector Multiplication }
 
 \author{Abhishek Jain}
 %\email{---}
@@ -92,25 +92,27 @@
 \renewcommand{\shortauthors}{Jain et al.}
 
 \begin{abstract}
-A sparse matrix by vector multiplication (SpMV) is simplified by the
-matrix non-zero elements and how we store them. There are many SpMV
-applications, many matrix storage formats, and thus
-algorithms. However, there is no optimality without considering the
-architecture: for example, the CPU is one among many.
-
-By nature, randomization is resilient to counter techniques, thus
-suitable to avoid worst case scenarios because we tend to reduce to an
-average case; however, randomization does to the best case scenario
-the same thing it does to the worst case, it can nudge the optimal
-solution off. Like preconditioning, randomization is advantageous when
-the matrix is reused or a constant such as in the power method,
-Krilov's space, or convolutions for image classifications. Differently
-from preconditioning we do not change the values of the matrix, we
-randomize row and column of the matrix. We shall show that
-randomization is an optimization that any architecture may take
-advantage although in different ways. Most importantly, any developer
-can consider and deploy. We shall present cases where we can improve
-performance by 15\% on AMD-based systems.
+The peak performance of any SpMV accelerator depends primarily on the
+available DRAM memory bandwidth and the capability of the accelerator
+to effectively use it.  Because SpMV is memory-bound, a more important
+metric than peak performance alone is the fraction of bandwidth
+utilized, which captures the overall efficiency of the
+architecture. GPUs along with some DSA ASIC's and new FPGA
+architectures exhibit very high bandwidth: utilizing this much
+bandwidth efficiently is difficult for large scale and highly sparse
+matrices due to very high random access pattern and workload
+imbalance.  We propose a matrix permutation pre-processing step that
+aims to maximize the entropy of the distribution of the nonzero
+elements.  We conjecture this would be most effective for matrices
+with no dense rows or columns and, as in preconditioning, when the
+matrix is reused.  Unlike matrix ordering schemes that seek to reduce
+fill, we seek a permutation that uniformly distributes the non-zero
+elements' distribution, thereby generating a SpMV problem that is
+amenable to work load balancing or to speed up sort algorithms.  We
+shall show that randomization is an optimization that any architecture
+may take advantage although in different ways. Most importantly, any
+developer can consider and deploy. We shall present cases where we can
+improve performance by 15\% on AMD-based systems.
 
 \end{abstract}
 
@@ -119,38 +121,53 @@ performance by 15\% on AMD-based systems.
 \section{Introduction} 
 \label{sec:introduction}
 
-The obious questions are what is randomization and why would we use
-it? We shall provide formal definitions in the following sections, in
-this context, we randomly permute rows and column of a sparse matrix
-before a (sparse) matrix by a (dense) vector operation. We do this
-because randomization is the poor man's preconditioning and we do not
-mean it in a pejorative sense.
+To define the scope of this work, the obvious questions to ask are:
+first, what is randomization (or entropy maximization) in the context
+of sparse matrices; second, why would we use it; third, when does it
+work.  We shall provide formal definitions in the following
+sections. Specifically, we will randomly permute the rows and columns
+of a sparse matrix before multiplying it with a (dense) vector (SpMV)
+with the aim of speeding this operation.  Undoubtedly, this scheme
+requires some restrictions about the matrix structure, one among them
+is that is has no or few dense columns or rows.  In the case, where
+there are dense columns or rows, a sparse/dense partitioning scheme
+should be used. For the remainder of this manuscript, we shall assume
+the former nonzero structure. We use randomization because it is the
+poor man's way for preconditioning SpMV (in our restricted context),
+and we do not mean it in a pejorative sense.
+%\newline
 
-Preconditioning is a method to help the convergence of an iterative
-solution, for example a sequence of matrix by vector operations.  Each
-iteration does a better job in searching the space and converging to a
-solution. In general, it means better numerical properties and well
-defined properties of the matrix itself. It does not mean that each
-iteration is faster.  We want to make each iteration faster. From a
-mathematical and scientific point of view may seem uninteresting. From
-the engineering and deployment point of view is just the beginning.
+Preconditioning speeds up the convergence rate of an iterative linear solver
+by linearly transforming the associated matrix into a form that affords a faster reduction of the residual error at every iteration.
+The cost of this transformation is justified by the runtime reduction it affords.  Likewise, we foresee randomization playing a similar role for SpMV in the context of iterative linear solvers and other methods (e.g in convolutions) where the matrix is reused.
 
-There is a common thread in the scientific community to faster
-computations: multi-core systems. These are composed by multi-cores
-processors and GPUs. The main goal is a balanced work distribution
-and, when applicable, minimal communication
+%In general, it means better numerical properties and well defined properties of the matrix itself. Sparse matrix It does not mean that each
+%iteration is faster.  We want to make each iteration faster. From a
+%mathematical and scientific point of view may seem uninteresting. From
+%the engineering and deployment point of view is just the beginning.
+%\newline
+
+Since sparse linear algebra (and GraphBLAS) kernels are memory bound,
+there is a common thread of focus in the scientific computing
+community is to develop acceleration libraries mostly for multi-core
+systems. These predominantly include multi-core processors and
+GPUs. The main goal is a balanced work distribution and, when
+applicable, minimal communication
 \cite{DBLP:journals/siamsc/KayaaslanAU18,DBLP:conf/ieeehpcs/PageK18}. When
 storage strategy and algorithms must be considered together then GPUs
-provide the work horse for the current trust and research
-\cite{DBLP:journals/topc/AnztCYDFNTTW20}. This research is towards
-optimal solutions and the authors strive for a clear and complete
-understanding of the software--hardware relation, and usually the
-hardware is composed of symmetric computational units. Interestingly,
-the SpMV's space and time complexity, which are small, may not warrant
-more performance because we end up using only one thousandth the
-capacity of the hardware. We may deploy efficient solutions: not
-necessarily faster but overall tailored for this. 
-  
+provide the work horse for abundant thrust in research
+\cite{DBLP:journals/topc/AnztCYDFNTTW20}. These works aim at optimal
+solutions and strive for a clear and complete
+understanding/exploitation of the software-hardware interface; usually
+the hardware is composed of symmetric computational
+units. Interestingly, the SpMV 's space and time complexity, which are
+small, may not warrant more performance because we typically end up
+utilizing only one-thousandth fraction of the available hardware
+capacity.
+%We may deploy efficient solutions: not necessarily faster but overall tailored for this. 
+%[Paolo not sure what you meant by the above sentence]
+%\newline
+
 The peak performance of any SpMV accelerator depends primarily on the
 available memory bandwidth (i.e., DRAM such as DDR or HBM) and the
 capability of the accelerator to effectively use it.  Because SpMV is
@@ -164,85 +181,101 @@ large scale and highly sparse matrices due to very high random access
 pattern.  Custom architectures based on FPGA or ASIC devices can
 maximize bandwidth utilization by highly customized data-paths and
 memory hierarchy designs {\bf MISSING CITATION \cite{} }. Most of the
-existing accelerators saturates relatively low memory bandwidth
+existing accelerators saturate the relatively low memory bandwidth
 available on FPGA platforms (less than 80 GB/s) {\bf MISSING CITATION
   \cite{} }.  Modern FPGA platforms have multiple HBM stacks to
-provide large memory bandwidth. However there is no implementation
+provide large memory bandwidth. However, there is no implementation
 (currently available) that saturates all of the available DRAM
 bandwidth for SpMV kernel on HBM-enabled FPGA platforms. Scalability
-of accelerator design remains a major concern and it is an active area
+of accelerator design remains a major concern, and it is an active area
 of research.
+%\newline
 
 FPGA platforms used in early works exhibit low peak performance due to
 the scarcity of external memory bandwidth.  For example, Microsoft's
-implementation of SpMV uses an FPGA platform which has only 2 DDR2-400
-memory with a resulting bandwidth of 6.4 GB/s {\bf MISSING CITATION
-  \cite{}}.  The accelerator is running at 100 MHz, it reads 64 Bytes
-of data every cycle, which corresponds to 5 non-zeros every cycle (a
-non-zero is about 12 Bytes). At best, the peak performance is 10
-double precision operations every cycle at 100 MHz, which is 1 GFLOPS
-(only). In 2009, The Convey systems released Convey HC-1 FPGA platform
-with 16 DDR2-677 memories resulting in overall 80 GB/s memory
-bandwidth {\bf MISSING CITATION \cite{} }. The accelerator logic is
-allowed to run at 150 MHz, it consumes 512 Bytes of data every cycle,
-which corresponds to around 40 non-zeros every cycle.  At best, the
-peak performance is 80 double precision operations every cycle at 150
-MHz, which is 12 GFLOPS.
+implementation of SpMV uses an FPGA platform which only has 2 DDR2-400
+memory banks with a resulting bandwidth of 6.4 GB/s {\bf MISSING
+  CITATION \cite{}}.  The accelerator is running at 100 MHz, it reads
+64 Bytes of data every cycle, which corresponds to 5 non-zeros at
+every cycle (a non-zero is about 12 Bytes). At best, the peak
+performance is 10 double precision operations every cycle at 100 MHz,
+which is 1 GFLOPS (only). In 2009, Convey systems Inc. released the
+Convey HC-1 FPGA platform.  It has 16 DDR2-677 memories resulting in
+overall 80 GB/s memory bandwidth {\bf MISSING CITATION \cite{} }. The
+accelerator logic runs at 150 MHz.  It consumes 512 Bytes of data
+every cycle, which corresponds to around 40 non-zeros every cycle.  At
+best, the peak performance is 80 double precision operations every
+cycle at 150 MHz, which is 12 GFLOPS.
+%\newline
 
-One of the key building block for custom solutions is a multi-ported
-buffer used to store vector entries.  During execution, multiple
-column indexes are used as addresses to read corresponding vector
-entries; we shall provide more details in Section \ref{sec:notations}.
-Designing a buffer with very large number of read ports is
-challenging.  One solution is {\em banking} as a mechanism to store
-partitioned vector entries.  Although banking could allow very high
-throughput indexing unless the same entry is required multiple times
-and its reads are purely sequential and loss of bandwidth.  For
-example, hashing techniques and data duplication are possible
-solutions. However another problem arise: when we distribute SpMV
-computations across $p$-nodes, some of the nodes finish early and $k$
-nodes finish later because of unbalanced load in row/column major
-traversal. This is common for matrices where few rows or columns are
-dense. The $k$ nodes out of $p$ finish late and refer to as {\em
-  straggler nodes}.  Using random permutation of column/row we are
-trying to balance the load across $p$ workers so that there is no
-straggler. From this hardware prospective, randomization is an
-optimization and provide a clear context our current work.
- 
-At this stage, we have too many nobs and tools to tune: algorithms,
-data structures, and dedicated hardware (CPU, GPUs, Custom). This is a
-(very) hard problem and we are not here for the solution of the
-inverse problem: find the best Hardware-Software solution for the one
-matrix by vector product. We are here to provide tools, we may say
-naive tools, to help understand how the structure of the matrix may
-affect the HW-SW solution. Randomization, or versions of it, is
-already used by custom hardware to re-organize the data flow to reduce
-communications and computation bottle necks. We come to play in this
-arena to show {\em how} to use randomization if at all.
+One of the key building blocks for custom architecture solutions is a
+multi-ported buffer used to storing vector entries.  During execution,
+multiple column indices are used as addresses to read corresponding
+vector entries; we shall provide more details in Section
+\ref{sec:notations}.  Designing a buffer with a very large number of
+read ports is challenging.  One solution is {\em banking} as a
+mechanism to store partitioned vector entries.  Although banking could
+allow very high throughput indexing unless the same entry is required
+multiple times and its reads are purely sequential causing loss of
+bandwidth.  For example, hashing techniques and data duplication are
+possible solutions for this problem. However, another issue arises:
+When we distribute SpMV computations across $p$-nodes, some of the
+nodes, say $k$, finish later than the rest because of unbalanced work
+loads (ie. number of nonzero element) in row/column major
+traversal. This is a common phenomena for matrices where few rows or
+columns are dense. These $k$ nodes are referred to as {\em laggard
+  nodes}.  By applying random permutation of columns/rows, we are
+attempting to balance the loads across all $p$ workers so that there
+is are no laggards. From this hardware vantage point, randomization or
+maximizing the entropy of the non-zero element distribution is an
+optimization transform and provides a clear context for our work.
+%\newline
 
-For the readers in the field of algorithms, sparse matrix by (dense)
-vector is basically a sorting algorithm. Bare with us, Sorting is a
-method to find if an element is in a list without prior or limited
-knowledge of the list contents. Sorting is used to prepare the matrix
-and to find elements in between sparse matrices and sparse vectors. In
-custom architectures, sorting networks are used for routing elements
-of the matrix and vector to the proper functional unit. Interestingly,
-The best sorting algorithm is a function of the distribution of
-elements. If you are stuck with a sorting algorithm and the wrong
-distribution, randomization may change the distribution, and you do
-not need to talk to any HW designer
+Clearly, optimally accelerating SpMV is a hard many parameters
+optimization problem dependent on the choice of algorithm,data
+structures, and dedicated hardware (CPU, GPUs, FPGA's, Custom ASIC's).
+%This is a
+%(very) hard problem and we are not here for the solution of the induced
+%optimization problem: find the best hardware-software algorithm parameters for accelerating SpMV.
+Rather, our goal is to provide a tool, we may say a naive tool, to
+help understand how the structure of the matrix may impact the HW-SW
+solution.
+%Randomization, or versions of it, is
+Row or column shuffling is already used by custom hardware to
+re-organize the data flow to reduce communications and computational
+bottlenecks.  We will study various forms of random permutations and
+their impact on performance if at all.
+%PLEASE INCLUDE A REFERENCE HERE, 
+%We come to play in this
+%arena to show {\em how} to use randomization if at all.
+%\newline
 
-We organize our work as follows: In Section \ref{sec:notations}, we
+For the readers in the field of algorithms, SpMV can be mapped into a
+sorting algorithm. Bare with us, Sorting is a method to find if an
+element is in a list with no prior or limited knowledge of its
+contents.  Sorting is used to prepare the matrix and to find elements
+in between sparse matrices and sparse vectors.
+%Hi Paolo, Please clarify above statements
+In custom architectures, sorting networks are used to route
+matrix and vector elements to functional units. Interestingly,
+the best sorting algorithm is a function of the distribution of
+elements. In a sense, If one is stuck with a sorting algorithm and a poor
+distribution, randomization may alter the distribution and throttle performance, 
+%and you do not need to talk to any HW designer.
+%\newline
+
+We organize this work as follows: In Section \ref{sec:notations}, we
 define the matrix by vector operation; in Section
-\ref{sec:randomization}, we define what we mean for randomization. We
-use randomization to create a uniform distribution in Section
-\ref{sec:uniform} and we measure uniformity by nothing else than
-entropy in Section \ref{sec:entropy}. We present how we drive our
+\ref{sec:randomization}, we define what we mean by randomization (or
+entropy maximization). We use randomization to create a uniform
+distribution in Section \ref{sec:uniform} and measure uniformity
+%by nothing else than
+by entropy in Section \ref{sec:entropy}. We present how we drive our
 experiments to show the effects of randomization in Section
-\ref{sec:measuring}. In the last sections we present a summary of the
-results: we present our work loads, benchmarks, in Section
+\ref{sec:measuring}. In the last sections, we present a summary of the
+results: we present our task work loads for the given benchmarks in Section
 \ref{sec:workload}, and the complete set of measures for an AMD CPU
-and GPUs system in Section \ref{sec:experimentalresults} .
+and GPUs systems in Section \ref{sec:experimentalresults} .
 
 \section{Basic Notations}
 \label{sec:notations}
@@ -250,117 +283,117 @@ Let us start by describing the basic notations so we can clear the
 obvious (or not).  A Sparse-matrix by vector multiplication {\em SpMV}
 on an (semi) ring based on the operations $(+,*)$ is defined as
 $\Vc{y} = \M \Vc{x}$ so that $y_i = \sum_j M_{i,j}*y_j$ where $M_{i,j}
-\eq 0$ are not even represented and stored. Most of the experimental
+\eq 0$ are not represented nor stored. Most of the experimental
 results in Section \ref{sec:experimentalresults} are based on the
 classic addition (+) and multiplication (*) in floating point
-precision using 64bits (i.e., double floating point precision).  SpMV
-based on semi-ring (min,+) is a short path algorithm based on an
-adjacent matrix of a graph, and using a Boolean algebra we can check
-if two nodes are connected, which is slightly simpler.
+precision using 64 bits (i.e., double floating point precision) albeit
+are extensible to other semi-rings.  For instance, it is well known
+that SpMV defined on the semi-ring (min,+) is a kernel in computing an
+all-pairs shortest paths starting with a graph adjacency matrix, and
+in using a Boolean algebra we can check if two nodes are connected,
+which is slightly simpler.
+%\newline
 
 We identify a sparse matrix $\M$ of size $M\times N$ as having
 $O(M+N)$ non-zero elements, number of non zero {\em nnz}. Thus the
-complexity of $\M \Vc{x}$ is $O(M+N) = 2nnz$. Of course, the
+complexity of $\M \Vc{x}$ is $O(M+N) \approx 2nnz$. Of course, the
 definition of sparsity may vary. We represent the matrix $\M$ by using
-the Coordinate {\em COO} or and the compressed sparse row {\em
-  CSR}\footnote{a.k.a. Compressed row storage {\rm CRS}.}  format. The
-COO represents the non-zero of a matrix by a triplet $(i,j,val)$, very
+the coordinate list {\em COO} or and the compressed sparse row {\em
+  CSR}\footnote{a.k.a. Compressed row storage {\rm CRS}.}  formats. The
+COO represents the non-zero of a matrix by a triplet $(i,j,v)$; very
 often there are three identical-in-size vectors for the ROW, COLUMN,
 and VALUE. The COO format takes $3\times nnz$ space and two
 consecutive elements in the value array are not bound to be neither in
 the same row nor column. In fact, we know only that $VALUE[i] =
 M_{ROW[i],COLUMN[i]}$.
 
-The CSR stores elements in the same row and with increasing column
-values consecutively. There are three arrays V, COL, and ROW. The ROW
-is sorted in increasing order, its size is $M$, and $ROW[i]$ is an
-index in V and COL describing where row-$i$ starts (i.e., if row $i$
-exists).  We have that $M_{i,*}$ is stored in $V[ROW[i]:ROW[i+1]]$ and
-the column are at $COL[ROW[i]:ROW[i+1]]$ and sorted increasingly. The
-CSR takes $2\times nnz + M$ space and a row vector of the matrix can
-be found in $O(1)$.
- 
-The computation as $y_i = \sum_j M_{i,j}*x_j$ is a sequence of dot
-products and the CSR representation is a natural:
+The CSR format stores elements in the same row and with increasing
+column values consecutively. There are three arrays V, COL, and
+ROW. The ROW is sorted in increasing order.  Its size is $M$, and
+$ROW[i]$ is an index in V and COL describing where $i$-th row starts
+(i.e., if row $i$ exists).  Accordingly, $M_{i,*}$ is stored in
+$V[ROW[i]:ROW[i+1]]$. The column indices are stored at
+$COL[ROW[i]:ROW[i+1]]$ and sorted increasingly. The CSR format takes
+$2\times nnz + M$ space and a row vector of the matrix canbe found in
+$O(1)$.
+%\newline
+
+The computation  $y_i = \sum_j M_{i,j}*x_j$ is a sequence of scalar
+products and, using the CSR format, is computed as follows:
 
 \[ Index = ROW[i]:ROW[i+1] \]
 \[
 y_i =  \sum_{\ell\in Index} V[\ell] * x_{COL[\ell]}  
 \]
-The matrix row is contiguous (in memory) and contiguous rows are
-contiguous. The access of the (dense) vector $\Vc{x}$ could have no
-pattern. The COO format could use a little preparation: For example,
+%\newline
+
+The matrix row is contiguous (in memory) and rows are stored in
+increasing order. While taccess of the (dense) vector $\Vc{x}$ has no
+particular pattern.
+%\newline
+
+The COO format can be endowed with certain properties. For example,
 we can sort the array by row and add row information to achieve the
-same properties of CSR; however transposing a COO matrix is just a
-swap of the array ROW and COL. Think about matrix multiply. As today,
-each dot product achieves peak performance if the reads of the vector
+same properties of CSR;In contrast, transposing a "sorted" COO matrix simply entails swapping of the arrays ROW and COL. Think about matrix multiply.
+Each scalar product achieves peak performance if the reads of the vector
 $\Vc{x}$ are streamlined as much as possible and so the reads of the
-vector $V$. If we have multiple cores, each could compute a sub set of
+vector $V$. If we have multiple cores, each could compute a subset of
 the $y_i$ and a clean data load balancing can go a long way. If we
-have a few functional units, we would like to have a constant stream
+have few functional units, we would like to have a constant stream
 of independent $*$ and $+$ operations but with data already in
-registers: that is, data pre-fetch will go a long way especially for
+registers. That is, data pre-fetch will go a long way especially for
 $x_{COL[i]}$, which may have an irregular pattern.
 
 
-\section{Randomization}
+\section{Randomization (or Entropy Maximization)}
 \label{sec:randomization}
-We refer to {\em Randomization} as row or column permutations of the
-matrix $\M$ (thus a permutation of $\Vc{y}$ and $\Vc{x}$) and we choose
-these by a pseudo-random process. Why we want to introduce
-uncertainty? The sparsity of our matrix $\M$ has a pattern
-representing the nature of the original problem; such a pattern may
-exploit the wrong computation for an architecture; we could break such
-a pattern so that the only property left is a uniform distribution (of
-some sort). We must avoid the worst case and we would opt for an
-average case instead and we could do this to a class of $\M$. 
+We define {\em Randomization} as row or column permutation transform of the
+matrix $\M$ (thus a permutation of $\Vc{y}$ and $\Vc{x}$), and we choose
+these by a pseudo-random process. The obvious question to as is why should we seek randomization (or entropy maximizing) transform? The sparsity of a given matrix $\M$ has a non-zero element distribution 
+induced by the nature of the original problem or by some imposed ordering on the respective nodes of its associated graph.  This distribution may be computationally incompatible with the chosen algorithm or architecture. For instance, it can induce some load imbalance in the computation.  We could break this load imbalance by seeking to maximize entropy for this distribution. Our conjecture is that would favor the average case performance rather than the worse case when operating on the "max-entropy transformed" matrix.  
 
-If we know the matrix $\M$ and we know the architecture,
-preconditioning must be a better solution.  Well, it is. If we run
-experiments long enough, we choose the best permutations for the
+For linear system solvers, if we know the matrix $\M$, and we know the architecture, preconditioning (when affordable) is a better solution. 
+Well, it is. If we run
+experiments long enough, we choose the best permutation(s) for the
 architecture, permute $\M$, and go on testing the next.  On one end,
 preconditioning exerts a full understanding of both the matrix (the
 problem) and how the final solution will be computed
-(architecture). This is the culminating point of knowing and we must
+(architecture). This is the culminating point of knowing, and we must
 strive to it. On the other end, the simplicity of a random permutation
 requires no information about the matrix, the vector, and the
-architecture. Such a simplicity can be exploited directly in HW. We
-are after an understanding when randomization is just enough: we want
+architecture. Such a simplicity can be exploited directly in Hardware. We
+are after an understanding when randomization is just enough: We seek
 to let the hardware do its best with the least effort, or at least
-with the appearance to be effortless. Also we shall show there are
-different flavors of random.
+with the appearance to be effortless. 
+%Also we shall show there are different flavors of randomization.
 
 
 Interestingly, this work stems from a sincere surprise about
 randomization efficacy and its application on custom SpMV. Here, we
-want to study this problem systematically so that to help future
+wish to study this problem systematically so that to help future
 hardware designs. Intuitively, if we can achieve a uniform
 distribution of the rows of matrix $\M$ we can have provable
 expectation of its load balancing across multiple cores. If we have a
 uniform distribution of accesses on $\Vc{x}$ we could exploit column
-load balancing and exploit better sorting algorithms: in practice the
-reading of $\Vc{x}_{COL[i]}$ can be reduces to a sorting and we know
-that different sparsity may require different algorithms. This is a
-lot to unpack but this translates to a better performance of the
-sequential algorithm without changing the algorithm or better HW
+load balancing and exploit better sorting algorithms: In practice, the
+reading of $\Vc{x}_{COL[i]}$ can be reduced to a sorting, and there we know
+that different sparsity  may require different algorithms. This may be 
+lot to unpack but it translates to a better performance of the
+sequential algorithm without changing the algorithm or to improved bandwidth
 utilization.
 
 
 We will show that (different) randomness affects architectures and
-algorithms differently, making randomization a suitable optimization
-especially when the application and hardware are at odds, hardware is
-difficult to change and the matrix sparsity is simple to change. We
-want to show that there is a randomness hierarchy that we can
-distinguish as global and local; there are simple-to-find cases where
-the sparsity breaks randomness and the matrix has to be split into
-components.  We want to show that this study uses common tool, open
-software tools and sometimes naive experiments; however, we can infer
-properties applicable to proprietary and custom solutions.
-
+algorithms differently, making randomization a suitable optimization transform
+especially when the application and hardware are at odds:  Hardware (unless programmable) is difficult to change and the matrix sparsity is simple to change. We want to show that there is a randomness hierarchy that we can
+distinguish as global and local. There are simple-to-find cases where
+the sparsity breaks randomness optimization.  For instance, matrices with dense rows or columns are better partitioned into sparse and dense components and operated on separately.  
+%We want to show that this study uses common tool, open
+%software tools and sometimes naive experiments; however, we can infer
+%properties applicable to proprietary and custom solutions.
+%Hi Paolo, above two sentences need further clarification
 \newpage 
-\Doublefigure{.49}{../python/PNG/OPF_3754_mtx_regular}{../python/PNG/lp_osa_07_mtx_regular}{Left:
-  OPF 3754. Right: LP OSA 07. These are histograms where we represent
-  normalized buckets and counts}{fig:one}
+\Doublefigure{.49}{../python/PNG/OPF_3754_mtx_regular}{../python/PNG/lp_osa_07_mtx_regular}{Left: OPF 3754. Right: LP OSA 07. These are histograms where we represent normalized buckets and counts}{fig:one}
 
 \section{Entropy}
 \label{sec:entropy}
@@ -407,8 +440,7 @@ divergence) \cite{dalberto2012nonparametric}. Or we could use a representation o
 2x2, 4x4 and 8x8 (or fewer if the distribution is not square). We have
 a hierarchical entropy heat maps.
 
-\doublefigure{.40}{../python/ENTOPF3754/2d-regular}{../python/ENTlposa07/2d-regular}{Hierarchical
-  2D entropy for OPF 3754 (left) and LP OSA 07 (right). }{fig:two}
+\doublefigure{.40}{../python/ENTOPF3754/2d-regular}{../python/ENTlposa07/2d-regular}{Hierarchical 2D entropy for OPF 3754 (left) and LP OSA 07 (right). }{fig:two}
 
 We can see that a granular entropy summarizes better the nature of the
 matrix because it keep some spatial information. In this work, the
@@ -425,9 +457,7 @@ be used and a significance level is available. What we like to see is
 the the hierarchical entropy heat map is becoming {\em more} uniform
 for at least one of the matrix.
 
-\doublefigure{.40}{../python/ENTOPF3754/2d-row-column-shuffle}{../python/ENTlposa07/2d-row-column-shuffle}{Hierarchical
-  2D entropy after row and column random permutation for OPF 3754
-  (left) and LP OSA 07 (right). }{fig:three}
+\doublefigure{.40}{../python/ENTOPF3754/2d-row-column-shuffle}{../python/ENTlposa07/2d-row-column-shuffle}{Hierarchical 2D entropy after row and column random permutation for OPF 3754 (left) and LP OSA 07 (right). }{fig:three}
 
 In practice, permutations need some help especially for relatively
 large matrices. As you can see, the permutation affects locally the
@@ -446,14 +476,9 @@ with maximum steepness, Figure \ref{fig:four} and \ref{fig:five}
 
 LP achieves entropy 8.67 and 9.58 and OPF achieves 10.47 and 11.40.
 
-\doublefigure{.40}{../python/ENTOPF3754/2d-H-shuffle}{../python/ENTlposa07/2d-H-shuffle}{Hierarchical
-  2D entropy after height gradient based shuffle and row random
-  permutation for OPF 3754 (left) and LP OSA 07 (right). }{fig:four}
+\doublefigure{.40}{../python/ENTOPF3754/2d-H-shuffle}{../python/ENTlposa07/2d-H-shuffle}{Hierarchical 2D entropy after height gradient based shuffle and row random permutation for OPF 3754 (left) and LP OSA 07 (right). }{fig:four}
 
-\doublefigure{.40}{../python/ENTOPF3754/2d-W-shuffle}{../python/ENTlposa07/2d-W-shuffle}{Hierarchical
-  2D entropy after height and width gradient shuffle and row and
-  column random permutation for OPF 3754 (left) and LP OSA 07
-  (right). }{fig:five}
+\doublefigure{.40}{../python/ENTOPF3754/2d-W-shuffle}{../python/ENTlposa07/2d-W-shuffle}{Hierarchical 2D entropy after height and width gradient shuffle and row and column random permutation for OPF 3754 (left) and LP OSA 07 (right). }{fig:five}
 
 If the goal is to achieve a uniformly sparse matrix, it seems that we
 have the tools to compute and to measure such a sparsity. We admit
@@ -521,16 +546,14 @@ quarters, randomization breaks it.  If the load balance is fixed
 (i.e., by dividing the matrix by row and in equal row), randomization
 is beneficial.
 
-\doublefigure{.45}{../python/PNG2/OPF_3754_mtx_GPU_64_COO.png}{../python/PNG2/OPF_3754_mtx_GPU_64_CSR.png}{Vega
-  20, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six}
+\doublefigure{.45}{../python/PNG2/OPF_3754_mtx_GPU_64_COO.png}{../python/PNG2/OPF_3754_mtx_GPU_64_CSR.png}{Vega 20, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six}
 \doublefigure{.45}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six1}
 \doublefigure{.45}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six2}
 
 If we take the original matrix and split into part having the same
 number of rows, and execute them in parallel using different cores, we
 can see in Figure \ref{fig:seven} that randomization is quite useful.
-\singlefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_PAR.png}{ Parallel
-  CPU CSR for OPF 3754}{fig:seven}
+\singlefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_PAR.png}{ Parallel CPU CSR for OPF 3754}{fig:seven}
 
 
 For matrix LP OSA 07, randomization helps clearly only for CPU CSR as
@@ -729,3 +752,18 @@ software repository. \input{out.v.tex} \input{out.elle.tex}
 %\appendix{Review and Response}
 %\input{review.tex}
 \end{document}
+
+
+
+
+  
+
+
+  
+
+
+
+
+  
+
+
