@@ -109,10 +109,10 @@ matrix is reused.  Unlike matrix ordering schemes that seek to reduce
 fill, we seek a permutation that uniformly distributes the non-zero
 elements' distribution, thereby generating a SpMV problem that is
 amenable to work load balancing or to speed up sort algorithms.  We
-shall show that randomization is an optimization that any architecture
-may take advantage although in different ways. Most importantly, any
-developer can consider and deploy. We shall present cases where we can
-improve performance by 15\% on AMD-based systems.
+shall show that entropy maximization is an optimization that any
+architecture may take advantage although in different ways. Most
+importantly, any developer can consider and deploy. We shall present
+cases where we can improve performance by 15\% on AMD-based systems.
 
 \end{abstract}
 
@@ -122,37 +122,35 @@ improve performance by 15\% on AMD-based systems.
 \label{sec:introduction}
 
 To define the scope of this work, the obvious questions to ask are:
-first, what is randomization (or entropy maximization) in the context
-of sparse matrices; second, why would we use it; third, when does it
+first, what randomization or entropy maximization is in the context of
+sparse matrices; second, why would we use it; third, when it does
 work.  We shall provide formal definitions in the following
-sections. Specifically, we will randomly permute the rows and columns
-of a sparse matrix before multiplying it with a (dense) vector (SpMV)
-with the aim of speeding this operation.  Undoubtedly, this scheme
-requires some restrictions about the matrix structure, one among them
-is that is has no or few dense columns or rows.  In the case, where
-there are dense columns or rows, a sparse/dense partitioning scheme
-should be used. For the remainder of this manuscript, we shall assume
-the former nonzero structure. We use randomization because it is the
-poor man's way for preconditioning SpMV (in our restricted context),
-and we do not mean it in a pejorative sense.
-%\newline
+sections. Briefly, we will permute randomly the rows and columns of a
+sparse matrix before multiplying it with a dense vector (SpMV) with
+the aim of speeding this operation.  Undoubtedly, this scheme requires
+some restrictions about the matrix structure, one among them is that
+is has no or few dense columns or rows.  In the case, where there are
+dense columns or rows, a sparse/dense partitioning scheme should be
+used. For the remainder of this manuscript, we shall assume the former
+nonzero structure. We use randomization because it is the poor man's
+way for preconditioning SpMV in our restricted context, and we do not
+mean it in a pejorative sense.
 
-Preconditioning speeds up the convergence rate of an iterative linear solver
-by linearly transforming the associated matrix into a form that affords a faster reduction of the residual error at every iteration.
-The cost of this transformation is justified by the runtime reduction it affords.  Likewise, we foresee randomization playing a similar role for SpMV in the context of iterative linear solvers and other methods (e.g in convolutions) where the matrix is reused.
 
-%In general, it means better numerical properties and well defined properties of the matrix itself. Sparse matrix It does not mean that each
-%iteration is faster.  We want to make each iteration faster. From a
-%mathematical and scientific point of view may seem uninteresting. From
-%the engineering and deployment point of view is just the beginning.
-%\newline
+Preconditioning speeds up the convergence rate of an iterative linear
+solver by linearly transforming the associated matrix into a form that
+affords a faster reduction of the residual error at every iteration.
+The cost of this transformation is justified by the runtime reduction
+it affords.  Likewise, we foresee randomization playing a similar role
+for SpMV in the context of iterative linear solvers and other methods
+(e.g in convolutions) where the matrix is reused.
 
-Since sparse linear algebra (and GraphBLAS) kernels are memory bound,
-there is a common thread of focus in the scientific computing
-community is to develop acceleration libraries mostly for multi-core
-systems. These predominantly include multi-core processors and
-GPUs. The main goal is a balanced work distribution and, when
-applicable, minimal communication
+Sparse linear algebra and GraphBLAS kernels are memory bound and there
+is a common thread in the scientific computing community to develop
+acceleration libraries mostly for multi-core systems. These
+predominantly include multi-core processors and GPUs. The goal is
+a balanced work distribution and, when applicable, minimal
+communication
 \cite{DBLP:journals/siamsc/KayaaslanAU18,DBLP:conf/ieeehpcs/PageK18}. When
 storage strategy and algorithms must be considered together then GPUs
 provide the work horse for abundant thrust in research
@@ -160,13 +158,10 @@ provide the work horse for abundant thrust in research
 solutions and strive for a clear and complete
 understanding/exploitation of the software-hardware interface; usually
 the hardware is composed of symmetric computational
-units. Interestingly, the SpMV 's space and time complexity, which are
+units. Interestingly, the SpMV's space and time complexity, which are
 small, may not warrant more performance because we typically end up
 utilizing only one-thousandth fraction of the available hardware
 capacity.
-%We may deploy efficient solutions: not necessarily faster but overall tailored for this. 
-%[Paolo not sure what you meant by the above sentence]
-%\newline
 
 The peak performance of any SpMV accelerator depends primarily on the
 available memory bandwidth (i.e., DRAM such as DDR or HBM) and the
@@ -231,38 +226,24 @@ maximizing the entropy of the non-zero element distribution is an
 optimization transform and provides a clear context for our work.
 %\newline
 
-Clearly, optimally accelerating SpMV is a hard many parameters
-optimization problem dependent on the choice of algorithm,data
+Clearly, optimally accelerating SpMV is a hard many-parameters
+optimization problem dependent on the choice of algorithm, data
 structures, and dedicated hardware (CPU, GPUs, FPGA's, Custom ASIC's).
-%This is a
-%(very) hard problem and we are not here for the solution of the induced
-%optimization problem: find the best hardware-software algorithm parameters for accelerating SpMV.
 Rather, our goal is to provide a tool, we may say a naive tool, to
 help understand how the structure of the matrix may impact the HW-SW
-solution.
-%Randomization, or versions of it, is
-Row or column shuffling is already used by custom hardware to
-re-organize the data flow to reduce communications and computational
-bottlenecks.  We will study various forms of random permutations and
-their impact on performance if at all.
-%PLEASE INCLUDE A REFERENCE HERE, 
-%We come to play in this
-%arena to show {\em how} to use randomization if at all.
-%\newline
-
-For the readers in the field of algorithms, SpMV can be mapped into a
-sorting algorithm. Bare with us, Sorting is a method to find if an
+solution.  For the readers in the field of algorithms, SpMV can be
+mapped into a sorting algorithm. For example, finding elements
+$x_{i,j}$ and $x_{i,k>j}$ in a sparse matrix requires to find row $i$
+and then columns $j$ and $k$.  Sorting is a method to find if an
 element is in a list with no prior or limited knowledge of its
-contents.  Sorting is used to prepare the matrix and to find elements
-in between sparse matrices and sparse vectors.
-%Hi Paolo, Please clarify above statements
-In custom architectures, sorting networks are used to route
-matrix and vector elements to functional units. Interestingly,
-the best sorting algorithm is a function of the distribution of
-elements. In a sense, If one is stuck with a sorting algorithm and a poor
-distribution, randomization may alter the distribution and throttle performance, 
-%and you do not need to talk to any HW designer.
-%\newline
+contents.  Sorting can be used to prepare the matrix and to find
+elements in between sparse matrices and sparse vectors. In custom
+architectures, sorting networks are used to route matrix and vector
+elements to functional units. In a sense, If one is stuck with a
+sorting algorithm and a poor distribution, randomization may alter the
+distribution and throttle performance. Interestingly, the best sorting
+algorithm is a function of the distribution of the elements
+\cite{LiGP2004,HuangGl2009}.
 
 We organize this work as follows: In Section \ref{sec:notations}, we
 define the matrix by vector operation; in Section
@@ -314,7 +295,7 @@ $ROW[i]$ is an index in V and COL describing where $i$-th row starts
 (i.e., if row $i$ exists).  Accordingly, $M_{i,*}$ is stored in
 $V[ROW[i]:ROW[i+1]]$. The column indices are stored at
 $COL[ROW[i]:ROW[i+1]]$ and sorted increasingly. The CSR format takes
-$2\times nnz + M$ space and a row vector of the matrix canbe found in
+$2\times nnz + M$ space and a row vector of the matrix can be found in
 $O(1)$.
 %\newline
 
@@ -328,43 +309,53 @@ y_i =  \sum_{\ell\in Index} V[\ell] * x_{COL[\ell]}
 %\newline
 
 The matrix row is contiguous (in memory) and rows are stored in
-increasing order. While taccess of the (dense) vector $\Vc{x}$ has no
-particular pattern.
+increasing order. However, the access of the dense vector $\Vc{x}$ has
+no particular pattern, well increasing.
 %\newline
 
-The COO format can be endowed with certain properties. For example,
-we can sort the array by row and add row information to achieve the
-same properties of CSR;In contrast, transposing a "sorted" COO matrix simply entails swapping of the arrays ROW and COL. Think about matrix multiply.
-Each scalar product achieves peak performance if the reads of the vector
-$\Vc{x}$ are streamlined as much as possible and so the reads of the
-vector $V$. If we have multiple cores, each could compute a subset of
-the $y_i$ and a clean data load balancing can go a long way. If we
-have few functional units, we would like to have a constant stream
-of independent $*$ and $+$ operations but with data already in
+The COO format can be endowed with certain properties. For example, we
+can sort the array by row and add row information to achieve the same
+properties of CSR. In contrast, transposing a "sorted" COO matrix
+simply entails swapping of the arrays ROW and COL. Think about matrix
+multiply.  Each scalar product achieves peak performance if the reads
+of the vector $\Vc{x}$ are streamlined as much as possible and so the
+reads of the vector $V$. If we have multiple cores, each could compute
+a subset of the $y_i$ and a clean data load balancing can go a long
+way. If we have few functional units, we would like to have a constant
+stream of independent $*$ and $+$ operations but with data already in
 registers. That is, data pre-fetch will go a long way especially for
 $x_{COL[i]}$, which may have an irregular pattern.
 
 
-\section{Randomization (or Entropy Maximization)}
+\section{Randomization or Entropy Maximization}
 \label{sec:randomization}
-We define {\em Randomization} as row or column permutation transform of the
-matrix $\M$ (thus a permutation of $\Vc{y}$ and $\Vc{x}$), and we choose
-these by a pseudo-random process. The obvious question to as is why should we seek randomization (or entropy maximizing) transform? The sparsity of a given matrix $\M$ has a non-zero element distribution 
-induced by the nature of the original problem or by some imposed ordering on the respective nodes of its associated graph.  This distribution may be computationally incompatible with the chosen algorithm or architecture. For instance, it can induce some load imbalance in the computation.  We could break this load imbalance by seeking to maximize entropy for this distribution. Our conjecture is that would favor the average case performance rather than the worse case when operating on the "max-entropy transformed" matrix.  
+We define {\em Randomization} as row or column permutation transform
+of the matrix $\M$ (thus a permutation of $\Vc{y}$ and $\Vc{x}$), and
+we choose these by a pseudo-random process. The obvious question to as
+is why should we seek randomization (or entropy maximizing) transform?
+The sparsity of a given matrix $\M$ has a non-zero element
+distribution induced by the nature of the original problem or by some
+imposed ordering on the respective nodes of its associated graph.
+This distribution may be computationally incompatible with the chosen
+algorithm or architecture. For instance, it can induce some load
+imbalance in the computation.  We could break this load imbalance by
+seeking to maximize entropy for this distribution. Our conjecture is
+that would favor the average case performance rather than the worse
+case when operating on the "max-entropy transformed" matrix.
 
-For linear system solvers, if we know the matrix $\M$, and we know the architecture, preconditioning (when affordable) is a better solution. 
-Well, it is. If we run
-experiments long enough, we choose the best permutation(s) for the
-architecture, permute $\M$, and go on testing the next.  On one end,
-preconditioning exerts a full understanding of both the matrix (the
-problem) and how the final solution will be computed
-(architecture). This is the culminating point of knowing, and we must
-strive to it. On the other end, the simplicity of a random permutation
-requires no information about the matrix, the vector, and the
-architecture. Such a simplicity can be exploited directly in Hardware. We
-are after an understanding when randomization is just enough: We seek
-to let the hardware do its best with the least effort, or at least
-with the appearance to be effortless. 
+For linear system solvers, if we know the matrix $\M$, and we know the
+architecture, preconditioning (when affordable) is a better solution.
+Well, it is. If we run experiments long enough, we choose the best
+permutation(s) for the architecture, permute $\M$, and go on testing
+the next.  On one end, preconditioning exerts a full understanding of
+both the matrix (the problem) and how the final solution will be
+computed (architecture). This is the culminating point of knowing, and
+we must strive to it. On the other end, the simplicity of a random
+permutation requires no information about the matrix, the vector, and
+the architecture. Such a simplicity can be exploited directly in
+Hardware. We are after an understanding when randomization is just
+enough: We seek to let the hardware do its best with the least effort,
+or at least with the appearance to be effortless.
 %Also we shall show there are different flavors of randomization.
 
 
@@ -384,10 +375,15 @@ utilization.
 
 
 We will show that (different) randomness affects architectures and
-algorithms differently, making randomization a suitable optimization transform
-especially when the application and hardware are at odds:  Hardware (unless programmable) is difficult to change and the matrix sparsity is simple to change. We want to show that there is a randomness hierarchy that we can
-distinguish as global and local. There are simple-to-find cases where
-the sparsity breaks randomness optimization.  For instance, matrices with dense rows or columns are better partitioned into sparse and dense components and operated on separately.  
+algorithms differently, making randomization a suitable optimization
+transform especially when the application and hardware are at odds:
+Hardware (unless programmable) is difficult to change and the matrix
+sparsity is simple to change. We want to show that there is a
+randomness hierarchy that we can distinguish as global and
+local. There are simple-to-find cases where the sparsity breaks
+randomness optimization.  For instance, matrices with dense rows or
+columns are better partitioned into sparse and dense components and
+operated on separately.
 %We want to show that this study uses common tool, open
 %software tools and sometimes naive experiments; however, we can infer
 %properties applicable to proprietary and custom solutions.
@@ -462,17 +458,15 @@ for at least one of the matrix.
 In practice, permutations need some help especially for relatively
 large matrices. As you can see, the permutation affects locally the
 matrix. Of course, it depends on the implementation of the random
-permutation (we use numpy for this) but it is reasonable a slightly
-modified version of the original is still a random selection but
-unfortunately they seem more likely than they should. We need to
-compensate or help the randomization so that this current
-implementation does not get too lazy.
-
-If we are able to identify the row and column that divide high and low
-density, we could use them as pivot for a shuffle like in a quick-sort
-algorithm. We could apply a sorting algorithm but its complexity will
-the same of SpMV. We use a gradients operations to choose the element
-with maximum steepness, Figure \ref{fig:four} and \ref{fig:five}
+permutation, we use {\em numpy} for this. It is reasonable that a
+slightly modified version of the original is still a random selection
+and unfortunately they seem too likely in practice. We need to
+compensate or help the randomization. If we are able to identify the
+row and column that divide high and low density, we could use them as
+pivot for a shuffle like in a quick-sort algorithm. We could apply a
+sorting algorithm but its complexity will the same of SpMV. We use a
+gradients operations to choose the element with maximum steepness,
+Figure \ref{fig:four} and \ref{fig:five}
 
 LP achieves entropy 8.67 and 9.58 and OPF achieves 10.47 and 11.40.
 
@@ -533,11 +527,22 @@ histogram (and thus the matrix).
 
 
 In Figure \ref{fig:five1}, We show CPU performance using COO and CSR
-SpMV algorithms for the matrix OPF 3754. We can see that the CSR
-algorithms are consistent and the Regular (i.e., the original) has
-always the best performance. For the COO, permutations introduce long
-tails, thus performance advantage. 
-\doublefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_COO.png}{../python/PNG2/OPF_3754_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (left) for OPF 3754}{fig:five1}
+SpMV algorithms for the matrix OPF 3754. The figure is an histogram:
+The $x$ is GFLOPS and the $y$ label is the number of counts. Thus we
+show what is the performance distribution of an algorithm.  We can see
+that the CSR algorithms are consistent and the Regular (i.e., the
+original) has always the best performance. Also the variance of the
+computation time is small and the shape is approximately Gaussian.
+Different story for the COO, the permutations introduce long tails,
+thus $2\times$ performance advantage.
+\doublefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_COO.png}{../python/PNG2/OPF_3754_mtx_CPU_CSR.png}{CPU
+  COO (left) and CPU CSR (left) for OPF 3754}{fig:five1}
+
+\singlefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_PAR.png}{ Parallel CPU CSR for OPF 3754}{fig:seven}
+If we take the original matrix and split into parts having the same
+number of rows, and execute them in parallel using different cores, we
+can see in Figure \ref{fig:seven} that randomization is quite useful.
+
 
 In Figure \ref{fig:six}, \ref{fig:six1} and \ref{fig:six2},
 randomization is harmful to the GPU implementation. The OPF 375 matrix
@@ -550,27 +555,21 @@ is beneficial.
 \doublefigure{.45}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six1}
 \doublefigure{.45}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six2}
 
-If we take the original matrix and split into part having the same
-number of rows, and execute them in parallel using different cores, we
-can see in Figure \ref{fig:seven} that randomization is quite useful.
-\singlefigure{.45}{../python/PNG2/OPF_3754_mtx_CPU_PAR.png}{ Parallel CPU CSR for OPF 3754}{fig:seven}
-
+\newpage
 
 For matrix LP OSA 07, randomization helps clearly only for CPU CSR as
-we show in Figure \ref{fig:eight}
+we show in Figure \ref{fig:eight}. In Figure \ref{fig:eight1},
+\ref{fig:eight2}, and \ref{fig:eight3}, we can see that randomization
+is harmful but for one GPU, we can show that a single exception is
+possible (40\% improvement).
 
 \singlefigure{.45}{../python/PNG2/lp_osa_07_mtx_CPU_CSR.png}{   CPU CSR  for LP OSA 07}{fig:eight}
-
-In Figure \ref{fig:eight1}, \ref{fig:eight2}, and \ref{fig:eight3}, we
-can see that randomization is harmful but for one GPU, we can show
-that a single exception is possible (40\% improvement).
-
 
 \doublefigure{.45}{../python/PNG2/lp_osa_07_mtx_GPU_64_COO.png}{../python/PNG2/lp_osa_07_mtx_GPU_64_CSR.png}{Vega 20, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight1}
 \doublefigure{.45}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight2}
 \doublefigure{.45}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight3}
 
-
+\newpage
 An example, the matrix MULT DCOP 01, is where randomization is useful
 for the CPU, GPU, and the parallel version Figure \ref{fig:9},
 \ref{fig:10} - \ref{fig:11} and the gains can be up to
@@ -579,11 +578,9 @@ insights to the architecture, the algorithms and their relationships.
 
 
 \doublefigure{.45}{../python/PNG2/mult_dcop_01_mtx_CPU_COO.png}{../python/PNG2/mult_dcop_01_mtx_CPU_CSR.png}{CPU COO (left) and CPU CSR (right) for MULT DCOP 01}{fig:9}
-
 \doublefigure{.45}{../python/PNG2/mult_dcop_01_mtx_GPU_64_COO.png}{../python/PNG2/mult_dcop_01_mtx_GPU_64_CSR.png}{Vega 20, GPU 64bits COO (left) and GPU CSR (right) for MULT DCOP 01}{fig:10}
 \doublefigure{.45}{../python/ELLEPNG/mult_dcop_01_mtx_GPU_64_COO.png}{../python/ELLEPNG/mult_dcop_01_mtx_GPU_64_CSR.png}{Ellesmere,  GPU 64bits COO (left) and GPU CSR (right) for MULT DCOP 01}{fig:101}
 \doublefigure{.45}{../python/FIJIPNG/mult_dcop_01_mtx_GPU_64_COO.png}{../python/FIJIPNG/mult_dcop_01_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (right) for MULT DCOP 01}{fig:102}
-
 \singlefigure{.45}{../python/PNG2/mult_dcop_01_mtx_CPU_PAR.png}{ Parallel
   CPU CSR  for MULT DCOP 01 }{fig:11}
 
