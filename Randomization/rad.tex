@@ -176,10 +176,9 @@ Although utilizing this much bandwidth efficiently is difficult for
 large scale and highly sparse matrices due to very high random access
 pattern.  Custom architectures based on FPGA or ASIC devices can
 maximize bandwidth utilization by highly customized data-paths and
-memory hierarchy designs {\bf MISSING CITATION \cite{} }. Most of the
+memory hierarchy designs~\cite{,fowers2014high,grigoras2016cask,zhou2019hitgraph}. Most of the
 existing accelerators saturate the relatively low memory bandwidth
-available on FPGA platforms (less than 80 GB/s) {\bf MISSING CITATION
-  \cite{} }.  Modern FPGA platforms have multiple HBM stacks to
+available on FPGA platforms (less than 80 GB/s)~\cite{nagar2011sparse,townsend2013reduce,fowers2014high,grigoras2016cask,li2016data,zhou2019hitgraph}.  Modern FPGA platforms have multiple HBM stacks to
 provide large memory bandwidth. However, there is no implementation
 (currently available) that saturates all of the available DRAM
 bandwidth for SpMV kernel on HBM-enabled FPGA platforms. Scalability
@@ -188,16 +187,15 @@ of research.
 %\newline
 
 FPGA platforms used in early works exhibit low peak performance due to
-the scarcity of external memory bandwidth.  For example, Microsoft's
-implementation of SpMV uses an FPGA platform which only has 2 DDR2-400
-memory banks with a resulting bandwidth of 6.4 GB/s {\bf MISSING
-  CITATION \cite{}}.  The accelerator is running at 100 MHz, it reads
+the scarcity of external memory bandwidth~\cite{kestur2012towards,zhuo2005sparse,fowers2014high}. 
+For example, Microsoft's implementation of SpMV uses an FPGA platform which only has 2 DDR2-400
+memory banks with a resulting bandwidth of 6.4 GB/s~\cite{kestur2012towards}.  The accelerator is running at 100 MHz, it reads
 64 Bytes of data every cycle, which corresponds to 5 non-zeros at
 every cycle (a non-zero is about 12 Bytes). At best, the peak
 performance is 10 double precision operations every cycle at 100 MHz,
 which is 1 GFLOPS (only). In 2009, Convey systems Inc. released the
 Convey HC-1 FPGA platform.  It has 16 DDR2-677 memories resulting in
-overall 80 GB/s memory bandwidth {\bf MISSING CITATION \cite{} }. The
+overall 80 GB/s memory bandwidth~\cite{nagar2011sparse}. The
 accelerator logic runs at 150 MHz.  It consumes 512 Bytes of data
 every cycle, which corresponds to around 40 non-zeros every cycle.  At
 best, the peak performance is 80 double precision operations every
@@ -205,7 +203,7 @@ cycle at 150 MHz, which is 12 GFLOPS.
 %\newline
 
 One of the key building blocks for custom architecture solutions is a
-multi-ported buffer used to storing vector entries.  During execution,
+multi-ported buffer used to storing vector entries~\cite{fowers2014high}.  During execution,
 multiple column indices are used as addresses to read corresponding
 vector entries; we shall provide more details in Section
 \ref{sec:notations}.  Designing a buffer with a very large number of
@@ -754,14 +752,14 @@ software repository. \input{out.v.tex} \input{out.elle.tex}
 
 
 
-  
+Â  
 
 
-  
+Â  
 
 
 
 
-  
+Â  
 
 
