@@ -225,7 +225,7 @@ traversal. This is a common phenomena for matrices where few rows or
 columns are dense. These $k$ nodes are referred to as {\em laggard
   nodes}.  By applying random permutation of columns/rows, we are
 attempting to balance the loads across all $p$ workers so that there
-is are no laggards. From this hardware vantage point, randomization or
+are no laggards. From this hardware vantage point, randomization or
 maximizing the entropy of the non-zero element distribution is an
 optimization transform and provides a clear context for our work.
 %\newline
@@ -234,7 +234,7 @@ Clearly, optimally accelerating SpMV is a hard many-parameters
 optimization problem dependent on the choice of algorithm, data
 structures, and dedicated hardware (CPU, GPUs, FPGA's, Custom ASIC's).
 Rather, our goal is to provide a tool, we may say a naive tool, to
-help understand how the structure of the matrix may impact the HW-SW
+help understand how the structure of the matrix may affect the HW-SW
 solution.  For the readers in the field of algorithms, SpMV can be
 mapped into a sorting algorithm. For example, finding elements
 $x_{i,j}$ and $x_{i,k>j}$ in a sparse matrix requires to find row $i$
@@ -258,7 +258,7 @@ distribution in Section \ref{sec:uniform} and measure uniformity
 by entropy in Section \ref{sec:entropy}. We present how we drive our
 experiments to show the effects of randomization in Section
 \ref{sec:measuring}. In the last sections, we present a summary of the
-results: we present our task work loads for the given benchmarks in Section
+results: we present our work loads for the given benchmarks in Section
 \ref{sec:workload}, and the complete set of measures for an AMD CPU
 and GPUs systems in Section \ref{sec:experimentalresults} .
 
@@ -376,7 +376,7 @@ uniform distribution of accesses on $\Vc{x}$ we could exploit column
 load balancing and exploit better sorting algorithms: In practice, the
 reading of $\Vc{x}_{COL[i]}$ can be reduced to a sorting, and there we know
 that different sparsity  may require different algorithms. This may be 
-lot to unpack but it translates to a better performance of the
+a lot to unpack but it translates to a better performance of the
 sequential algorithm without changing the algorithm or to improved bandwidth
 utilization.
 
@@ -432,34 +432,35 @@ their sparsity we discuss this next.
 \label{sec:uniform}
 We know that we should {\bf not} compare the entropy numbers of two
 matrices because entropy does not use any information about the order
-of the buckets only their probabilities. By construction, the matrices
-are quite different in sparsity and in shapes, however their entropy
-numbers are very close.  Two matrices with the same number of
+of the buckets, it uses only their probabilities. By construction, the
+matrices are quite different in sparsity and in shapes, however their
+entropy numbers are close.  Two matrices with the same number of
 non-zeros, spaced well enough in the proper number of bin, will have
 the same entropy. To appreciate their different sparsity, we should
-compare their entropy distributions by Jensen-Shannon measure (which
-is a symmetric measure, please do not use Kullback-Leibler KL
-divergence) \cite{dalberto2012nonparametric}. Or we could use a representation of a hierarchical
-2d-entropy, see Figure \ref{fig:two}, where the entropy is split into
-2x2, 4x4 and 8x8 (or fewer if the distribution is not square). We have
-a hierarchical entropy heat maps.
+compare their entropy distributions by Jensen-Shannon measure
+\cite{dalberto2012nonparametric} or we could use cumulative
+distribution function (CDF) measures, which imply an order. Here, we
+use a representation of a hierarchical 2D-entropy, see Figure
+\ref{fig:two}, where the entropy is split into 2x2, 4x4 and 8x8 (or
+fewer if the distribution is not square). We have hierarchical entropy
+heat maps.
 
 \doublefigure{.40}{../python/ENTOPF3754/2d-regular}{../python/ENTlposa07/2d-regular}{Hierarchical 2D entropy for OPF 3754 (left) and LP OSA 07 (right). }{fig:two}
 
-We can see that a granular entropy summarizes better the nature of the
-matrix because it keep some spatial information. In this work, the
-entropy vector is used mostly for visualization purpose more than for
-comparison purpose. Of course, we can appreciate how the matrix LP OSA
-07 has a few very heavy rows and they are clustered. This matrix will
-help us showing how randomization need some tips. Now we apply row and
-column random permutation once by row and one by column: Figure
-\ref{fig:three}: OPF has now entropy 11.27 and LP 9.26. The numerical
-difference is significant. The good news is that for entropy, being an
-expectation, we can use simple techniques like bootstrap to show that
-the difference is significant or we have shown that Jensen-Shannon can
-be used and a significance level is available. What we like to see is
-the the hierarchical entropy heat map is becoming {\em more} uniform
-for at least one of the matrix.
+We can see that even a small 2D-entropy matrix summarizes the nature
+of the original matrix because it has spatial information. In this
+work, the entropy matrix is used mostly for visualization purpose more
+than for comparison purpose. Of course, we can appreciate how the
+matrix LP OSA 07 has a few very heavy rows and they are
+clustered. This matrix will help us showing how randomization need
+some tips. Now we apply row and column random permutation once by row
+and one by column: Figure \ref{fig:three}: OPF has now entropy 11.27
+and LP 9.26. The numerical difference is significant. The good news is
+that for entropy, being an expectation, we can use simple techniques
+like bootstrap to show that the difference is significant or we have
+shown that Jensen-Shannon can be used and a significance level is
+available. What we like to see is the the hierarchical entropy heat
+map is becoming {\em more} uniform for at least one of the matrix.
 
 \doublefigure{.40}{../python/ENTOPF3754/2d-row-column-shuffle}{../python/ENTlposa07/2d-row-column-shuffle}{Hierarchical 2D entropy after row and column random permutation for OPF 3754 (left) and LP OSA 07 (right). }{fig:three}
 
@@ -474,7 +475,7 @@ row and column that divide high and low density, we could use them as
 pivot for a shuffle like in a quick-sort algorithm. We could apply a
 sorting algorithm but its complexity will the same of SpMV. We use a
 gradients operations to choose the element with maximum steepness,
-Figure \ref{fig:four} and \ref{fig:five}
+Figure \ref{fig:four} and \ref{fig:five}.
 
 LP achieves entropy 8.67 and 9.58 and OPF achieves 10.47 and 11.40.
 
@@ -499,9 +500,10 @@ non-zero is possible, but for now not looked for.
 Whether or not this ever applied to the reader, when we have timed
 algorithms (i.e., measure execution time), we came to expect
 variation.  The introduction of randomization may hide behind the ever
-present variance, after all these are algorithms on {\em small} inputs
-and small error can be comparable to the overall execution time. Here,
-we must address this concern even before describing the experiments.
+present variance, after all these are algorithms on {\em small}
+inputs: small error can be comparable to the overall execution
+time. Here, we must address this concern even before describing the
+experiments.
 
 First, we execute every algorithm between 1000 and 5000 times. The
 time of each experiment is in the seconds, providing a granularity for
@@ -733,19 +735,20 @@ There are 4 basic randomization formats:
 
 For large matrices (large number of columns and rows) a permutation
 tends to be a close variation of the original, still a random
-permutation. The gradient allows us to describe two area of the
+permutation. The gradient allows us to describe two areas of the
 original matrix where there is a clear and de-marked density
 variation: for example, there are two uniform distributed sub matrices
-but one denser than the other. A shuffle redistribute every other
+but one denser than the other. A shuffle redistributes every other
 sample/card to different parts and these can be permuted locally.
 
 
     
-We report in the following the performance results, we introduce a
-{\bf *} following the best performance. This is tedious to read and,
-we assure, to write. The code and the results are available as
-software repository. \input{out.v.tex} \input{out.elle.tex}
-\input{out.fiji.tex}
+We report in the following the performance results GFLOPS, we
+introduce a $\boldsymbol *$ following the best performance. This is
+tedious to read and, we assure, to write. The code and the results are
+available as software repository. Remember each experiment is based on
+32 different runs and thus we report maximum, minimum, and mean as a
+summary. We use the symbol H for entropy.  \input{out.v.tex} \input{out.elle.tex} \input{out.fiji.tex}
 
 
 
