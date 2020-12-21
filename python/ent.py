@@ -12,7 +12,7 @@ from multiprocessing import Pool
 from functools import reduce    
 
 from  gpu_script import gpu_execute
-from  thread_script import compute_parallel
+from  thread_script import compute_parallel,compute_parallel_2
 
 
 Range = namedtuple("Range",
@@ -417,12 +417,53 @@ def hist2(P,parts=128,C=12):
         
     
 
+def measure_a(A, IN=10000, args = None) :
+    if args is not None  and args.gpuonly: return "", [0,0]
+    
+    B = numpy.ones(A.shape[1])
+    b = time.time();
+    for ll in range(0,IN):
+        
+        Rf = A*B
+    e = time.time();
+    coo = (e-b)/IN
+    #print("COO", IN,e-b, file=sys.stderr)
+    nnz = A.nnz
+    coogflops = (2*nnz/coo)/1000000000
+    AC= A.tocsr()
+    b = time.time();
+    for ll in range(0,IN):
+        
+        Rf = AC*B
+    e = time.time(); 
+    csr = (e-b)/IN
+    #print("CSR", IN,e-b, file=sys.stderr, flush= True)
+    csrgflops = (2*nnz/csr)/1000000000
+    
+    return ("COO GFLOPS {0:5.2f} CSR GFLOPS {1:5.2f} ".format(coogflops,csrgflops),[coo,coogflops,csr,csrgflops])
+
+def measure_dense_a(A, IN=10000, args = None) :
+    if args is not None  and args.gpuonly: return "", [0,0]
+    
+    B = numpy.ones(A.shape[1])
+    b = time.time();
+    for ll in range(0,IN):
+        
+        Rf = A*B
+    e = time.time();
+    coo = (e-b)/IN
+    #print("COO", IN,e-b, file=sys.stderr)
+    nnz = A.shape[0]*A.shape[1]
+    coogflops = (2*nnz/coo)/1000000000
+    
+    return ("DENSE GFLOPS {0:5.2f}  ".format(coogflops),[coo,coogflops])
 def measure(A, IN=10000, args = None) :
     if args is not None  and args.gpuonly: return "", [0,0]
     
     B = numpy.ones(A.shape[1])
     b = time.time();
     for ll in range(0,IN):
+        
         Rf = A*B
     e = time.time();
     coo = (e-b)/IN
@@ -432,6 +473,7 @@ def measure(A, IN=10000, args = None) :
     AC= A.tocsr()
     b = time.time();
     for ll in range(0,IN):
+        
         Rf = AC*B
     e = time.time(); 
     csr = (e-b)/IN
@@ -440,9 +482,25 @@ def measure(A, IN=10000, args = None) :
     
     return ("COO GFLOPS {0:5.2f} CSR GFLOPS {1:5.2f} ".format(coogflops,csrgflops),(coogflops,csrgflops))
 
+def measure_dense(A, IN=10000, args = None) :
+    if args is not None  and args.gpuonly: return "", [0,0]
+    
+    B = numpy.ones(A.shape[1])
+    b = time.time();
+    for ll in range(0,IN):
+        
+        Rf = A*B
+    e = time.time();
+    coo = (e-b)/IN
+    print("COO", IN,e-b, file=sys.stderr)
+    nnz = A.shape[0]*A.shape[1]
+    coogflops = (2*nnz/coo)/1000000000
+    
+    return ("COO GFLOPS {0:5.2f}  ".format(coogflops))
+
 def measure_p(filename, args) :
     if args is not None  and args.gpuonly: return "", [0]
-    return compute_parallel([filename],1000)
+    return compute_parallel_2([filename],1000)
     
 
 def gpu_measure(filename, device=0,args=None) :
