@@ -9,12 +9,12 @@
 %% are part of the same distribution. (The sources need not
 %% necessarily be in the same archive or directory.)  The first
 %% command in your LaTeX source must be the \documentclass command.
-\documentclass[manuscript,screen]{acmart}
-\usepackage{bm}
+\documentclass[acmsmall]{acmart}
+%\usepackage{bm}
 
 %% as manuscript for review this will create line number 
 \usepackage{lineno}
-\linenumbers
+%\linenumbers
 
 %%  Always include hyperref last
 %% \usepackage[bookmarks=true,breaklinks=true,letterpaper=true,colorlinks,linkcolor=black,citecolor=blue,urlcolor=black]{hyperref}
@@ -38,6 +38,14 @@
 \copyrightyear{2020}
 \acmYear{2020}
 \acmDOI{}
+
+%% These commands are for a JOURNAL article.
+\acmJournal{JACM}
+\acmVolume{37}
+\acmNumber{4}
+\acmArticle{111}
+\acmMonth{8}
+
 
 %% These commands are for a PROCEEDINGS abstract or paper.
 %\acmConference[Woodstock '18]{Woodstock '18: ACM Symposium on Neural
@@ -395,7 +403,7 @@ operated on separately.
 %software tools and sometimes naive experiments; however, we can infer
 %properties applicable to proprietary and custom solutions.
 %Hi Paolo, above two sentences need further clarification
-\newpage 
+%\newpage 
 \Doublefigure{.49}{../python/PNG/OPF_3754_mtx_regular}{../python/PNG/lp_osa_07_mtx_regular}{Left:
   OPF 3754. Right: LP OSA 07. These are histograms where we represent
   normalized buckets and counts}{fig:one}
@@ -566,7 +574,7 @@ is beneficial.
 \doublefigure{.45}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/ELLEPNG/OPF_3754_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six1}
 \doublefigure{.45}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_COO.png}{../python/FIJIPNG/OPF_3754_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:six2}
 
-\newpage
+%\newpage
 
 For matrix LP OSA 07, randomization helps clearly only for CPU CSR as
 we show in Figure \ref{fig:eight}. In Figure \ref{fig:eight1},
@@ -580,7 +588,7 @@ possible (40\% improvement).
 \doublefigure{.45}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/ELLEPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Ellesmere, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight2}
 \doublefigure{.45}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_COO.png}{../python/FIJIPNG/lp_osa_07_mtx_GPU_64_CSR.png}{Fiji, GPU 64bits COO (left) and GPU CSR (right) for OPF 3754}{fig:eight3}
 
-\newpage
+%\newpage
 An example, the matrix MULT DCOP 01, is where randomization is useful
 for the CPU, GPU, and the parallel version Figure \ref{fig:9},
 \ref{fig:10} - \ref{fig:11} and the gains can be up to
@@ -748,7 +756,11 @@ introduce a $\boldsymbol *$ following the best performance. This is
 tedious to read and, we assure, to write. The code and the results are
 available as software repository. Remember each experiment is based on
 32 different runs and thus we report maximum, minimum, and mean as a
-summary. We use the symbol H for entropy.  \input{out.v.tex} \input{out.elle.tex} \input{out.fiji.tex}
+summary. We use the symbol H for entropy.
+
+\input{out.v.tex}
+\input{out.elle.tex}
+\input{out.fiji.tex}
 
 
 

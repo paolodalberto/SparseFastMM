@@ -15,12 +15,14 @@ import random
 from  gpu_script import gpu_execute
 from  thread_script import compute_parallel,compute_parallel_2
 
+
+
 class Element:
     def __init__(self,row,col,data):
         self.row = row
         self.col = col
         self.data=data
-
+        
     def __str__(self):
         return str((self.row, self.col,self.strange, self.prob))
 

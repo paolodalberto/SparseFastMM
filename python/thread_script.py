@@ -1,4 +1,5 @@
 from multiprocessing import Pool
+from multiprocessing import Process 
 import scipy
 import scipy.io as sio
 import math
@@ -73,7 +74,6 @@ RESFILE = "result-"+str(DEVICE)+".json"
 Template = "Matrix %s K = %2d Time %1.4f time/average %2.4f GFLOPS %2.4f" 
 
 def f(x):
-    #print(x)
     AC =x[2] 
     N = AC.shape[0]
     B = x[3]
@@ -81,20 +81,38 @@ def f(x):
     
     S = N//x[1]
     l = x[0]*S
-    #print(x[0],x[1],x[0]==x[1]-1)
-    if x[0]==(x[1]-1):
-        r = N
-    else:
-        r = (x[0]+1)*S
+    if x[0]==(x[1]-1):      r = N
+    else:                   r = (x[0]+1)*S
 
-    #print(l,r)
     b = time.time();
     for ll in range(0,IN):
         Rf = AC[l:r,:]*B
     e = time.time(); 
-    #print(type(Rf))
-    return [(e-b)/IN] #x[0],e-b,r-l,l,r,S,x]
-    #return [Rf,e-b] #x[0],e-b,r-l,l,r,S,x]
+    return [(e-b)/IN] 
+
+def ff(x,y,i):
+#    print("FF")
+#    print(x,y,i)
+#    print("FF")
+    
+
+    AC =x[2] 
+    N = AC.shape[0]
+    B = x[3]
+    IN = x[4]
+    
+    S = N//x[1]
+    l = x[0]*S
+    if x[0]==(x[1]-1):      r = N
+    else:                   r = (x[0]+1)*S
+
+    b = time.time();
+    for ll in range(0,IN):
+        Rf = AC[l:r,:]*B
+    e = time.time();
+    y[i] = [(e-b)/IN] 
+    return y[i]
+
 
 
 
@@ -162,7 +180,80 @@ def compute_parallel(list,
         result = Q.format(*tuple(S))
         print(result, file= sys.stderr, flush=True)
         return  (result, S)
+
+def compute_parallel_2(list,
+                     INTERVAL=5000,
+                     DEVICE= 'cpu',
+                     R = {'cpu': {}},
+                     TIMES=1,
+                     THREADS=16):
+
+    res = R[DEVICE]
+    import os
+    for name in list:
+        A = sio.mmread(name)
+        AC= A.tocsr()
+        #pdb.set_trace()
+        B = numpy.ones(A.shape[1])
+    
+        if name not in res:
+            res[name] = {}
+    
+        best = []
+        K =1
         
+        while  K<=THREADS:
+            
+            X = []
+            
+            P = [ None for i in range(0,K) ]
+            Y = [ 0.0 for i in range(0,K) ]
+            Range = ",".join([ str(i) for i in range(0,K)])
+            os.system("taskset -p -c %s %d > /dev/null" % (Range,os.getpid()))
+            b = time.time();
+            for k in range(0,K):
+                X = [k,K,AC,B,INTERVAL]
+                #import pdb; pdb.set_trace()
+                p = Process(target = ff, args = (X,Y,k))
+                #help(p)
+                #os.system("taskset -p -c %d %d" % ((k % os.cpu_count()), p.pid))
+                p.start()
+                
+                P[k] = p
+
+            for k in range(0,K):
+                P[k].join()
+                
+            e = time.time()
+            ti = (e-b)/TIMES 
+            t = Y
+            res[name][K] = {
+                'P':K,
+                'nnz':AC.nnz,
+                'shape' : AC.shape,
+                'time':ti,
+                'interval': INTERVAL,
+                'gflops':INTERVAL*2.0*AC.nnz/ti/1000000000,
+                'mean':numpy.mean(t), 'var': numpy.var(t)
+            }
+            print(Template % (name,  K, res[name][K]['time'],
+                              res[name][K]['time']/res[name][K]['mean']/INTERVAL, res[name][K]['gflops'] ),
+                  file=sys.stderr)
+            best.append([res[name][K]['gflops'],K,res[name][K]['time']/res[name][K]['mean']/INTERVAL])
+
+            
+
+            K = K + (2 if K%2 ==0 else 1)
+        #print(name, AC.nnz,sorted(best,key = lambda x: x[0])[-1])
+    
+        Q = "#P {1:2d} GFLOPS {0:2.3f}  Total/Average {2:2.2f}"
+        S = sorted(best,key = lambda x: x[0])[-1]
+        
+        #print(S)
+        result = Q.format(*tuple(S))
+        print(result, file= sys.stderr, flush=True)
+        return  (result, S)
+
         
 if __name__ == '__main__':
 
