@@ -72,14 +72,114 @@ def dense(A, x = 2 ):
             Sparse.col[i] = c
             Sparse.row[i] = r
             Sparse.data[i] = val
-        elif c>Wd-count_w and  r<=Hd-count_h:
+        elif c>=Wd-count_w and  r<Hd-count_h:
             # Dense width 
             DenseW[r,Wd - c-1] = val
-        elif r> Hd-count_h:
+        elif r>= Hd-count_h:
             # dense height
             DenseH[Hd-r-1,c] = val
     #result matrix plus swaps
     Sparse.eliminate_zeros()
+    return Sparse,DenseW,DenseH,W,H
+
+######################
+## inputs : A COO matrix
+## outputs: 
+##       S COO matrix
+##       W dense
+##       H dense
+##       sort vectors for permute
+######################
+def denseABC(A, x = 1 ):
+    Hd,Wd = A.shape #height, width
+    nnz   = A.nnz    
+
+    ## histograms by height and width
+    DH = numpy.zeros(Hd,dtype='int')
+    DW = numpy.zeros(Wd,dtype='int')
+
+    for i in range(0,nnz):
+        c = A.col[i]; r = A.row[i]
+        DW[c-1] +=1 ; DH[r-1] +=1  
+
+    ## dense part by height
+    count_h = len(DH[DH>Wd/10]) if x&1>0 else 0
+    DenseH  = A*0.0
+    DenseHShape= (count_h,Wd)
+
+    count_w = len(DW[DW>Hd/10])
+    count_w = count_w if  count_w>= 4 and  x&2>0 else 0 
+    DenseWShape = Hd,count_w
+    DenseW = A *0.0
+    print(count_h,count_w)
+    if count_h ==0 and  count_w == 0:
+        DenseH.eliminate_zeros();
+        DenseW.eliminate_zeros(); 
+        return A,DenseW,DenseH,None,None
+    H = []
+    for i in range(Hd):
+        H.append([i,DH[i]])
+    H = sorted(H, key = lambda x: x[1])
+
+    
+    W = []
+    for i in range(Wd):
+        W.append([i,DW[i]])
+    W = sorted(W, key = lambda x: x[1])
+
+    ## dense part by width
+
+    
+    ## what considered dense ?
+    Sparse = A*0.0
+    j = 0
+    k = 0
+    l = 0
+    for i in range(0,nnz):
+        c = A.col[i]
+        r = A.row[i]
+        val = A.data[i]
+        c = W[c][0]
+        r = H[r][0]
+        
+        if c<Wd-count_w and  r<Hd-count_h:
+            # Sparse
+            Sparse.col[l] = c
+            Sparse.row[l] = r
+            Sparse.data[l] = val
+            l+=1
+        elif c>=Wd-count_w and  r<Hd-count_h:
+            # Dense width 
+            DenseW.col[j] = c-(Wd-count_w)
+            DenseW.row[j] = r
+            DenseW.data[j] = val
+            j+=1
+        elif r>= Hd-count_h:
+            # dense height
+            DenseH.col[k] = c
+            DenseH.row[k] = r-(Hd -count_h)
+            DenseH.data[k] = val
+            k+=1
+
+    print(i,l,j,k)
+    #result matrix plus swaps
+    print("S", Sparse.nnz)
+    Sparse.eliminate_zeros()
+    print("S", Sparse.nnz)
+    print("H", DenseH.shape, DenseH.nnz, DenseHShape)
+    DenseH.eliminate_zeros();
+    print("H", numpy.max(DenseH.row), numpy.max(DenseH.col))
+    print("H", DenseH.shape, DenseH.nnz, DenseHShape)
+    DenseH.resize(DenseHShape)
+    print("H", DenseH.shape, DenseH.nnz, DenseHShape)
+    print("W",DenseW.shape, DenseWShape)
+    print("W",DenseW.shape, DenseW.nnz, DenseWShape)
+    DenseW.eliminate_zeros();
+    DenseW.resize(DenseWShape)
+    print("W",DenseW.shape, DenseW.nnz, DenseWShape)
+
+    
+    #import pdb;pdb.set_trace()
     return Sparse,DenseW,DenseH,W,H
 
 def split_compute(S,W,H,B):
@@ -219,6 +319,16 @@ def split(args):
 
 def fun_2(filename):
     A = sio.mmread(filename)
+
+    if args.sparsesplit:
+        S,DW,DH,W,H = denseABC(A)
+        file = filename[filename.rfind("/")+1 : filename.rfind(".")]
+        print(args.sparsesplit+"/"+file+".mtx")
+        sio.mmwrite(args.sparsesplit+"/"+file+".mtx",A)
+        sio.mmwrite(args.sparsesplit+"/"+file+"_s"+".mtx",S)
+        sio.mmwrite(args.sparsesplit+"/"+file+"_d"+".mtx",DW)
+        sio.mmwrite(args.sparsesplit+"/"+file+"_h"+".mtx",DH)
+        return [filename, A.nnz,S.shape,DW.shape,DH.shape]
     S,DW,DH,W,H = dense(A)
     #print(filename,A.nnz,S.shape,DW.shape,DH.shape)
     if DH.shape[0]* DH.shape[1] ==0 and DW.shape[0]* DW.shape[1] ==0:
@@ -267,12 +377,15 @@ def fun_2(filename):
 if __name__ == '__main__':
 
     from progress.bar import Bar
+    ent.parameters.append(
+        ("-sparsesplit", "--sparsesplit",  str,None,    'store',"Input matrix")
+    )
     parser = ent.default_compiler_arg_parser()
     args = parser.parse_args()
 
     files =  args.file.split(",")
     #print(files)
-    P = Pool(8)
+    P = Pool(1)
     Rx = []
     Rx.extend( P.map(fun_2, files));
 
