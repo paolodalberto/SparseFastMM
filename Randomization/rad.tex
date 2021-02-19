@@ -35,16 +35,16 @@
 %% the commands and values with those provided to you when you
 %% complete the rights form.
 \setcopyright{acmcopyright}
-\copyrightyear{2020}
-\acmYear{2020}
+\copyrightyear{2021}
+\acmYear{2021}
 \acmDOI{}
 
 %% These commands are for a JOURNAL article.
 \acmJournal{JACM}
-\acmVolume{37}
-\acmNumber{4}
-\acmArticle{111}
-\acmMonth{8}
+\acmVolume{--}
+\acmNumber{--}
+\acmArticle{---}
+\acmMonth{3}
 
 
 %% These commands are for a PROCEEDINGS abstract or paper.
@@ -106,22 +106,22 @@
 
 \begin{abstract}
 The peak performance of any SpMV depends primarily on the available
-memory bandwidth and the capability to use it effectively. GPUs,
-ASICs, and new FPGAs have higher and higher bandwidth; however, for
-large scale and highly sparse matrices we find still difficult
-utilizing this bandwidth because the SpMV random access pattern and
-workload imbalance.  We propose a matrix permutation pre-processing
-step that aims to maximize the entropy of the distribution of the
-nonzero elements.  We seek any permutation that uniformly distributes
-the non-zero elements' distribution, thereby generating a SpMV problem
-that is amenable to work load balancing or to speed up sort
-algorithms.  We conjecture these permutations would be most effective
-for matrices with no dense rows or columns and, as in preconditioning,
-when the matrix is reused. We shall show that entropy maximization is
-an optimization that any architecture may take advantage although in
-different ways. Most importantly, any developer can consider and
-deploy. We shall present cases where we can improve performance by
-15\% on AMD-based systems.
+memory bandwidth and its effective use. GPUs, ASICs, and new FPGAs
+have higher and higher bandwidth; however, for large scale and highly
+sparse matrices, SpMV is still a hard problem because of its random
+access pattern and workload imbalance.  Here, we show how to turn
+randomness to our advantage. We propose a matrix permutation
+pre-processing step that aims to maximize the entropy of the
+distribution of the nonzero elements.  We seek any permutation that
+uniformly distributes the non-zero elements' distribution, thereby
+generating a SpMV problem that is amenable to work load balancing or
+to speed up sort algorithms.  We conjecture these permutations would
+be most effective for matrices with no dense rows or columns and, as
+in preconditioning, when the matrix is reused. We shall show that
+entropy maximization is an optimization that any architecture may take
+advantage although in different ways. Most importantly, any developer
+can consider and deploy. We shall present cases where we can improve
+performance by 15\% on AMD-based (GPU-CPU) systems.
 
 \end{abstract}
 
@@ -130,20 +130,27 @@ deploy. We shall present cases where we can improve performance by
 \section{Introduction} 
 \label{sec:introduction}
 
-To define the scope of this work, the obvious questions to ask are:
+To define the scope of our work, the obvious questions to ask are:
 first, what randomization or entropy maximization is in the context of
 sparse matrices; second, why would we use it; third, when it does
 work.  We shall provide formal definitions in the following
-sections. Briefly, we will permute randomly the rows and columns of a
-sparse matrix before multiplying it with a dense vector (SpMV) with
-the aim of speeding this operation.  Undoubtedly, this scheme requires
-some restrictions about the matrix structure, one among them is that
-is has no or few dense columns or rows.  In the case, where there are
-dense columns or rows, a sparse/dense partitioning scheme should be
-used. For the remainder of this manuscript, we shall assume the former
-nonzero structure. We use randomization because it is the poor man's
-way for preconditioning SpMV in our context, and we do not mean it in
-a pejorative sense.
+sections. Here briefly, we will permute randomly the rows and columns
+of a sparse matrix before multiplying it by a dense vector (SpMV) with
+the aim of speeding this operation (accordingly the input and output
+vectors will be permuted).
+\begin{equation}
+(P_r\Vc{y}) =(P_r \Vc{A} P_c)* (P_c^{-1}\Vc{x}) 
+\end{equation}
+
+Undoubtedly, this scheme requires some restrictions about the matrix
+structure: for example, it must have no or few dense columns or rows.
+In this unfortunate case, a sparse/dense partitioning scheme should be
+used and different algorithms/hardware could be deployed separately
+instead. Here suffice to say that the partitioning advantages rely on
+a clear definition of density.  For the remainder of this manuscript,
+we shall assume the former nonzero structure. We use randomization
+because it is the poor man's way for preconditioning SpMV in our
+context, and we do not mean it in a pejorative sense.
 
 
 Preconditioning speeds up the convergence rate of an iterative linear
@@ -238,24 +245,23 @@ maximizing the entropy of the non-zero element distribution is an
 optimization transform and provides a clear context for our work.
 %\newline
 
-Clearly, optimally accelerating SpMV is a hard many-parameters
-optimization problem dependent on the choice of algorithm, data
-structures, and dedicated hardware (CPU, GPUs, FPGA's, Custom ASIC's).
-Rather, our goal is to provide a tool, we may say a naive tool, to
-help understand how the structure of the matrix may affect the HW-SW
-solution.  For the readers in the field of algorithms, SpMV can be
-mapped into a sorting algorithm. For example, finding elements
-$x_{i,j}$ and $x_{i,k>j}$ in a sparse matrix requires to find row $i$
-and then columns $j$ and $k$.  Sorting is a method to find if an
-element is in a list with no prior or limited knowledge of its
-contents.  Sorting can be used to prepare the matrix and to find
-elements in between sparse matrices and sparse vectors. In custom
-architectures, sorting networks are used to route matrix and vector
-elements to functional units. In a sense, if one is stuck with a
-sorting algorithm and a poor distribution, randomization may alter the
-distribution and throttle performance. Interestingly, the best sorting
-algorithm is a function of the distribution of the elements
-\cite{LiGP2004,HuangGl2009}.
+Clearly, accelerating SpMV is a hard many-parameters optimization
+problem dependent on the choice of algorithm, data structures, and
+dedicated hardware (CPU, GPUs, FPGA's, Custom ASIC's).  Rather, our
+goal is to provide a tool, we may say a naive tool, to help understand
+how the structure of the matrix may affect the HW-SW solution.  For
+the readers in the field of algorithms, SpMV can be mapped into a
+sorting algorithm. For example, finding elements $x_{i,j}$ and
+$x_{i,k>j}$ in a sparse matrix requires to find row $i$ and then
+columns $j$ and $k$.  Sorting is a method to find if an element is in
+a list with no prior or limited knowledge of its contents.  Sorting
+can be used to prepare the matrix and to find elements in between
+sparse matrices and sparse vectors. In custom architectures, sorting
+networks are used to route matrix and vector elements to functional
+units. In a sense, if one is stuck with a sorting algorithm and a poor
+distribution, randomization may alter the distribution and throttle
+performance. Interestingly, the best sorting algorithm is a function
+of the distribution of the elements \cite{LiGP2004,HuangGl2009}.
 
 We organize this work as follows: In Section \ref{sec:notations}, we
 define the matrix by vector operation; in Section
@@ -347,9 +353,9 @@ have an irregular pattern.
 \label{sec:randomization}
 We define {\em Randomization} as row or column permutation transform
 of the matrix $\M$ (thus a permutation of $\Vc{y}$ and $\Vc{x}$), and
-we choose these by a pseudo-random process. The obvious question to as
-is why should we seek randomization transform?  The sparsity of a
-given matrix $\M$ has a non-zero element distribution induced by the
+we choose these by a pseudo-random process. The obvious question is to
+as why should we seek randomization transforms?  The sparsity of
+a given matrix $\M$ has a non-zero element distribution induced by the
 nature of the original problem or by some imposed ordering on the
 respective nodes of its associated graph.  This distribution may be
 computationally incompatible with the chosen algorithm or
