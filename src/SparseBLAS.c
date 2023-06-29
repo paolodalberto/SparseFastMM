@@ -29,7 +29,7 @@ int validate(COO A) {
       printf(" %d <%d location %lu A.M %d A.N %d L = %lu Current (%d,%d,%d) < previous (%d,%d,%d ) \n",
 	     c.m*A.N+c.n, l.m*A.N+l.n,
 	     i,A.M, A.N, A.length,
-	     c.m,c.n,c.value,l.m,l.n,l.value);
+	     c.m,c.n,(int)c.value,l.m,l.n,(int)l.value);
       return 0;
     }
     
@@ -47,8 +47,8 @@ int validateT(COO A) {
       printf(" %d < %d location %lu A.M %d A.N %d L = %lu Current (%d,%d,%d) < previous (%d,%d,%d ) \n",
 	     c.m+A.M*c.n ,  l.m+A.M*l.n,
 	     i, A.M, A.N, A.length,
-	     c.m,c.n,c.value,
-	     l.m,l.n,l.value);
+	     c.m,c.n,(int)c.value,
+	     l.m,l.n,(int)l.value);
       return 0;
     }
     
@@ -65,7 +65,7 @@ COO buildrandom_coo_list(int k, int D){
   int r[D];
   int q[D];
   int min, imin=0;
-  static int FFF = 0;
+  static int FFF = 1;
   
   res.data = array;
 
@@ -104,6 +104,8 @@ COO buildrandom_coo_list(int k, int D){
   }
   res.length = range;
 
+  if (FFF) print_coo(res);
+  
   if (DEBUG)
     printf("Size allocated %d and used %lu \n", k*k,range);
   return res;
@@ -190,19 +192,23 @@ void smvp(int nodes,
 }
 
 
-
+/***************************************
+ * Sparse Matrix COO = COO * COO
+ * COO  = [*COOE, nnz, ops, M, N] 
+ * COOE =[ m,n, val ]
+ *  
+ **************************************/
 
 
 COO matmul_coo(COO A,COO B) {
 
   long unsigned int i, j, t, l,row, col;
-  COOTemporary T = { NULL, 0, A.M, B.N};
+  COOTemporary T = { NULL, 0, A.M, B.N}; 
   COO CT = initialize_COO( NULL,  0,A.M, B.N ); 
-  int kk = 1;
   initialize_coot(&T);
   long unsigned int ops = 0;
  
-  l  = 0; // C and T runner 
+  l = 0; // C and T runner 
   i = 0; // A runner
 
   while (i<A.length) {
@@ -223,7 +229,9 @@ COO matmul_coo(COO A,COO B) {
       long unsigned int jjj = collectcol(B.data, B.length,j,B.data[j].n); 
       long unsigned int jj=j;
       col = B.data[j].n;
-      if (DEBUG) printf("%lu\t j=%lu Col %lu jj=%lu jjj=%lu (%d,%d)\n",l,j,col,jj,jjj,B.data[j].m,B.data[j].n);
+      if (DEBUG)
+	printf("%lu\t j=%lu Col %lu jj=%lu jjj=%lu (%d,%d)\n",
+	       l,j,col,jj,jjj,B.data[j].m,B.data[j].n);
       ii= i;
       // a_row * b_col is like a merge
       while (ii<iii && jj<jjj) {
@@ -243,7 +251,9 @@ COO matmul_coo(COO A,COO B) {
       // if temp is not e_a (identity for +)  
       if (temp.value != e_a) {
 	int res = append_coot(&T, temp);
-	if (DEBUG) printf("\t\t append CT %d temp (%d,%d,%d) \n",res,temp.m,temp.n,(int)temp.value);
+	if (DEBUG)
+	  printf("\t\t append CT %d temp (%d,%d,%d) \n",
+		 res,temp.m,temp.n,(int)temp.value);
       }
       
       j = jjj;  // next column 
@@ -262,13 +272,13 @@ COO matmul_coo(COO A,COO B) {
   for (t=0; t<T.length;t++)	{
     CT.data[t] = index_coot(&T,t);
   }
-  if (DEBUG) printf("Compressed  CT %d %d %d \n",CT.M, CT.N, CT.length);
+  if (DEBUG) printf("Compressed  CT %d %d %ld \n",CT.M, CT.N, CT.length);
   
   free_coot(&T);
   if (DEBUG) printf("free TEMP \n");
   
   if (!validate(CT)) {
-    printf("Problems with CT\n",i);
+    printf("Problems with CT\n");
   } 
   
   
@@ -289,7 +299,7 @@ void print_coo(COO B) {
       printf("\n");
       rows = B.data[ktemp].m;
     }
-    printf("(%d,%d,%d)", B.data[ktemp].m,B.data[ktemp].n,B.data[ktemp].value  );
+    printf("(%d,%d,%d)", B.data[ktemp].m,B.data[ktemp].n,(int)B.data[ktemp].value  );
   }
   printf("\n");
 
@@ -304,14 +314,42 @@ void print_coo_c(COO B) {
       printf("\n");
       cols = B.data[ktemp].n;
     }
-    printf("(%d,%d,%d)", B.data[ktemp].m,B.data[ktemp].n,B.data[ktemp].value  );
+    printf("(%d,%d,%d)", B.data[ktemp].m,B.data[ktemp].n,(int)B.data[ktemp].value  );
   }
   printf("\n");
 
 }
 
 
+Mat *build_dense(COO A, int def) {
+  
+  Mat *c =  (Mat *) calloc(A.M*A.N,sizeof(Mat));
+  if (def==0) return c;
+  
+  for (int l=0; l<A.length; l++) {
+    COOE d = A.data[l];
+    c[d.m*A.N + d.n] = d.value*def;
+  }
 
+  return c;
+}
+
+
+int compare_dense(COO B, Mat *def) {
+
+  int cols =B.data[0].n;
+  printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
+  for (long unsigned int ktemp=0; ktemp<B.length; ktemp++) {
+    if (B.data[ktemp].n!= cols) {
+      printf("\n");
+      cols = B.data[ktemp].n;
+    }
+    printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
+	   B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n] );
+  }
+  printf("\n");
+
+}
 
 
 void matmul_f(
@@ -323,13 +361,6 @@ void matmul_f(
     printf("MAT C <%d, %d > ", cm,cn);
     printf("MAT A <%d, %d > ", am,an);
     printf("MAT B <%d, %d > \n", bm,bn);
-    if (cm <20 && cn <20) {
-      for (int i=0; i<am; i++) {
-	for (int j=0; j< bn; j++) 
-	  printf("%f ", (float)C[i*cn + j]);
-	    printf("\n");
-      }
-    }
   }
   for (int i=0; i<am; i++) 
     for (int j=0; j< bn; j++) 
@@ -340,18 +371,6 @@ void matmul_f(
 			  );
   
 
-  if (DEBUG) {
-    printf("MAT RC <%d, %d > \n", cm,cn);
-    if (cm <20 && cn <20) {
-      
-      for (int i=0; i<am; i++) {
-	for (int j=0; j< bn; j++) 
-	  printf("%f ", (float)C[i*cn + j]);
-	printf("\n");
-      }
-    
-    }
-  }
   
 
   

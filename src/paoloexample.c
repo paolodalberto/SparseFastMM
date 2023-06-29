@@ -39,16 +39,18 @@ static int DEBUG=0;
 
 
 
-int main() {
+int main(int argc, char **argv) {
   int k, D,Ps;
   COO M,MT;
   COO temp;
   int ver;
   int res;
+  Mat *C, *A, *B;
+
   
-  printf("K "); res= scanf("%d", &k);
-  printf("D "); res=scanf("%d", &D);
-  printf("P "); res=scanf("%d", &Ps);
+  printf("Size/dimension of a square matix K "); res= scanf("%d", &k);
+  printf("Degree or integer part of a percentage as density D "); res=scanf("%d", &D);
+  printf("Number of parallel processes P "); res=scanf("%d", &Ps);
   
   M = buildrandom_coo_list(k, D);
   ver = validate(M);
@@ -59,7 +61,7 @@ int main() {
       
   
   
-  printf("M %d %d %d \n", M.length, M.M, M.N); 
+  printf("M %ld %d %d \n", M.length, M.M, M.N); 
   
   MT = M;
 
@@ -68,6 +70,11 @@ int main() {
   assert(MT.data);
     
   for (int i=0;i<M.length;i++) MT.data[i] = M.data[i];
+ //print_coo(MT);
+  START_CLOCK;
+  rowsort(&M); // we really transpose the data so that the order is
+  END_CLOCK;
+  //print_coo_c(MT);
   
   //print_coo(MT);
   START_CLOCK;
@@ -81,14 +88,14 @@ int main() {
   }
   
   
-  printf("MT %d %d %d \n", MT.length, MT.M, MT.N); 
+  printf("MT %ld %d %d \n", MT.length, MT.M, MT.N); 
   
   if (DEBUG) print_coo(M);
 
   
   START_CLOCK;
   if (Ps<=1) { 
-    temp = matmul_coo(M,M,MT);
+    temp = matmul_coo(M,MT);
     printf("## %2d %3d %6d ",  1, D,MT.M);
   } 
   else { 
@@ -97,8 +104,28 @@ int main() {
   }
   END_CLOCK;
 
+  
+  
+  print_coo(temp);
 
-  if (DEBUG) print_coo(temp);
+  
+  A = build_dense(M,1);
+  compare_dense(M,A);
+  
+  B = build_dense(MT,1);
+  C = build_dense(temp,0);
+  
+  matmul_f(C, temp.M, temp.N,
+	   A, M.M, M.N,
+	   B, MT.M, MT.N);
+
+
+  compare_dense(temp,C);
+
+  free(A);
+  free(B);
+  free(C);
+    
   
   free(MT.data);
   free(M.data);

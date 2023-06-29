@@ -12,7 +12,8 @@ void insertionSort(COOE *arr, int n, Comparing comp, Ordering *order)
   int i,  j;
   if (DEBUG) {
     printf("%d insert>: ",n );
-    for (int i=0; i<n; i++) printf("(%d,%d,%d) ",arr[i].m,arr[i].n,arr[i].value);
+    for (int i=0; i<n; i++) printf("(%d,%d,%d) ",
+				   arr[i].m,arr[i].n,(int)arr[i].value);
     printf("\n");
   }
   
@@ -34,7 +35,8 @@ void insertionSort(COOE *arr, int n, Comparing comp, Ordering *order)
 
     if (DEBUG) {
       printf("%d insert<: ",n);
-      for (int i=0; i<n; i++) printf("(%d,%d,%d) ",arr[i].m,arr[i].n,arr[i].value);
+      for (int i=0; i<n; i++) printf("(%d,%d,%d) ",
+				     arr[i].m,arr[i].n,(int)arr[i].value);
       printf("\n");
     }
 
@@ -84,7 +86,8 @@ void quickSort(COOE *arr, int low, int high, Comparing comp, Ordering *order)
     {
       if (DEBUG) {
 	printf("%d %d quick >: ", low, high);
-	for (int i=low; i<=high; i++) printf("(%d,%d,%d) ",arr[i].m,arr[i].n,arr[i].value);
+	for (int i=low; i<=high; i++) printf("(%d,%d,%d) ",
+					     arr[i].m,arr[i].n,(int)arr[i].value);
 	printf("\n");
       }
       
@@ -99,7 +102,7 @@ void quickSort(COOE *arr, int low, int high, Comparing comp, Ordering *order)
 
 	if (DEBUG) {
 	  printf("%d pivot  quick >: ", pi);
-	  printf("(%d,%d,%d) ",arr[pi].m,arr[pi].n,arr[pi].value);
+	  printf("(%d,%d,%d) ",arr[pi].m,arr[pi].n,(int)arr[pi].value);
 	  printf("\n");
 	}
 
@@ -111,7 +114,7 @@ void quickSort(COOE *arr, int low, int high, Comparing comp, Ordering *order)
 
       if (DEBUG) {
 	printf("< %d %d quick: ", low, high);
-	for (int i=low; i<=high; i++) printf("(%d,%d,%d) ",arr[i].m,arr[i].n,arr[i].value);
+	for (int i=low; i<=high; i++) printf("(%d,%d,%d) ",arr[i].m,arr[i].n,(int)arr[i].value);
 	printf("\n");
       }
       

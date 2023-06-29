@@ -22,11 +22,17 @@ typedef double Mat ;
 #endif
 
 
+
+
+
+
 struct degree_type {
   int d;  // minimum 
   int D;  // maximum 
   int ad; // average degree
 } ;
+typedef struct degree_type Degree;
+
 
 
 
@@ -36,7 +42,6 @@ struct coo_type {
   int n;  // < N
   Mat value;
 } ;
-
 typedef struct coo_type COOE;
 
 
@@ -47,6 +52,22 @@ struct ordering {
   int order;
 };
 typedef struct ordering Ordering;
+
+
+
+static COOE* from_three_to_one(int *x, int *y, Mat *v, long unsigned int len) {
+
+  COOE * t = (COOE*) calloc(len,sizeof(COOE));
+  for (long unsigned int i=0; i<len; i++) {
+    t[i].n =x[i];
+    t[i].m =y[i];
+    t[i].value = v[i];
+  }
+  return t;
+
+}
+
+
 
   
 /* 
@@ -94,7 +115,7 @@ typedef struct cootemp_matrix COOTemporary;
 
 
 
-typedef struct degree_type Degree;
+
 struct adj_matrix {
   Mat *data;
   int m;
@@ -102,17 +123,6 @@ struct adj_matrix {
 };
 typedef struct adj_matrix Adjacent ;
 
-static COOE* from_three_to_one(int *x, int *y, Mat *v, long unsigned int len) {
-
-  COOE * t = (COOE*) calloc(len,sizeof(COOE));
-  for (long unsigned int i=0; i<len; i++) {
-    t[i].n =x[i];
-    t[i].m =y[i];
-    t[i].value = v[i];
-  }
-  return t;
-
-}
 
 
 static int initialize_coot(COOTemporary *T) { 
@@ -125,6 +135,7 @@ static int initialize_coot(COOTemporary *T) {
   assert(T->data[0]);
   return 1;
 }
+
 
 static inline COOE index_coot(COOTemporary *T, long unsigned int L) {
   int i = L/T->M;
@@ -182,6 +193,9 @@ extern void print_coo(COO B);
 extern void print_coo_c(COO B);
 extern int validate(COO B);
 extern int validateT(COO B);
+extern Mat *build_dense(COO A, int def);
+extern int compare_dense(COO A, Mat *d);
+
 
 #endif
 

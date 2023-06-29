@@ -61,7 +61,7 @@ void *basicComputation( void *s) {
   }
   
   *mc.c = mc.m(mc.a,mc.b);
-  printf("C =%2d  Ops %lu %d x %d x %d \n",
+  printf("C =%2d  Ops %lu %ld x %ld x %ld \n",
 	 mc.pi,
 	 mc.c->ops,
 	 mc.c->length,
@@ -237,11 +237,11 @@ COO *split_rows(COO A, int Ps) {
   b = (int*) malloc((L+1)*sizeof(int));
   Rows = (COO*) malloc(Ps*sizeof(COO));
   
-  if (DEBUG) printf("%u\n",(unsigned int)b); 
+  //if (DEBUG) printf("%d\n",(int)b); 
   
   r = count_rows(A,b);
   
-  if (DEBUG) printf("%u L = %d-%dx%d r =%d \n",(unsigned int)b,L,A.M,A.N,r); 
+  if (DEBUG) printf("L = %d-%dx%d r =%d \n",L,A.M,A.N,r); 
   RK = r%Ps;
   
   K = r/(Ps) + ((RK>0)?1:0) ;
@@ -262,7 +262,7 @@ COO *split_rows(COO A, int Ps) {
     Rows[k].N = A.N;
   }  
   if (DEBUG) printf("#Rows => %d \n",k);
-  printf("%u\n",(unsigned int)b); 
+  //printf("%u\n",(unsigned int)b); 
   free(b);
 
 
@@ -322,10 +322,10 @@ COO matmul_coo_par(COO C,COO A,COO B,
     for (j=0; j< Ts[i].length; j++)
       TR.data[k++] = Ts[i].data[j];
 
-  if (DEBUG) printf("TR %d %d%d  \n",TR.M,TR.N,TR.length); 
+  if (DEBUG) printf("TR %d %d %ld  \n",TR.M,TR.N,TR.length); 
   if (DEBUG && !validate(TR)) {
     
-    printf("Problems with TR\n",i);
+    printf("Problems with TR\n");
   }
   if (DEBUG) printf("C %d %d \n",C.M,C.N); 
   if (DEBUG && !validate(C)) {
@@ -356,7 +356,7 @@ COO
 matmul_coo_par_basic(
 		     int *_CX, int *_CY, Mat *_CV,
 		     long unsigned int LC,int MC, int NC,
-		     int *_AX,int *_AY,int *_AV,
+		     int *_AX,int *_AY,  Mat *_AV,
 		     long unsigned int LA, int MA,int NA,
 		     int *_BX, int *_BY, Mat *_BV,
 		     long unsigned int LB, int MB, int NB,
