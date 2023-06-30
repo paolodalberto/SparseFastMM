@@ -194,7 +194,7 @@ extern void print_coo_c(COO B);
 extern int validate(COO B);
 extern int validateT(COO B);
 extern Mat *build_dense(COO A, int def);
-extern int compare_dense(COO A, Mat *d);
+extern double compare_dense(COO A, Mat *d);
 
 
 #endif

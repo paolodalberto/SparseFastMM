@@ -65,7 +65,7 @@ COO buildrandom_coo_list(int k, int D){
   int r[D];
   int q[D];
   int min, imin=0;
-  static int FFF = 1;
+  static int FFF = 0;
   
   res.data = array;
 
@@ -335,20 +335,25 @@ Mat *build_dense(COO A, int def) {
 }
 
 
-int compare_dense(COO B, Mat *def) {
+double compare_dense(COO B, Mat *def) {
 
+  double res = 0;
   int cols =B.data[0].n;
   printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
   for (long unsigned int ktemp=0; ktemp<B.length; ktemp++) {
     if (B.data[ktemp].n!= cols) {
-      printf("\n");
+      if (B.length< 100) printf("\n");
       cols = B.data[ktemp].n;
     }
-    printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
-	   B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n] );
-  }
-  printf("\n");
+    res += B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n];
 
+    if (B.length< 100)
+      printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
+	     B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n] );
+  }
+  
+  printf("\n");
+  return res;
 }
 
 
