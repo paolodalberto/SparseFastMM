@@ -108,24 +108,27 @@ int main(int argc, char **argv) {
   
   print_coo(temp);
 
-  
-  A = build_dense(M,1);
-  compare_dense(M,A);
-  
-  B = build_dense(MT,1);
-  C = build_dense(temp,0);
-  
-  matmul_f(C, temp.M, temp.N,
-	   A, M.M, M.N,
-	   B, MT.M, MT.N);
 
-
-  compare_dense(temp,C);
-
-  free(A);
-  free(B);
-  free(C);
+  if (temp.length<10000)  { 
+    A = build_dense(M,1);
+    printf("%f \n",compare_dense(M,A));
     
+    B = build_dense(MT,1);
+    if (Ps>1) C = build_dense(M,1);
+    else      C = build_dense(temp,0);
+    
+    START_CLOCK;
+    matmul_f(C, temp.M, temp.N,
+	     A, M.M, M.N,
+	     B, MT.M, MT.N);
+    END_CLOCK;
+    
+    printf("%f \n",compare_dense(temp,C));
+    
+    free(A);
+    free(B);
+    free(C);
+  }
   
   free(MT.data);
   free(M.data);

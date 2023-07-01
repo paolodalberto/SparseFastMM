@@ -36,6 +36,23 @@ int validate(COO A) {
   }
   return 1;
 }
+int validate_b(COOBM A) {
+  Ordering order = {A.M, A.N, 1 } ;
+  
+  for (long unsigned int i=1; i< A.length; i++) { 
+    COOB l = A.data[i-1];
+    COOB c = A.data[i];
+    if (roworder(&c,&l,&order)<0 || A.data[i].m >A.M || A.data[i].n > A.N || A.data[i].n<0||A.data[i].m<0 ) {
+      printf(" %d <%d location %lu A.M %d A.N %d L = %lu Current (%d,%d,%d) < previous (%d,%d,%d ) \n",
+	     c.m*A.N+c.n, l.m*A.N+l.n,
+	     i,A.M, A.N, A.length,
+	     c.m,c.n,(int)c.value,l.m,l.n,(int)l.value);
+      return 0;
+    }
+    
+  }
+  return 1;
+}
 
 int validateT(COO A) {
   Ordering order = {A.M, A.N, 1 } ;
@@ -131,6 +148,35 @@ collectrow(
 long unsigned int
 collectcol(
 	   COOE *array,
+	   long unsigned int len,
+	   long unsigned int i,
+	   int col) {
+
+  long unsigned int j;
+
+  for (j=i; j<len && array[j].n ==col; j++);
+
+  return j;
+}
+
+// in row format
+long unsigned int
+collectrow_b(
+	   COOB *array,
+	   long unsigned int len,
+	   long unsigned int i,
+	   int row) {
+  long unsigned int j;
+
+  for (j=i; j<len && array[j].m ==row; j++);
+
+  return j;
+}
+
+// in column format
+long unsigned int
+collectcol_b(
+	   COOB *array,
 	   long unsigned int len,
 	   long unsigned int i,
 	   int col) {
@@ -285,6 +331,102 @@ COO matmul_coo(COO A,COO B) {
   return CT;
     
 }
+/***************************************
+ * Sparse Matrix COO = COO * COO
+ * COO  = [*COOE, nnz, ops, M, N] 
+ * COOE =[ m,n, val ]
+ *  
+ **************************************/
+
+
+COOMB matmul_coo_b(COOMB A,COOMB B) {
+
+  long unsigned int i, j, t, l,row, col;
+  COOBTemporary T = { NULL, 0, A.M, B.N}; 
+  COOB CT = initialize_COOMB( NULL,  0,A.M, B.N ); 
+  initialize_coot_b(&T);
+  long unsigned int ops = 0;
+  COOB temp_m = { row, B.data[j].n, EMPTY_BLOCK}; 
+ 
+  l = 0; // C and T runner 
+  i = 0; // A runner
+
+  while (i<A.length) {
+    // from i to iii there is the A[row] vector 
+    long unsigned int iii = collectrow_b(A.data, A.length,i,A.data[i].m); 
+    long unsigned int ii=i;
+    row = A.data[i].m;
+    if (DEBUG) printf("i = %lu Row %lu ii=%lu iii=%lu \n",i,row,ii,iii);
+    // filling entire rows from C till we have the first row of A
+    // if (kk) { DEBUG=1; kk =0; }
+    //else DEBUG =0;
+	      
+    j = 0;  // B runner
+    while (j<B.length) {
+      // temporary to hold the product
+      COOB temp = { row, B.data[j].n, EMPTY_BLOCK}; 
+      // from j to jjj there is the B[col] vector 
+      long unsigned int jjj = collectcol_b(B.data, B.length,j,B.data[j].n); 
+      long unsigned int jj=j;
+      col = B.data[j].n;
+      if (DEBUG)
+	printf("%lu\t j=%lu Col %lu jj=%lu jjj=%lu (%d,%d)\n",
+	       l,j,col,jj,jjj,B.data[j].m,B.data[j].n);
+      ii= i;
+      // a_row * b_col is like a merge
+      while (ii<iii && jj<jjj) {
+	if (A.data[ii].n == B.data[jj].m)  {
+	  ops += 2*8*8*8;
+	  mul_b(temp_m, A.data[ii].value,B.data[jj].value);
+	  add_b(temp, temp, temp_m);
+	  //	  temp.value = add(temp.value, mul(A.data[ii].value,B.data[jj].value));
+	  if (DEBUG) printf("\t\t Merge  (%d,%d,%d) \n", temp.m, temp.n,(int)temp.value);
+	  ii ++;  jj ++;
+	}
+	else { 
+	  if (A.data[ii].n < B.data[jj].m)   ii++;
+	  else                               jj++;
+	}
+      }
+      //Done because if either is empty nothing to do e_a*w = e_a
+      
+      // if temp is not e_a (identity for +)  
+      if (temp.value != e_a) {
+	int res = append_coot_b(&T, temp);
+	if (DEBUG)
+	  printf("\t\t append CT %d temp (%d,%d,%d) \n",
+		 res,temp.m,temp.n,(int)temp.value);
+      }
+      
+      j = jjj;  // next column 
+      if (0 && DEBUG) printf("\t end jjj %lu \n",jjj);
+    }
+    if (0 && DEBUG) printf("end iii %lu \n",iii);
+    i =iii; // next row
+  }
+    
+  // we copy the temporary result as a sparse and contiguous
+  // matrix and deallocate the temporary file.
+  if (DEBUG) printf("Compressing %lu \n", T.length);
+  CT.length = T.length;
+  CT.ops = ops;
+  CT.data = (COOB*) malloc(T.length*sizeof(COOB)); 
+  for (t=0; t<T.length;t++)	{
+    CT.data[t] = index_coot(&T,t);
+  }
+  if (DEBUG) printf("Compressed  CT %d %d %ld \n",CT.M, CT.N, CT.length);
+  
+  free_coot_b(&T);
+  if (DEBUG) printf("free TEMP \n");
+  
+  if (!validate(CT)) {
+    printf("Problems with CT\n");
+  } 
+  
+  
+  return CT;
+    
+}
 
 
 
@@ -337,12 +479,14 @@ Mat *build_dense(COO A, int def) {
 
 int compare_dense(COO B, Mat *def) {
 
-  int cols =B.data[0].n;
+
+  double res = 0;
+  int cols =B.data[0].m;
   printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
   for (long unsigned int ktemp=0; ktemp<B.length; ktemp++) {
-    if (B.data[ktemp].n!= cols) {
-      printf("\n");
-      cols = B.data[ktemp].n;
+    if (B.data[ktemp].m!= cols) {
+      if (B.length< 100) printf("\n");
+      cols = B.data[ktemp].m;
     }
     printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
 	   B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n] );
