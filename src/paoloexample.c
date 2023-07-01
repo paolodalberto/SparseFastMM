@@ -68,13 +68,12 @@ int main(int argc, char **argv) {
   MT.data = (COOE*) malloc(M.length*sizeof(COOE));
   
   assert(MT.data);
-
-  printf("MT %ld %d %d \n", MT.length, MT.M, MT.N); 
+    
   for (int i=0;i<M.length;i++) MT.data[i] = M.data[i];
-  //print_coo(MT);
-  // START_CLOCK;
-  // rowsort(&M); // we really transpose the data so that the order is
-  // END_CLOCK;
+ //print_coo(MT);
+  START_CLOCK;
+  rowsort(&M); // we really transpose the data so that the order is
+  END_CLOCK;
   //print_coo_c(MT);
   
   //print_coo(MT);
@@ -97,32 +96,31 @@ int main(int argc, char **argv) {
   START_CLOCK;
   if (Ps<=1) { 
     temp = matmul_coo(M,MT);
-    printf("## %2d %3d %6d \n",  1, D,MT.M);
+    printf("## %2d %3d %6d ",  1, D,MT.M);
   } 
   else { 
     temp = matmul_coo_par(M,M,MT,Ps);
-    printf("## %2d %3d %6d \n",  Ps, D, MT.M);
+    printf("## %2d %3d %6d ",  Ps, D, MT.M);
   }
   END_CLOCK;
 
   
-  if (temp.length<100)
-    print_coo(temp);
+  
+  print_coo(temp);
 
   
   A = build_dense(M,1);
-  printf("%f \n",compare_dense(M,A));
+  compare_dense(M,A);
   
   B = build_dense(MT,1);
   C = build_dense(temp,0);
   
-  START_CLOCK;
   matmul_f(C, temp.M, temp.N,
 	   A, M.M, M.N,
 	   B, MT.M, MT.N);
-  END_CLOCK;
 
-  printf("%f \n",compare_dense(temp,C));
+
+  compare_dense(temp,C);
 
   free(A);
   free(B);
