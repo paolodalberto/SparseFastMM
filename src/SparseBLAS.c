@@ -36,7 +36,7 @@ int validate(COO A) {
   }
   return 1;
 }
-int validate_b(COOBM A) {
+int validate_b(COOMB A) {
   Ordering order = {A.M, A.N, 1 } ;
   
   for (long unsigned int i=1; i< A.length; i++) { 
@@ -477,7 +477,7 @@ Mat *build_dense(COO A, int def) {
 }
 
 
-int compare_dense(COO B, Mat *def) {
+double compare_dense(COO B, Mat *def) {
 
 
   double res = 0;
@@ -488,11 +488,13 @@ int compare_dense(COO B, Mat *def) {
       if (B.length< 100) printf("\n");
       cols = B.data[ktemp].m;
     }
+
+    res += B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n];
     printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
 	   B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n] );
   }
   printf("\n");
-
+  return res;
 }
 
 

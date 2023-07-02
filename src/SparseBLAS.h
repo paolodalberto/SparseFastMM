@@ -3,12 +3,7 @@
 #include <limits.h>
 #include <assert.h>
 #include <stdlib.h>
-#include <stdio.h> 
-#include <block.h>
-
-
-
-
+#include <stdio.h>
 
 #ifdef GRAPH_PATH
 typedef int Mat ;
@@ -24,6 +19,14 @@ typedef double Mat ;
 #define mul(a,b) ((a)*(b))
 #define e_m  1
 #endif
+#include <block.h>
+
+
+
+
+
+
+
 
 
 
@@ -52,13 +55,6 @@ typedef struct coo_type COOE;
 
 
 
-// sparse matrix is a composition of coordinate (m,n,Bm,Bn, value)
-struct coo_type_block {
-  int m;  // < M
-  int n;  // < N
-  Mat value[BM][BN];
-} ;
-typedef struct coo_type COOB;
 
 
 
@@ -117,24 +113,6 @@ static COO initialize_COO(COOE *e, long unsigned int L, int M, int N) {
 }
 
 
-/* 
-   Block based sparse matrix .
- */
-struct coo_matrix_block {
-  COOB *data;
-  long unsigned int length; // number of COOB
-  long unsigned int ops;    // number of operations
-  int M;      // Dimensions Row
-  int N;      // Dimensions Column
-};
-
-typedef struct coo_matrix COOMB;
-static COO initialize_COOMB(COOB *e, long unsigned int L, int M, int N) {
-  COOMB C = { e, L, 0, M, N}; 
-  return C;
-}
-
-
 /*
   In C we must allocate space in advance. We create chunks of memory
   that can be used and then solidified into a single block
@@ -147,18 +125,6 @@ struct cootemp_matrix {
 };
 typedef struct cootemp_matrix COOTemporary;
 
-
-/*
-  In C we must allocate space in advance. We create chunks of memory
-  that can be used and then solidified into a single block
- */
-struct cootemp_matrix_b {
-  COOB **data;   // data[(L/(3*M)][(L/3 % N)*3]
-  long unsigned int length; // number of COOE 
-  int M;      // Dimensions Row
-  int N;      // Dimensions Column
-};
-typedef struct cootemp_matrix_b COOBTemporary;
 
 
 
@@ -184,16 +150,6 @@ static int initialize_coot(COOTemporary *T) {
   return 1;
 }
 
-static int initialize_coot_b(COOBTemporary *T) { 
-  T->data = (COOB**) calloc(T->M,sizeof(COOB*));
-  assert(T->data);
-  for (int i=0;i<T->M;i++) {
-    T->data[i] = 0;
-  }
-  T->data[0] = (COOB*) malloc(T->M*sizeof(COOE));
-  assert(T->data[0]);
-  return 1;
-}
 
 
 static inline COOE index_coot(COOTemporary *T, long unsigned int L) {
@@ -204,7 +160,7 @@ static inline COOE index_coot(COOTemporary *T, long unsigned int L) {
   //assert((L>T->length)?1:0) ;
   return T->data[i][j];
 }
-static inline COOB index_coot(COOBTemporary *T, long unsigned int L) {
+static inline COOB index_coot_b(COOBTemporary *T, long unsigned int L) {
   int i = L/T->M;
   int j = L % T->M;
   
@@ -215,20 +171,6 @@ static inline COOB index_coot(COOBTemporary *T, long unsigned int L) {
 
 
 static inline int free_coot(COOTemporary *T) {
-  long unsigned int L = T->length;
-  int i = L/T->M;
-
-
-  for (;i>=0; i--) {
-    free(T->data[i]);
-    T->data[i] = NULL;
-  }
-  T-> length = 0;
-  free(T->data);
-  return 1;
-}
-
-static inline int free_coot_b(COOBTemporary *T) {
   long unsigned int L = T->length;
   int i = L/T->M;
 
@@ -259,21 +201,6 @@ static inline int append_coot(COOTemporary *T, COOE val) {
   return add;
 }
 
-static inline int append_coot_b(COOBTemporary *T, COOB val) {
-  long unsigned int L = (T->length);
-  int i = L/T->M;
-  int j = L % T->M;
-  int add=0;
-  if (DEBUG && !T->data[i])  printf(" append_coot L =%lu i=%i j=%d  \n",L, i, j);
-  if (!T->data[i]) {
-    T->data[i] = (COOB*) malloc(T->M*sizeof(COOB));
-    assert(T->data[i] );
-    add = 1;
-  }
-  T->data[i][j] = val;
-  T->length ++;
-  return add;
-}
 
 
 #ifndef SPARSEBLASDEF
@@ -291,7 +218,7 @@ extern void print_coo_c(COO B);
 extern int validate(COO B);
 extern int validateT(COO B);
 extern Mat *build_dense(COO A, int def);
-extern int compare_dense(COO A, Mat *d);
+extern double compare_dense(COO A, Mat *d);
 
 
 #endif
