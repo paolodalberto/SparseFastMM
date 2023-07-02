@@ -90,7 +90,7 @@ static COOE* from_three_to_one(int *x, int *y, Mat *v, long unsigned int len) {
    
 */
 typedef int (*Comparing)(COOE *a, COOE *b, Ordering *c);
-
+typedef int (*ComparingB)(COOB *a, COOB *b, Ordering *c);
 
 /* 
    this is a real matrix a sequence of coordinate elements: length

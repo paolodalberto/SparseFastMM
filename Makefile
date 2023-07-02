@@ -11,8 +11,8 @@ Executable=Executable
 ALG = ALGEBRA_PATH
 
 ## Machine Specific optimizations
-#OPT =   -pthread -D$(ALG) -fwrapv -O3  -Wall -Wstrict-prototypes -fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2  -fstack-protector-strong -Wformat -Werror=format-security -fPIC
-OPT = -g -fPIC
+OPT =   -pthread -D$(ALG) -fwrapv -O3  -Wall -Wstrict-prototypes -fno-strict-aliasing -Wdate-time -D_FORTIFY_SOURCE=2  -fstack-protector-strong -Wformat -Werror=format-security -fPIC
+#OPT = -g -fPIC
 INC = -I ./$(DIR)  #-I/usr/include/python2.7/ -I/usr/local/lib/python2.7/dist-packages/numpy/core/include/numpy/ -I/usr/include/python2.7
 
 .c.o:

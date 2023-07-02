@@ -5,6 +5,7 @@
 
 
 
+
 // sparse matrix is a composition of coordinate (m,n,Bm,Bn, value)
 struct coo_type_block {
   int m;  // < M
@@ -81,6 +82,10 @@ struct coo_matrix_block {
 };
 
 typedef struct coo_matrix_block COOMB;
+
+
+
+
 
 static inline COOMB initialize_COOMB(COOB *e, long unsigned int L, int M, int N) {
   COOMB C = { e, L, 0, M, N}; 

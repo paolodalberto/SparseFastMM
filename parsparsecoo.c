@@ -67,6 +67,10 @@ void *basicComputation( void *s) {
 	 mc.c->length,
 	 mc.a.length,
 	 mc.b.length);
+  print_coo(mc.a);
+  print_coo_c(mc.b);
+  print_coo(mc.c);
+    
   return 0;
 }
 
@@ -257,7 +261,7 @@ COO *split_rows(COO A, int Ps) {
   if (1) {
     if (DEBUG) printf("k = %d i =%d b[i] = %d r =%d L = %d\n",k,i,b[i],r,b[r-1]-b[i]);     
     Rows[k].data = A.data +b[i];
-    Rows[k].length = b[r-1]-b[i];
+    Rows[k].length = b[r]-b[i];
     Rows[k].M = A.M;
     Rows[k].N = A.N;
   }  

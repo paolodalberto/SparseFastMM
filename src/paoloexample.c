@@ -75,12 +75,13 @@ int main(int argc, char **argv) {
   rowsort(&M); // we really transpose the data so that the order is
   END_CLOCK;
   //print_coo_c(MT);
-  
+  printf("ROW SORT\n"); 
   //print_coo(MT);
   START_CLOCK;
   columnsort(&MT); // we really transpose the data so that the order is
   END_CLOCK;
   //print_coo_c(MT);
+  printf("COL SORT\n"); 
 
   ver = validateT(MT);
   if (!ver) {
@@ -96,22 +97,22 @@ int main(int argc, char **argv) {
   START_CLOCK;
   if (Ps<=1) { 
     temp = matmul_coo(M,MT);
-    printf("## %2d %3d %6d ",  1, D,MT.M);
+    printf("## %2d %3d %6d %d\n",  1, D,MT.M,temp.length);
   } 
   else { 
     temp = matmul_coo_par(M,M,MT,Ps);
-    printf("## %2d %3d %6d ",  Ps, D, MT.M);
+    printf("## %2d %3d %6d %d \n",  Ps, D, MT.M,temp.length);
   }
   END_CLOCK;
 
   
   
-  print_coo(temp);
+  //print_coo(temp);
 
 
-  if (temp.length<10000)  { 
+  if (temp.length<1000000)  { 
     A = build_dense(M,1);
-    printf("%f \n",compare_dense(M,A));
+    //printf("%f \n",compare_dense(M,A));
     
     B = build_dense(MT,1);
     if (Ps>1) C = build_dense(M,1);
@@ -123,7 +124,7 @@ int main(int argc, char **argv) {
 	     B, MT.M, MT.N);
     END_CLOCK;
     
-    printf("%f \n",compare_dense(temp,C));
+    printf("DIFF %f \n",compare_dense(temp,C));
     
     free(A);
     free(B);

@@ -42,11 +42,11 @@ int validate_b(COOMB A) {
   for (long unsigned int i=1; i< A.length; i++) { 
     COOB l = A.data[i-1];
     COOB c = A.data[i];
-    if (roworder(&c,&l,&order)<0 || A.data[i].m >A.M || A.data[i].n > A.N || A.data[i].n<0||A.data[i].m<0 ) {
+    if (roworder_b(&c,&l,&order)<0 || A.data[i].m >A.M || A.data[i].n > A.N || A.data[i].n<0||A.data[i].m<0 ) {
       printf(" %d <%d location %lu A.M %d A.N %d L = %lu Current (%d,%d,%d) < previous (%d,%d,%d ) \n",
 	     c.m*A.N+c.n, l.m*A.N+l.n,
 	     i,A.M, A.N, A.length,
-	     c.m,c.n,(int)c.value,l.m,l.n,(int)l.value);
+	     c.m,c.n,(int)c.value[0],l.m,l.n,(int)l.value[0]);
       return 0;
     }
     
@@ -82,7 +82,7 @@ COO buildrandom_coo_list(int k, int D){
   int r[D];
   int q[D];
   int min, imin=0;
-  static int FFF = 1;
+  static int FFF = 0;
   
   res.data = array;
 
@@ -343,10 +343,11 @@ COOMB matmul_coo_b(COOMB A,COOMB B) {
 
   long unsigned int i, j, t, l,row, col;
   COOBTemporary T = { NULL, 0, A.M, B.N}; 
-  COOB CT = initialize_COOMB( NULL,  0,A.M, B.N ); 
+  COOMB CT = initialize_COOMB( NULL,  0,A.M, B.N ); 
   initialize_coot_b(&T);
   long unsigned int ops = 0;
-  COOB temp_m = { row, B.data[j].n, EMPTY_BLOCK}; 
+  COOB temp_m = { row, B.data[j].n, EMPTY_BLOCK};
+
  
   l = 0; // C and T runner 
   i = 0; // A runner
@@ -377,10 +378,10 @@ COOMB matmul_coo_b(COOMB A,COOMB B) {
       while (ii<iii && jj<jjj) {
 	if (A.data[ii].n == B.data[jj].m)  {
 	  ops += 2*8*8*8;
-	  mul_b(temp_m, A.data[ii].value,B.data[jj].value);
+	  mul_b(temp_m, A.data[ii],B.data[jj]);
 	  add_b(temp, temp, temp_m);
 	  //	  temp.value = add(temp.value, mul(A.data[ii].value,B.data[jj].value));
-	  if (DEBUG) printf("\t\t Merge  (%d,%d,%d) \n", temp.m, temp.n,(int)temp.value);
+	  if (DEBUG) printf("\t\t Merge  (%d,%d,%d) \n", temp.m, temp.n,(int)temp.value[0]);
 	  ii ++;  jj ++;
 	}
 	else { 
@@ -395,7 +396,7 @@ COOMB matmul_coo_b(COOMB A,COOMB B) {
 	int res = append_coot_b(&T, temp);
 	if (DEBUG)
 	  printf("\t\t append CT %d temp (%d,%d,%d) \n",
-		 res,temp.m,temp.n,(int)temp.value);
+		 res,temp.m,temp.n,(int)temp.value[0]);
       }
       
       j = jjj;  // next column 
@@ -412,14 +413,14 @@ COOMB matmul_coo_b(COOMB A,COOMB B) {
   CT.ops = ops;
   CT.data = (COOB*) malloc(T.length*sizeof(COOB)); 
   for (t=0; t<T.length;t++)	{
-    CT.data[t] = index_coot(&T,t);
+    CT.data[t] = index_coot_b(&T,t);
   }
   if (DEBUG) printf("Compressed  CT %d %d %ld \n",CT.M, CT.N, CT.length);
   
   free_coot_b(&T);
   if (DEBUG) printf("free TEMP \n");
   
-  if (!validate(CT)) {
+  if (!validate_b(CT)) {
     printf("Problems with CT\n");
   } 
   
@@ -482,7 +483,7 @@ double compare_dense(COO B, Mat *def) {
 
   double res = 0;
   int cols =B.data[0].m;
-  printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
+  if (B.length<100) printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
   for (long unsigned int ktemp=0; ktemp<B.length; ktemp++) {
     if (B.data[ktemp].m!= cols) {
       if (B.length< 100) printf("\n");
@@ -490,10 +491,10 @@ double compare_dense(COO B, Mat *def) {
     }
 
     res += B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n];
-    printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
+    if (B.length<100) printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
 	   B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n] );
   }
-  printf("\n");
+  if (B.length<100) printf("\n");
   return res;
 }
 
