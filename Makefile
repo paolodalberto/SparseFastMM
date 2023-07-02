@@ -21,6 +21,7 @@ INC = -I ./$(DIR)  #-I/usr/include/python2.7/ -I/usr/local/lib/python2.7/dist-pa
 
 
 OBJ= $(DIR)/paoloexample.o
+OBJ3= $(DIR)/paoloexample_b.o
 OBJ2 = $(DIR)/SparseBLAS.o $(DIR)/sorting.o  $(DIR)/parsparsecoo.o
 vecGen.o: $(DIR)/vecGen.c $(DIR)/vecGen.h
 	$(CC) $(CFLAGS) $< -o $@
@@ -41,6 +42,10 @@ par: $(OBJ) $(DIR)/mainPar.c
 sparsecoo: $(OBJ)
 	make lib
 	$(CC) $(OPT) $(DIR)/paoloexample.o  -o $(Executable)/stest  -L ./lib -lsparsefastmm  -lpthread
+
+sparsemb: $(OBJ3)
+	make lib
+	$(CC) $(OPT) $(DIR)/paoloexample_b.o  -o $(Executable)/stest  -L ./lib -lsparsefastmm  -lpthread
 
 
 lib: $(OBJ2)

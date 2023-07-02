@@ -130,6 +130,64 @@ COO buildrandom_coo_list(int k, int D){
 
 
 
+COOMB buildrandom_coomb_list(int k, int D){
+  long unsigned int range = 0;
+  COOMB res = initialize_COOMB( NULL, 0, k,k);
+  COOB *array ;
+  array =  (COOB *) malloc(sizeof(COOB)*k*((10*D<k)?(10*D):k));
+  int r[D];
+  int q[D];
+  int min, imin=0;
+  static int FFF = 0;
+  
+  res.data = array;
+
+  if (DEBUG)
+    printf("Degree %d \n", D);
+
+  if (FFF) printf("\n");
+  for (int i=0; i < k; i++) {
+    r[0] = i;
+    for (int j=1; j<D; j++ )  {
+      r[j] = (r[j-1] + 1+random() % (k-1)/D) %k; 
+    }
+    min = k;
+    for (int j=0; j<D; j++ )  {
+      if (r[j] <min) { min=r[j]; imin=j;}
+    }
+    if (FFF) {   printf("%d %d r ",i,imin);
+      for (int j=0; j<D; j++ )
+	printf("%2d ",r[j]);
+      printf(" \tq ");
+    }
+    for (int j=0; j<D; j++ ) { 
+      q[j] = r[(j+imin)%D];
+    }
+    if (FFF)  {
+      for (int j=0; j<D; j++ )
+	printf("%2d ",q[j]);
+      printf("\n");
+    }
+    for (int j=0; j<D; j++ )  {
+      array[range].m = i;
+      array[range].n = q[j];
+      for (int r=0; r<BM_; r++)
+	for (int c=0; c< BN_; c++)
+	  array[range].value[r*BN_+c] = 1;
+      range ++;
+      }
+  }
+  res.length = range;
+
+  if (FFF) print_coomb(res);
+  
+  if (DEBUG)
+    printf("Size allocated %d and used %lu \n", k*k,range);
+  return res;
+}
+
+
+
 // in row format
 long unsigned int
 collectrow(
@@ -346,7 +404,7 @@ COOMB matmul_coo_b(COOMB A,COOMB B) {
   COOMB CT = initialize_COOMB( NULL,  0,A.M, B.N ); 
   initialize_coot_b(&T);
   long unsigned int ops = 0;
-  COOB temp_m = { row, B.data[j].n, EMPTY_BLOCK};
+  COOB temp_m = { 0, 0, EMPTY_BLOCK};
 
  
   l = 0; // C and T runner 
@@ -447,6 +505,23 @@ void print_coo(COO B) {
   printf("\n");
 
 }
+void print_coomb(COOMB B) {
+
+  int rows =B.data[0].m;
+  printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
+  for (long unsigned int ktemp=0; ktemp<B.length; ktemp++) {
+    if (B.data[ktemp].m!= rows) {
+      printf("\n");
+      rows = B.data[ktemp].m;
+    }
+    printf("(%d,%d)", B.data[ktemp].m,B.data[ktemp].n);
+    for (int r=0; r<BM_; r++)
+      for (int c=0; c< BN_; c++)
+	  printf("(%d)", (int)B.data[ktemp].value[r*BN_+c]);
+  }
+  printf("\n");
+
+}
 
 void print_coo_c(COO B) {
 
@@ -476,6 +551,20 @@ Mat *build_dense(COO A, int def) {
 
   return c;
 }
+Mat *build_densemb(COOMB A, int def) {
+  
+  Mat *c =  (Mat *) calloc(A.M*A.N*BN_*BM_,sizeof(Mat));
+  if (def==0) return c;
+  
+  for (int l=0; l<A.length; l++) {
+    COOB d = A.data[l];
+    for (int r=0; r<BM_; r++)
+      for (int cc=0; cc< BN_; cc++)
+	c[(d.m+r)*A.N + cc+ d.n] = d.value[r*BN_+cc]*def;
+  }
+
+  return c;
+}
 
 
 double compare_dense(COO B, Mat *def) {
@@ -493,6 +582,30 @@ double compare_dense(COO B, Mat *def) {
     res += B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n];
     if (B.length<100) printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
 	   B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n] );
+  }
+  if (B.length<100) printf("\n");
+  return res;
+}
+double compare_dense_mb(COOMB B, Mat *def) {
+
+
+  double res = 0;
+  int cols =B.data[0].m;
+  if (B.length<100) printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
+  for (long unsigned int ktemp=0; ktemp<B.length; ktemp++) {
+    double resb = 0;
+    if (B.data[ktemp].m!= cols) {
+      if (B.length< 100) printf("\n");
+      cols = B.data[ktemp].m;
+    }
+
+    for (int r=0; r<BM_; r++)
+      for (int c=0; c< BN_; c++)
+	resb += B.data[ktemp].value[r*BN_+c]-
+	  def[(B.data[ktemp].m+r)*B.N+B.data[ktemp].n+c];
+    if (B.length<100) printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
+	   resb );
+    res += resb;
   }
   if (B.length<100) printf("\n");
   return res;

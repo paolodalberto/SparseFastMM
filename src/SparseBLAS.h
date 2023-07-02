@@ -207,18 +207,24 @@ static inline int append_coot(COOTemporary *T, COOE val) {
 #define SPARSEBLASDEF
 
 extern COO matmul_coo(COO A,COO B);
+extern COOMB matmul_coo_b(COOMB A,COOMB B);
 extern COO buildrandom_coo_list(int k, int D);
+extern COOMB buildrandom_coomb_list(int k, int D);
 extern void matmul_f(
 		     Mat *C, int cm, int cn,
 		     Mat *A, int am, int an,
 		     Mat *B, int bm, int bn);
 
 extern void print_coo(COO B);
+extern void print_coomb(COOMB B);
 extern void print_coo_c(COO B);
 extern int validate(COO B);
+extern int validate_b(COOMB B);
 extern int validateT(COO B);
 extern Mat *build_dense(COO A, int def);
+extern Mat *build_densemb(COOMB A, int def);
 extern double compare_dense(COO A, Mat *d);
+extern double compare_dense_mb(COOMB A, Mat *d);
 
 
 #endif
