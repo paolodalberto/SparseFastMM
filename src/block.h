@@ -1,9 +1,11 @@
 
-
+#ifdef EIGHT
 #define BM_  8 
 #define BN_  8 
-
-
+#else
+#define BM_  2 
+#define BN_  2 
+#endif
 
 
 // sparse matrix is a composition of coordinate (m,n,Bm,Bn, value)
@@ -14,58 +16,57 @@ struct coo_type_block {
 } ;
 typedef struct coo_type_block COOB;
 
+#ifdef EIGHT
+#define EMPTY_BLOCK  {					       \
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
+    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
+      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0		       \
+      }							       
+#else
+#define EMPTY_BLOCK  {				\
+    0.0, 0.0,						       \
+      0.0, 0.0						       \
+      }	
+#endif
 
-#define EMPTY_BLOCK  { \
-    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
-    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
-    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
-    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
-    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
-    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
-    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
-    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0		       \
-  }							       \
+static COOB EA = {0, 0, EMPTY_BLOCK};
 
-
-    
-static inline void add_b(COOB C,  COOB A , COOB B){
+static inline int e_ab(COOB *B) {
+  Mat *b = B->value;
+  for (int i=0; i<BM_; i++) 
+    for (int j=0; j<BN_; j++) 
+      if (b[i*BN_+j] != EA.value[i*BN_+j])  return 0; 
   
-  Mat *c = C.value; Mat *a = A.value; Mat *b = B.value;
+  return 1;
 
-  for (int i=0; i<BM_; i++) { 
-    c[i*BN_+0] = add(a[i*BN_+0],b[i*BN_+0]);
-    c[i*BN_+1] = add(a[i*BN_+1],b[i*BN_+1]);
-    c[i*BN_+2] = add(a[i*BN_+2],b[i*BN_+2]);
-    c[i*BN_+3] = add(a[i*BN_+3],b[i*BN_+3]);
-    c[i*BN_+4] = add(a[i*BN_+4],b[i*BN_+4]);
-    c[i*BN_+5] = add(a[i*BN_+5],b[i*BN_+5]);
-    c[i*BN_+6] = add(a[i*BN_+6],b[i*BN_+6]);
-    c[i*BN_+7] = add(a[i*BN_+7],b[i*BN_+7]);
-  }
-  
-  
 }
-static inline void mul_b(COOB C,  COOB A , COOB B){
-  Mat *c = C.value; Mat *a = A.value; Mat *b = B.value;
 
-  Mat a0,a1,a2,a3,a4,a5,a6,a7;
-  Mat t0,t1,t2,t3,t4,t5,t6,t7; 
-  for (int i=0; i<BM_; i++){
-    a0=a[i*BN_+0];a1=a[i*BN_+1];a2=a[i*BN_+2];a3=a[i*BN_+3];
-    a4=a[i*BN_+4];a5=a[i*BN_+5];a6=a[i*BN_+6];a7=a[i*BN_+7]; 
-    for (int j=0; j<BN_; j++) {
-      t0=mul(a0,b[0*BN_+j]);
-      t1=mul(a1,b[1*BN_+j]);
-      t2=mul(a2,b[2*BN_+j]);
-      t3=mul(a3,b[3*BN_+j]);
-      t4=mul(a4,b[4*BN_+j]);
-      t5=mul(a5,b[5*BN_+j]);
-      t6=mul(a6,b[6*BN_+j]);
-      t7=mul(a7,b[7*BN_+j]); 
-      c[i*BN_+j] = t0+ t1 +t2 +t3+t4+t5+t6+t7;
+static inline void add_b(COOB *C,  COOB *A , COOB *B){
+  
+  Mat *c = C->value; Mat *a = A->value; Mat *b = B->value;
+  
+  for (int i=0; i<BM_; i++) 
+    for (int j=0; j<BN_; j++) 
+      c[i*BN_+j] = add(a[i*BN_+j],b[i*BN_+j]);
+}
+static inline void mul_b(COOB *C,  COOB *A , COOB *B){
+  Mat *c = C->value; Mat *a = A->value; Mat *b = B->value;
+  Mat t ;
+  for (int i=0; i<BM_; i++) 
+    for (int j=0; j<BN_; j++){ 
+      t = 0 ;
+
+      for (int k=0; k<BM_; k++) 
+	t= add(t,mul(a[i*BN_+k],b[k*BN_+j]));
+      
+      c[i*BN_+j] = t;
     }
-  }
-
+  
 }
 
 

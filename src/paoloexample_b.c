@@ -76,14 +76,15 @@ int main(int argc, char **argv) {
   END_CLOCK;
   //print_coo_c(MT);
   printf("ROW SORT\n"); 
-  //print_coo(MT);
+
+  print_coomb(MT);
   START_CLOCK;
   columnsort_b(&MT); // we really transpose the data so that the order is
   END_CLOCK;
-  //print_coo_c(MT);
+  //
   printf("COL SORT\n"); 
-
-  ver = validate_b(MT);
+  print_coomb(MT);
+  ver = validate_b(M);
   if (!ver) {
     return 2;
   }
@@ -112,17 +113,29 @@ int main(int argc, char **argv) {
 
   if (temp.length<1000000)  { 
     A = build_densemb(M,1);
+    printf("A:\n");
+    print_dense(A, M.M*BM_, M.N*BN_);
+    print_coomb(M);
     //printf("%f \n",compare_dense(M,A));
     
     B = build_densemb(MT,1);
+    printf("B:\n");
+    print_dense(B, MT.M*BM_, MT.N*BM_);
+    print_coomb(MT);
     if (Ps>1) C = build_densemb(M,1);
     else      C = build_densemb(temp,0);
+
+    printf("C:\n");
+    print_dense(C, temp.M*BM_, temp.N*BN_);
     
     START_CLOCK;
-    matmul_f(C, temp.M, temp.N,
-	     A, M.M, M.N,
-	     B, MT.M, MT.N);
+    matmul_f(C, temp.M*BM_, temp.N*BN_,
+	     A, M.M*BM_, M.N*BN_,
+	     B, MT.M*BM_, MT.N*BN_);
     END_CLOCK;
+    printf("R:\n");
+    print_dense(C, temp.M*BM_, temp.N*BN_);
+    print_coomb(temp);
     
     printf("DIFF %f \n",compare_dense_mb(temp,C));
     

@@ -340,7 +340,7 @@ COO matmul_coo(COO A,COO B) {
       // a_row * b_col is like a merge
       while (ii<iii && jj<jjj) {
 	if (A.data[ii].n == B.data[jj].m)  {
-	  ops ++;
+	  ops +=2;
 	  temp.value = add(temp.value, mul(A.data[ii].value,B.data[jj].value));
 	  if (DEBUG) printf("\t\t Merge  (%d,%d,%d) \n", temp.m, temp.n,(int)temp.value);
 	  ii ++;  jj ++;
@@ -377,6 +377,8 @@ COO matmul_coo(COO A,COO B) {
     CT.data[t] = index_coot(&T,t);
   }
   if (DEBUG) printf("Compressed  CT %d %d %ld \n",CT.M, CT.N, CT.length);
+  printf("====================================\n");
+  print_coo(CT);
   
   free_coot(&T);
   if (DEBUG) printf("free TEMP \n");
@@ -436,10 +438,15 @@ COOMB matmul_coo_b(COOMB A,COOMB B) {
       while (ii<iii && jj<jjj) {
 	if (A.data[ii].n == B.data[jj].m)  {
 	  ops += 2*8*8*8;
-	  mul_b(temp_m, A.data[ii],B.data[jj]);
-	  add_b(temp, temp, temp_m);
-	  //	  temp.value = add(temp.value, mul(A.data[ii].value,B.data[jj].value));
-	  if (DEBUG) printf("\t\t Merge  (%d,%d,%d) \n", temp.m, temp.n,(int)temp.value[0]);
+	  mul_b(&temp_m, &A.data[ii],&B.data[jj]);
+	  add_b(&temp, &temp, &temp_m);
+
+	  if (DEBUG) {
+	    printf("\nA:");print_block(A.data[ii]); 
+	    printf("\nB:");print_block(B.data[jj]);
+	    printf("\nM:");print_block(temp_m);
+	    printf("\nC:");print_block(temp);
+	  }
 	  ii ++;  jj ++;
 	}
 	else { 
@@ -450,7 +457,7 @@ COOMB matmul_coo_b(COOMB A,COOMB B) {
       //Done because if either is empty nothing to do e_a*w = e_a
       
       // if temp is not e_a (identity for +)  
-      if (temp.value != e_a) {
+      if (!e_ab(&temp)) {
 	int res = append_coot_b(&T, temp);
 	if (DEBUG)
 	  printf("\t\t append CT %d temp (%d,%d,%d) \n",
@@ -473,6 +480,9 @@ COOMB matmul_coo_b(COOMB A,COOMB B) {
   for (t=0; t<T.length;t++)	{
     CT.data[t] = index_coot_b(&T,t);
   }
+
+  printf("====================================\n");
+  print_coomb(CT);
   if (DEBUG) printf("Compressed  CT %d %d %ld \n",CT.M, CT.N, CT.length);
   
   free_coot_b(&T);
@@ -505,6 +515,15 @@ void print_coo(COO B) {
   printf("\n");
 
 }
+
+
+void print_block(COOB B) {
+  
+  for (int r=0; r<BM_; r++)
+    for (int c=0; c< BN_; c++)
+      printf("(%d)", (int)B.value[r*BN_+c]);
+}
+
 void print_coomb(COOMB B) {
 
   int rows =B.data[0].m;
@@ -515,13 +534,23 @@ void print_coomb(COOMB B) {
       rows = B.data[ktemp].m;
     }
     printf("(%d,%d)", B.data[ktemp].m,B.data[ktemp].n);
-    for (int r=0; r<BM_; r++)
-      for (int c=0; c< BN_; c++)
-	  printf("(%d)", (int)B.data[ktemp].value[r*BN_+c]);
+    print_block(B.data[ktemp]);
   }
   printf("\n");
 
 }
+
+void print_dense(Mat *a, int M, int N) {
+
+  for (int r=0; r<M; r++){ 
+    for (int c=0; c< N; c++)
+      printf("(%d)", (int) a[r*N+c]);
+    printf("\n");
+  }
+}
+
+
+  
 
 void print_coo_c(COO B) {
 
@@ -558,9 +587,13 @@ Mat *build_densemb(COOMB A, int def) {
   
   for (int l=0; l<A.length; l++) {
     COOB d = A.data[l];
+    Mat * C = c+(d.m)*A.N*BN_*BM_ +d.n*BN_;
+
     for (int r=0; r<BM_; r++)
       for (int cc=0; cc< BN_; cc++)
-	c[(d.m+r)*A.N + cc+ d.n] = d.value[r*BN_+cc]*def;
+	
+	C[r*A.N*BN_ + cc] = d.value[r*BN_+cc]*def;
+    //print_dense(c,A.M*BM_, A.N*BN_);
   }
 
   return c;
@@ -594,17 +627,18 @@ double compare_dense_mb(COOMB B, Mat *def) {
   if (B.length<100) printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
   for (long unsigned int ktemp=0; ktemp<B.length; ktemp++) {
     double resb = 0;
-    if (B.data[ktemp].m!= cols) {
+    COOB d = B.data[ktemp];
+    Mat * C = def+(d.m)*B.N*BN_*BM_ +d.n*BN_;
+    if (d.m!= cols) {
       if (B.length< 100) printf("\n");
-      cols = B.data[ktemp].m;
+      cols = d.m;
     }
+    
 
     for (int r=0; r<BM_; r++)
       for (int c=0; c< BN_; c++)
-	resb += B.data[ktemp].value[r*BN_+c]-
-	  def[(B.data[ktemp].m+r)*B.N+B.data[ktemp].n+c];
-    if (B.length<100) printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
-	   resb );
+	resb += d.value[r*BN_+c]-  C[r*B.N*BN_+c];
+    if (B.length<100) printf("(%d,%d,%f)", d.m,d.n, resb );
     res += resb;
   }
   if (B.length<100) printf("\n");

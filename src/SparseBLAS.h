@@ -215,9 +215,11 @@ extern void matmul_f(
 		     Mat *A, int am, int an,
 		     Mat *B, int bm, int bn);
 
+extern void print_block(COOB B);
 extern void print_coo(COO B);
 extern void print_coomb(COOMB B);
 extern void print_coo_c(COO B);
+extern void print_dense(Mat *A, int M, int N);
 extern int validate(COO B);
 extern int validate_b(COOMB B);
 extern int validateT(COO B);
