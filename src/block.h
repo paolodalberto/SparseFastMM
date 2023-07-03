@@ -144,3 +144,14 @@ static inline int append_coot_b(COOBTemporary *T, COOB val) {
   T->length ++;
   return add;
 }
+
+
+#ifndef SPARSEBLASMBDEF
+#define SPARSEBLASMBDEF
+
+extern COOMB matmul_coo_par_b(COOMB C,COOMB A,COOMB B,
+			      int Ps /* number of threads */
+			      );
+extern COOMB matmul_coo_b(COOMB A,COOMB B);
+
+#endif
