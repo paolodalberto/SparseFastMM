@@ -377,8 +377,8 @@ COO matmul_coo(COO A,COO B) {
     CT.data[t] = index_coot(&T,t);
   }
   if (DEBUG) printf("Compressed  CT %d %d %ld \n",CT.M, CT.N, CT.length);
-  printf("====================================\n");
-  print_coo(CT);
+  //printf("====================================\n");
+  //print_coo(CT);
   
   free_coot(&T);
   if (DEBUG) printf("free TEMP \n");
@@ -481,8 +481,8 @@ COOMB matmul_coo_b(COOMB A,COOMB B) {
     CT.data[t] = index_coot_b(&T,t);
   }
 
-  printf("====================================\n");
-  print_coomb(CT);
+  //printf("====================================\n");
+  //print_coomb(CT);
   if (DEBUG) printf("Compressed  CT %d %d %ld \n",CT.M, CT.N, CT.length);
   
   free_coot_b(&T);
@@ -605,7 +605,7 @@ double compare_dense(COO B, Mat *def) {
 
   double res = 0;
   int cols =B.data[0].m;
-  if (B.length<100) printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
+  if (B.length<10) printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
   for (long unsigned int ktemp=0; ktemp<B.length; ktemp++) {
     if (B.data[ktemp].m!= cols) {
       if (B.length< 100) printf("\n");
@@ -613,10 +613,10 @@ double compare_dense(COO B, Mat *def) {
     }
 
     res += B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n];
-    if (B.length<100) printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
+    if (B.length<10) printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
 	   B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n] );
   }
-  if (B.length<100) printf("\n");
+  if (B.length<10) printf("\n");
   return res;
 }
 double compare_dense_mb(COOMB B, Mat *def) {
@@ -624,7 +624,7 @@ double compare_dense_mb(COOMB B, Mat *def) {
 
   double res = 0;
   int cols =B.data[0].m;
-  if (B.length<100) printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
+  if (B.length<10) printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
   for (long unsigned int ktemp=0; ktemp<B.length; ktemp++) {
     double resb = 0;
     COOB d = B.data[ktemp];
@@ -638,10 +638,10 @@ double compare_dense_mb(COOMB B, Mat *def) {
     for (int r=0; r<BM_; r++)
       for (int c=0; c< BN_; c++)
 	resb += d.value[r*BN_+c]-  C[r*B.N*BN_+c];
-    if (B.length<100) printf("(%d,%d,%f)", d.m,d.n, resb );
+    if (B.length<10) printf("(%d,%d,%f)", d.m,d.n, resb );
     res += resb;
   }
-  if (B.length<100) printf("\n");
+  if (B.length<10) printf("\n");
   return res;
 }
 
