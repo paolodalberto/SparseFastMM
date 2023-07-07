@@ -24,27 +24,10 @@ static int DEBUG2=0;
 #include <stdio.h>
 #include <assert.h>
 
-/*
-#define _GNU_SOURCE
-#include <sched.h>
-*/
-#define CPU_SETSIZE __CPU_SETSIZE
-# define CPU_ZERO(cpusetp) __CPU_ZERO_S (sizeof (cpu_set_t), cpusetp)
-# define CPU_SET(cpu, cpusetp) __CPU_SET_S (cpu, sizeof (cpu_set_t), cpusetp)
-# define CPU_ISSET(cpu, cpusetp) __CPU_ISSET_S (cpu, sizeof (cpu_set_t), cpusetp)
-# define CPU_COUNT(cpusetp)      __CPU_COUNT_S (sizeof (cpu_set_t), cpusetp)
+//#include <block.h>
 
 
-typedef COOMB  (*MatrixComputationMB)(COOMB A, COOMB B);
-typedef struct operands_addition_b TAddOperandsB;
 
-struct operands_addition_b { 
-  int  pi;
-  MatrixComputationMB m;  // C = A*B 
-  COOMB   *c;
-  COOMB   a;
-  COOMB   b;
-} ;
 
 
 void *basicComputation( void *s) {
@@ -116,6 +99,44 @@ void MatrixComputationsB(TAddOperandsB *args, int len)  {
 
 }
 
+COOMB MergeCOOMB( COOMB C, COOMB T) {  // R = C+T both sparse
+
+  COOMB TR= initialize_COOMB(NULL, 0, C.M, C.N);  
+  int i,j,k;
+  COOB c,t;
+
+  TR.data = (COOB*) malloc((T.length+C.length)*sizeof(COOB));
+  
+  k =0;
+  for (i=0, j =0; i<C.length && j<T.length; k++){
+    c = C.data[i];
+    t = T.data[j];
+    if ((c.m*C.N+c.n)<(t.m*T.N+t.n)) {
+      TR.data[k]=c;
+      i++;
+    } else if ((c.m*C.N+c.n)>(t.m*T.N+t.n)) {
+      TR.data[k]=t;
+      j++;
+    } else {
+      add_b(&c,&c,&t);
+      TR.data[k]=c;
+      i++;
+      j++;
+    }
+  }
+  for (; i<C.length ;i++,k++ )
+    TR.data[k] = C.data[i];
+  
+  for (;  j<T.length; j++,k++)
+    TR.data[k] = T.data[j];
+  
+  
+  TR.length = k;
+  if (DEBUG) printf("Compressed merge all \n");
+	
+  
+  return TR;
+}
 
 
 

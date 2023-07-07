@@ -1,5 +1,22 @@
+typedef COO  (*MatrixComputation)(COO A, COO B);
+typedef struct operands_addition TAddOperands;
+
+struct operands_addition { 
+  int  pi;
+  MatrixComputation m;  // C = A*B 
+  COO   *c;
+  COO   a;
+  COO   b;
+} ;
+
+
+
 #ifndef PARALLEL_PARSE_COO
 #define PARALLEL_PARSE_COO 1
+
+
+extern void MatrixComputations(TAddOperands *args, int len);
+extern COO merge_alt( COO C, COO T);
 
 extern COO matmul_coo_par(COO C,COO A,COO B,
 			  int Ps /* number of threads */

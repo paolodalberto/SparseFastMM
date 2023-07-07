@@ -21,27 +21,11 @@ static int DEBUG2=0;
 #include <stdio.h>
 #include <assert.h>
 
-/*
-#define _GNU_SOURCE
-#include <sched.h>
-*/
-#define CPU_SETSIZE __CPU_SETSIZE
-# define CPU_ZERO(cpusetp) __CPU_ZERO_S (sizeof (cpu_set_t), cpusetp)
-# define CPU_SET(cpu, cpusetp) __CPU_SET_S (cpu, sizeof (cpu_set_t), cpusetp)
-# define CPU_ISSET(cpu, cpusetp) __CPU_ISSET_S (cpu, sizeof (cpu_set_t), cpusetp)
-# define CPU_COUNT(cpusetp)      __CPU_COUNT_S (sizeof (cpu_set_t), cpusetp)
+
+#include <parsparsecoo.h>
 
 
-typedef COO  (*MatrixComputation)(COO A, COO B);
-typedef struct operands_addition TAddOperands;
 
-struct operands_addition { 
-  int  pi;
-  MatrixComputation m;  // C = A*B 
-  COO   *c;
-  COO   a;
-  COO   b;
-} ;
 
 
 void *basicComputation( void *s) {

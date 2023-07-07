@@ -22,7 +22,7 @@ INC = -I ./$(DIR)  #-I/usr/include/python2.7/ -I/usr/local/lib/python2.7/dist-pa
 
 OBJ= $(DIR)/paoloexample.o
 OBJ3= $(DIR)/paoloexample_b.o
-OBJ2 = $(DIR)/SparseBLAS.o $(DIR)/sorting.o  $(DIR)/parsparsecoo.o $(DIR)/block.o
+OBJ2 = $(DIR)/SparseBLAS.o $(DIR)/sorting.o  $(DIR)/parsparsecoo.o $(DIR)/block.o $(DIR)/parsorting.o
 vecGen.o: $(DIR)/vecGen.c $(DIR)/vecGen.h
 	$(CC) $(CFLAGS) $< -o $@
 

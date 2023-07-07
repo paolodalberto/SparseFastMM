@@ -146,9 +146,24 @@ static inline int append_coot_b(COOBTemporary *T, COOB val) {
 }
 
 
+typedef COOMB  (*MatrixComputationMB)(COOMB A, COOMB B);
+typedef struct operands_addition_b TAddOperandsB;
+
+struct operands_addition_b { 
+  int  pi;
+  MatrixComputationMB m;  // C = A*B 
+  COOMB   *c;
+  COOMB   a;
+  COOMB   b;
+} ;
+
+
+
 #ifndef SPARSEBLASMBDEF
 #define SPARSEBLASMBDEF
-
+extern void MatrixComputationsB(TAddOperandsB *args, int len);
+extern COOMB MergeCOOMB( COOMB C, COOMB T);
+  
 extern COOMB matmul_coo_par_b(COOMB C,COOMB A,COOMB B,
 			      int Ps /* number of threads */
 			      );

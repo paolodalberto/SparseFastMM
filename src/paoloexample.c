@@ -36,7 +36,7 @@ static int DEBUG=0;
 #include <SparseBLAS.h>
 #include <sorting.h>
 #include <parsparsecoo.h>
-
+#include <parsorting.h>
 
 
 int main(int argc, char **argv) {
@@ -72,8 +72,10 @@ int main(int argc, char **argv) {
   for (int i=0;i<M.length;i++) MT.data[i] = M.data[i];
  //print_coo(MT);
   START_CLOCK;
-  rowsort(&M); // we really transpose the data so that the order is
+  rowsort_p(M,Ps); // we really transpose the data so that the order is
   END_CLOCK;
+
+
   //print_coo_c(MT);
   printf("ROW SORT\n"); 
   //print_coo(MT);
