@@ -97,14 +97,14 @@ int main(int argc, char **argv) {
   START_CLOCK;
   if (Ps<=1) { 
     temp = matmul_coo(M,MT);
-    printf("## %2d %3d %6d %d\n",  1, D,MT.M,temp.length);
   } 
   else { 
     temp = matmul_coo_par(M,M,MT,Ps);
-    printf("## %2d %3d %6d %d \n",  Ps, D, MT.M,temp.length);
   }
   END_CLOCK;
-
+  printf("## %2d %3d %6d %ld %fMFLOPS\n",  1, D,MT.M,temp.ops,
+	 temp.ops/duration/1000000);
+    
   
   
   //print_coo(temp);
