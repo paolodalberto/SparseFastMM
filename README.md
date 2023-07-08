@@ -12,7 +12,7 @@ In passing, the operation A*B implies that there is an order how A and B are sto
 
 Two basic ideas emerge when implementing A*B: 
 * We need to sort the matrices A and B so that A is frinedly in the rows and B is friendly in the columns
-  * Sorting is a moder application where new algorithms are actually found today.
+  * Sorting is a modern application and new algorithms are actually found today.
   * Sorting a matrix of N elements: will take N*Log(N), which is often more time consuming that the multiplication itself.     
 * The spMspM is a merge sort: and the complexity could be summarized as O(N)*Degree.
   * the preparation of the data and some trickeries makes possbile to achieve such a tight bound
