@@ -4,7 +4,8 @@
 #ifndef SORT_DEFINITION
 #define SORT_DEFINITION 1
 
-void quickSort(COOE *arr, int low, int high, Comparing comp, Ordering *order);
+extern void quickSort(COOE *arr, int low, int high, Comparing comp, Ordering *order);
+extern  void quickSort_b(COOB *arr, int low, int high, ComparingB comp, Ordering *order);
 extern void columnsort(COO *M);
 extern void rowsort(COO *M); 
 extern int roworder(COOE *a, COOE *b, Ordering *order);
