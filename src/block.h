@@ -1,6 +1,6 @@
 #define BLAST 1
-//#define EIGHT 1
-#define FOUR 1
+#define EIGHT 1
+//#define FOUR 1
 //#define TWO 1
 
 

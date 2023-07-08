@@ -159,32 +159,47 @@ COO MERGECOO( COO C, COO T, Comparing comp, Ordering *order) {  // R = C+T both 
 
 
 void   sort_merge_coo  (COO   A, int T, int Q, Comparing comp, Ordering *order ) {
+
+  // This sorting assume that the split is by nuber of threads T
+  // without checking if A has enough elements .. sorry
   
   if (T>=2) {
     TOperands P[2]; 
-
     COO A0 = A;
+    COO A1 = A;
+    COO TR; 
+
+    // We split the elements in ceil(half) and floor(half) Q is the
+    // core we are going to allocate the first sub problem and Q
+    // +ceil(T/2) the second. Can you appreciate that we create thread
+    // and remember where to allocate them and thus data partitioning
+    // and processor allocation as a recursive process ... beautiful
+    // and this is my first algorithm like this.
+
     A0.length  = ceil_(A.length,2);
     A0.data = A.data;
-    COO A1 = A;
     A1.length  = floor_(A.length,2);
     A1.data = A.data + A0.length;
     P[0].pi = 0 ; P[0].m = sort_merge_coo; P[0].c = A0; P[0].cmp = comp; P[0].order = order; P[0].T = ceil_(T,2);   P[0].Q = Q;
     P[1].pi = 0;  P[1].m = sort_merge_coo; P[1].c = A1; P[1].cmp = comp; P[1].order = order; P[1].T = floor_(T,2);  P[1].Q = P[0].T+Q;
 
+    // Recursive call using threads 
     MComputations(P,2);
-    
-    COO TR = MERGECOO(A0, A1, comp, order);
+
+    // combining the results into a single matrix. 
+    TR = MERGECOO(A0, A1, comp, order);
     for (int t=0; t<A.length;t++)	{
       A.data[t] = TR.data[t];
     }
     if (DEBUG) printf("Compressed merge all \n");
-      
+
+    // the computation is in place into A :)
+    
     free(TR.data);
   }
   else  {
-
-    //printf("T %d Q %d\n", T,Q);
+    // This is the leaf computation which is a COO quick sort
+    // printf("T %d Q %d\n", T,Q);
     quickSort(A.data, 0, A.length-1, comp,order);
   }
 }
@@ -199,6 +214,19 @@ void rowsort_p(COO M, int T) {
   Ordering order = {M.M, M.N, 1 } ;
   sort_merge_coo(M,T,0, roworder, &order);
 }
+
+
+
+/*****************
+ * Same thing as above but for block matrices C++ people may love the
+ * fact they have to write the algorithm only once. Or otherwise I
+ * could create a single library composed by different types and auto
+ * generated, then let the linker working for it ...  I did something
+ * like this for FastMMV
+ *
+ */
+
+
 
 
 struct operands_addition_ab { 
