@@ -52,6 +52,9 @@ int main(int argc, char **argv) {
   printf("Size/dimension of a square matix K "); res= scanf("%d", &k);
   printf("Degree or integer part of a percentage as density D "); res=scanf("%d", &D);
   printf("Number of parallel processes P "); res=scanf("%d", &Ps);
+
+
+  // We build a sparse matrix with blocks 
   
   M = buildrandom_coomb_list(k, D);
   ver = validate_b(M);
@@ -63,17 +66,18 @@ int main(int argc, char **argv) {
   }
       
   
-  
+  // We create a copy of the sparse matrix 
   printf("M %ld %d %d \n", M.length, M.M, M.N); 
-  
   MT = M;
-
   MT.data = (COOB*) malloc(M.length*sizeof(COOB));
-  
   assert(MT.data);
-    
   for (int i=0;i<M.length;i++) MT.data[i] = M.data[i];
- //print_coo(MT);
+
+
+
+  // We sort the matrix M so that is row friendly. The sorting is
+  // parallel: we need to specify the number of threads
+  //print_coo(MT);
   START_CLOCK;
   rowsort_bp(M,Ps); // we really transpose the data so that the order is
   END_CLOCK;
@@ -97,6 +101,8 @@ int main(int argc, char **argv) {
   
   if (DEBUG) print_coomb(M);
 
+  // We can run the M*MT either as a single computation or as a
+  // pthreaded algorithm
   
   START_CLOCK;
   if (Ps<=1 ) { 
@@ -115,37 +121,25 @@ int main(int argc, char **argv) {
 
   if (temp.length*BN_*BN_<1000000)  { 
     A = build_densemb(M,1);
-    //printf("A:\n");
-    //print_dense(A, M.M*BM_, M.N*BN_);
-    //print_coomb(M);
-    //printf("%f \n",compare_dense(M,A));
     
     B = build_densemb(MT,1);
-    //printf("B:\n");
-    //print_dense(B, MT.M*BM_, MT.N*BM_);
-    //print_coomb(MT);
     if (Ps>1) C = build_densemb(M,1);
     else      C = build_densemb(temp,0);
 
-    //printf("C:\n");
-    //print_dense(C, temp.M*BM_, temp.N*BN_);
     
     START_CLOCK;
     matmul_f(C, temp.M*BM_, temp.N*BN_,
 	     A, M.M*BM_, M.N*BN_,
 	     B, MT.M*BM_, MT.N*BN_);
     END_CLOCK;
-    //printf("R:\n");
-    //print_dense(C, temp.M*BM_, temp.N*BN_);
-    //print_coomb(temp);
-    
     printf("DIFF %f \n",compare_dense_mb(temp,C));
     
     free(A);
     free(B);
     free(C);
   }
-  
+
+  // Clean up after your self Python's coders
   free(MT.data);
   free(M.data);
   free(temp.data);

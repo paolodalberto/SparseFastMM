@@ -51,6 +51,8 @@ int main(int argc, char **argv) {
   printf("Size/dimension of a square matix K "); res= scanf("%d", &k);
   printf("Degree or integer part of a percentage as density D "); res=scanf("%d", &D);
   printf("Number of parallel processes P "); res=scanf("%d", &Ps);
+
+  // We createa single and sparse matrix
   
   M = buildrandom_coo_list(k, D);
   ver = validate(M);
@@ -58,31 +60,28 @@ int main(int argc, char **argv) {
   if (!ver) {
     return 2;
   }
-      
-  
   
   printf("M %ld %d %d \n", M.length, M.M, M.N); 
-  
+
+  // We create a copy of the sparse matrix 
   MT = M;
-
   MT.data = (COOE*) malloc(M.length*sizeof(COOE));
-  
   assert(MT.data);
-    
   for (int i=0;i<M.length;i++) MT.data[i] = M.data[i];
- //print_coo(MT);
+
+
+  // We sort the matrix M so that is row friendly. The sorting is
+  // parallel: we need to specify the number of threads
   START_CLOCK;
-  rowsort_p(M,Ps); // we really transpose the data so that the order is
+  rowsort_p(M,Ps); 
   END_CLOCK;
-
-
-  //print_coo_c(MT);
   printf("ROW SORT\n"); 
-  //print_coo(MT);
+
+  // We sort the matrix MT as a column friendly, this ususually does
+  // not takes much time at all
   START_CLOCK;
   columnsort(&MT); // we really transpose the data so that the order is
   END_CLOCK;
-  //print_coo_c(MT);
   printf("COL SORT\n"); 
 
   ver = validateT(MT);
@@ -95,7 +94,9 @@ int main(int argc, char **argv) {
   
   if (DEBUG) print_coo(M);
 
-  
+  // We can run the M*MT either as a single computation or as a
+  // pthreaded algorithm
+
   START_CLOCK;
   if (Ps<=1) { 
     temp = matmul_coo(M,MT);
@@ -108,10 +109,11 @@ int main(int argc, char **argv) {
 	 temp.ops/duration/1000000);
     
   
-  
+  // If the output matrix is small enough we compare the result by a
+  // dense computation
+
   //print_coo(temp);
-
-
+  
   if (temp.length<1000000)  { 
     A = build_dense(M,1);
     //printf("%f \n",compare_dense(M,A));
@@ -132,7 +134,9 @@ int main(int argc, char **argv) {
     free(B);
     free(C);
   }
-  
+
+
+  // Clean up After your self you Python coder
   free(MT.data);
   free(M.data);
   free(temp.data);
