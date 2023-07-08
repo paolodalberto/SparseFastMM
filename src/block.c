@@ -329,7 +329,7 @@ COOMB matmul_coo_b(COOMB A,COOMB B) {
       // a_row * b_col is like a merge
       while (ii<iii && jj<jjj) {
 	if (A.data[ii].n == B.data[jj].m)  {
-	  ops += 2*8*8*8;
+	  ops += 2*BN_*BM_*BN_;
 	  mul_b(&temp_m, &A.data[ii],&B.data[jj]);
 	  add_b(&temp, &temp, &temp_m);
 

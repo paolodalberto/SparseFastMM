@@ -55,6 +55,8 @@ int main(int argc, char **argv) {
   M = buildrandom_coomb_list(k, D);
   ver = validate_b(M);
 
+  printf("\n BM %d BN %d \n", BM_, BN_) ;
+  
   if (!ver) {
     return 2;
   }
@@ -110,7 +112,7 @@ int main(int argc, char **argv) {
   //print_coo(temp);
 
 
-  if (temp.length<1000000)  { 
+  if (temp.length*BN_*BN_<1000000)  { 
     A = build_densemb(M,1);
     //printf("A:\n");
     //print_dense(A, M.M*BM_, M.N*BN_);

@@ -1,8 +1,18 @@
+#define BLAST 1
+//#define EIGHT 1
+//#define FOUR 1
+#define TWO 1
+
 
 #ifdef EIGHT
 #define BM_  8 
-#define BN_  8 
-#else
+#define BN_  8
+#endif
+#ifdef FOUR
+#define BM_  4 
+#define BN_  4 
+#endif
+#ifdef TWO
 #define BM_  2 
 #define BN_  2 
 #endif
@@ -27,7 +37,16 @@ typedef struct coo_type_block COOB;
       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,		       \
       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0		       \
       }							       
-#else
+#endif
+#ifdef FOUR
+#define EMPTY_BLOCK  {					       \
+    0.0, 0.0, 0.0, 0.0,					       \
+      0.0, 0.0, 0.0, 0.0,				       \
+      0.0, 0.0, 0.0, 0.0,				       \
+      0.0, 0.0, 0.0, 0.0				       \
+      }							       
+#endif
+#ifdef TWO
 #define EMPTY_BLOCK  {				\
     0.0, 0.0,						       \
       0.0, 0.0						       \
@@ -45,6 +64,11 @@ static inline int e_ab(COOB *B) {
   return 1;
 
 }
+
+
+#ifdef BLAST 
+#include <block_code.h>
+#else
 
 static inline void add_b(COOB *C,  COOB *A , COOB *B){
   
@@ -68,7 +92,7 @@ static inline void mul_b(COOB *C,  COOB *A , COOB *B){
     }
   
 }
-
+#endif
 
   
 /* 
