@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
   //print_coo(temp);
 
 
-  if (temp.length*BN_*BN_<1000000)  { 
+  if (temp.length*BN_*BN_<1000)  { 
     A = build_densemb(M,1);
     
     B = build_densemb(MT,1);

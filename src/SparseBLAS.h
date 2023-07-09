@@ -13,7 +13,7 @@ typedef int Mat ;
 #define mul(a,b) ((a)+(b))
 #define e_m  0
 #else 
-typedef double Mat ;
+typedef float Mat ;
 #define add(a,b) (a+b)
 #define e_a  0
 #define mul(a,b) ((a)*(b))
