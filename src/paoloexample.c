@@ -114,21 +114,39 @@ int main(int argc, char **argv) {
 
   //print_coo(temp);
   
-  if (temp.length<1000000)  { 
-    A = build_dense(M,1);
-    //printf("%f \n",compare_dense(M,A));
+  if (temp.length<1000000)  {
+    double dif=0;
     
+    A = build_dense(M,1);
+    printf("A:\n");
+    print_dense(A,M.M, M.N);
+    
+    printf("B:\n");
     B = build_dense(MT,1);
+    print_dense(B,MT.M, MT.N);
+
+    printf("C:\n");
+    C = build_dense(temp,1);
+    print_dense(C,temp.M, temp.N);
+    free(C);
     if (Ps>1) C = build_dense(M,1);
     else      C = build_dense(temp,0);
     
     START_CLOCK;
-    matmul_f(C, temp.M, temp.N,
+    matmul_f_par(C, temp.M, temp.N,
 	     A, M.M, M.N,
-	     B, MT.M, MT.N);
+	     B, MT.M, MT.N, (Ps>1)?1.0:0.0);
     END_CLOCK;
-    
-    printf("DIFF %f \n",compare_dense(temp,C));
+    printf("## BLAS  %fMFLOPS\n",  
+	 M.M*MT.M*MT.N*2/duration/1000000);
+
+    dif =compare_dense_(&temp,C,0);
+    printf("DIFF %f \n",dif );    
+    if (dif>0){ 
+      print_coo(temp);
+      print_dense(C,temp.M, temp.N);
+    }
+
     
     free(A);
     free(B);

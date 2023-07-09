@@ -466,6 +466,38 @@ Mat *build_densemb(COOMB A, int def) {
   return c;
 }
 
+double C(Mat *A, Mat *B, int M, int N) {
+
+  double res = 0;
+  for (int i=0; i<M; i++)
+    for (int j=0; j<N;j++) {
+      Mat dif = abs(A[i*N+j]-B[i*N+j]);
+      if (dif) printf("(%d,%d,%f)\n", i,j,dif);
+      res += A[i*N+j]-B[i*N+j];
+    }
+  return res;
+}
+
+double compare_dense_(void *B, Mat *def, int alg) {
+  double res = 0; 
+  if (alg==0) {
+    COO BB = *(COO*) B;
+    Mat *BM = build_dense( BB,1);
+    res= C(BM,def, BB.M, BB.N);
+    free(BM);
+    
+  }
+  else if (alg==1) {
+    COOMB BB = *(COOMB*) B;
+    Mat *BM = build_densemb(BB,1);
+    res= C(BM,def, BB.M, BB.N);
+    free(BM);
+  }
+  else { res = 1;}
+  return res ;
+}
+
+
 
 double compare_dense(COO B, Mat *def) {
 
@@ -513,16 +545,23 @@ double compare_dense_mb(COOMB B, Mat *def) {
 }
 
 
+
+
+
 void matmul_f(
 	      Mat *C, int cm, int cn,
 	      Mat *A, int am, int an,
-	      Mat *B, int bm, int bn) {
+	      Mat *B, int bm, int bn, float beta) {
 
   if (DEBUG) {
     printf("MAT C <%d, %d > ", cm,cn);
     printf("MAT A <%d, %d > ", am,an);
     printf("MAT B <%d, %d > \n", bm,bn);
   }
+
+
+
+
   for (int i=0; i<am; i++) 
     for (int j=0; j< bn; j++) 
       for (int k=0;k< an; k++) 
@@ -534,6 +573,20 @@ void matmul_f(
 
   
 
+  
+}
+
+
+#include <cblas.h>
+void matmul_f_par(
+		  Mat *C, int cm, int cn,
+		  Mat *A, int am, int an,
+		  Mat *B, int bm, int bn, float beta) {
+  
+  //void cblas_sgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA, const enum CBLAS_TRANSPOSE TransB, const int M, const int N, const int K, const float alpha, const float *A, const int lda, const float *B, const int ldb, const float beta, float *C, const int ldc)
+
+  cblas_sgemm(CblasRowMajor,CblasNoTrans, CblasNoTrans,
+	      am, bn, an, 1.0, A, an, B, bn, beta, C, cn);
   
 }
 

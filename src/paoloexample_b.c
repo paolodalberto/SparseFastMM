@@ -119,7 +119,8 @@ int main(int argc, char **argv) {
   //print_coo(temp);
 
 
-  if (temp.length*BN_*BN_<1000)  { 
+  if (temp.length<10000000)  { 
+    double dif=0;
     A = build_densemb(M,1);
     
     B = build_densemb(MT,1);
@@ -128,12 +129,20 @@ int main(int argc, char **argv) {
 
     
     START_CLOCK;
-    matmul_f(C, temp.M*BM_, temp.N*BN_,
+    matmul_f_par(C, temp.M*BM_, temp.N*BN_,
 	     A, M.M*BM_, M.N*BN_,
-	     B, MT.M*BM_, MT.N*BN_);
+	     B, MT.M*BM_, MT.N*BN_, (Ps>1)?1.0:0.0 );
     END_CLOCK;
-    printf("DIFF %f \n",compare_dense_mb(temp,C));
-    
+    printf("## BLAS  %fMFLOPS\n",  
+	 M.M*MT.M*MT.N*2/duration/1000000);
+
+    dif =compare_dense_(&temp,C,1);
+    printf("DIFF %f \n",dif );    
+    if (dif>0){ 
+      print_coomb(temp);
+      print_dense(C,temp.M, temp.N);
+ 
+    }
     free(A);
     free(B);
     free(C);

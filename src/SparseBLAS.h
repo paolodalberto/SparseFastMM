@@ -222,7 +222,11 @@ extern COOMB buildrandom_coomb_list(int k, int D);
 extern void matmul_f(
 		     Mat *C, int cm, int cn,
 		     Mat *A, int am, int an,
-		     Mat *B, int bm, int bn);
+		     Mat *B, int bm, int bn, float b);
+extern void matmul_f_par(
+		     Mat *C, int cm, int cn,
+		     Mat *A, int am, int an,
+		     Mat *B, int bm, int bn, float b);
 
 extern void print_block(COOB B);
 extern void print_coo(COO B);
@@ -236,7 +240,7 @@ extern Mat *build_dense(COO A, int def);
 extern Mat *build_densemb(COOMB A, int def);
 extern double compare_dense(COO A, Mat *d);
 extern double compare_dense_mb(COOMB A, Mat *d);
-
+extern double compare_dense_(void *B, Mat *def, int alg);
 
 #endif
 
