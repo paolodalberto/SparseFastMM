@@ -96,14 +96,14 @@ void MComputations(TOperands *args, int len)  {
 
   pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
   //printf("Tk %d \n",k);
-  for (i = 0; i<k; i++){
+  for (i = 1; i<k; i++){
     thr_id[i] = pthread_create(&p_thread[i], 
 			       &attr, 
 			       bComputation, 
 			       (void *)(args+i));
   }
 
-  // bComputation((void *)(args+i));
+  bComputation((void *)(args+0));
   
  //START_CLOCK;
  /* wait for the threads to complete */
