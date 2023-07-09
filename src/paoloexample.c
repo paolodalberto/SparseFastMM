@@ -105,8 +105,8 @@ int main(int argc, char **argv) {
     temp = matmul_coo_par(M,M,MT,Ps);
   }
   END_CLOCK;
-  printf("## %2d %3d %6d %ld %fMFLOPS\n",  1, D,MT.M,temp.ops,
-	 temp.ops/duration/1000000);
+  printf("## %2d %3d %6d %ld %fGFLOPS\n",  Ps, D,MT.M,temp.ops,
+	 1.0*temp.ops/duration/1000000000);
     
   
   // If the output matrix is small enough we compare the result by a
@@ -114,21 +114,14 @@ int main(int argc, char **argv) {
 
   //print_coo(temp);
   
-  if (temp.length<1000000)  {
+  if (temp.length<100000000)  {
     double dif=0;
     
     A = build_dense(M,1);
-    printf("A:\n");
-    print_dense(A,M.M, M.N);
     
-    printf("B:\n");
     B = build_dense(MT,1);
-    print_dense(B,MT.M, MT.N);
 
-    printf("C:\n");
-    C = build_dense(temp,1);
-    print_dense(C,temp.M, temp.N);
-    free(C);
+
     if (Ps>1) C = build_dense(M,1);
     else      C = build_dense(temp,0);
     
@@ -137,13 +130,18 @@ int main(int argc, char **argv) {
 	     A, M.M, M.N,
 	     B, MT.M, MT.N, (Ps>1)?1.0:0.0);
     END_CLOCK;
-    printf("## BLAS  %fMFLOPS\n",  
-	 M.M*MT.M*MT.N*2/duration/1000000);
+    printf("## BLAS  %f MFLOPS\n",  
+	 2.0*M.M*MT.M*MT.N/1000000000/duration);
 
     dif =compare_dense_(&temp,C,0);
     printf("DIFF %f \n",dif );    
     if (dif>0){ 
+      printf("A:\n");
+      print_dense(A,M.M, M.N);
+      printf("B:\n");
+      print_dense(B,MT.M, MT.N);
       print_coo(temp);
+      printf("C:\n");
       print_dense(C,temp.M, temp.N);
     }
 

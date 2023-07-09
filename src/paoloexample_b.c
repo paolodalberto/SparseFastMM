@@ -112,8 +112,8 @@ int main(int argc, char **argv) {
     temp = matmul_coo_par_b(M,M,MT,Ps);
   }
   END_CLOCK;
-  printf("## %2d %3d %6d %ld %fMFLOPS\n",  1, D,MT.M,temp.ops,
-	 temp.ops/duration/1000000);
+  printf("## %2d %3d %6d %ld %fGFLOPS\n",  Ps, D,MT.M,temp.ops,
+	 1.0*temp.ops/duration/1000000000);
   
   
   //print_coo(temp);
@@ -133,13 +133,19 @@ int main(int argc, char **argv) {
 	     A, M.M*BM_, M.N*BN_,
 	     B, MT.M*BM_, MT.N*BN_, (Ps>1)?1.0:0.0 );
     END_CLOCK;
-    printf("## BLAS  %fMFLOPS\n",  
-	 M.M*MT.M*MT.N*2/duration/1000000);
+    printf("## BLAS  %fGFLOPS\n",  
+	 2.0*M.M*MT.M*MT.N*BM_*BN_*BM_/duration/1000000000);
 
     dif =compare_dense_(&temp,C,1);
     printf("DIFF %f \n",dif );    
     if (dif>0){ 
+      printf("A:\n");
+      print_dense(A,M.M, M.N);
+      printf("B:\n");
+      print_dense(B,MT.M, MT.N);
+      
       print_coomb(temp);
+      printf("C:\n");
       print_dense(C,temp.M, temp.N);
  
     }
