@@ -4,6 +4,12 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <complex.h> 
+
+#define COMPLEX_DOUBLE_ 1 
+
+
+
 
 #ifdef GRAPH_PATH
 typedef int Mat ;
@@ -13,11 +19,34 @@ typedef int Mat ;
 #define mul(a,b) ((a)+(b))
 #define e_m  0
 #else 
-typedef float Mat ;
+
 #define add(a,b) (a+b)
-#define e_a  0
 #define mul(a,b) ((a)*(b))
+
+#if (INT_ || FLOAT_ || DOUBLE_) 
+#define e_a  0
 #define e_m  1
+#endif
+#if (COMPLEX_FLOAT_ || COMPLEX_DOUBLE_)
+#define e_a  0+0*I
+#define e_m  1+0*I
+#endif
+#if (INT_) 
+typedef int             Mat ;
+#endif
+#if (FLOAT_) 
+typedef float           Mat ;
+#endif
+#if (DOUBLE_) 
+typedef double          Mat ;
+#endif
+#if (COMPLEX_FLOAT_) 
+typedef float complex   Mat ;
+#endif
+#if (COMPLEX_DOUBLE_) 
+typedef double complex  Mat ;
+#endif
+
 #endif
 #include <block.h>
 
