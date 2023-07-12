@@ -6,7 +6,10 @@
 #include <stdio.h>
 #include <complex.h> 
 
+//#define DOUBLE_ 1 
 #define COMPLEX_DOUBLE_ 1 
+//#define COMPLEX_FLOAT_ 1 
+//#define FLOAT_ 1 
 
 
 

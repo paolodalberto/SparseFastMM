@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
 	     A, M.M, M.N,
 	     B, MT.M, MT.N, (Ps>1)?1.0:0.0);
     END_CLOCK;
-    printf("## BLAS  %f MFLOPS\n",  
+    printf("## BLAS  %f GFLOPS\n",  
 	 2.0*M.M*MT.M*MT.N/1000000000/duration);
 
     dif =compare_dense_(&temp,C,0);

@@ -471,7 +471,11 @@ double C(Mat *A, Mat *B, int M, int N) {
   double res = 0;
   for (int i=0; i<M; i++)
     for (int j=0; j<N;j++) {
-      Mat dif = abs(A[i*N+j]-B[i*N+j]);
+#if (COMPLEX_FLOAT_ || COMPLEX_DOUBLE_)
+      double dif = creal((A[i*N+j]-B[i*N+j])*(A[i*N+j]-B[i*N+j]));
+#else
+      double dif = (A[i*N+j]-B[i*N+j])*(A[i*N+j]-B[i*N+j]);
+#endif
       if (dif) printf("(%d,%d,%f)\n", i,j,dif);
       res += A[i*N+j]-B[i*N+j];
     }
@@ -503,6 +507,8 @@ double compare_dense(COO B, Mat *def) {
 
 
   double res = 0;
+  Mat diff_m = 0;
+  double dif;
   int cols =B.data[0].m;
   if (B.length<10) printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
   for (long unsigned int ktemp=0; ktemp<B.length; ktemp++) {
@@ -510,17 +516,24 @@ double compare_dense(COO B, Mat *def) {
       if (B.length< 100) printf("\n");
       cols = B.data[ktemp].m;
     }
-
-    res += B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n];
-    if (B.length<10) printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
-	   B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n] );
+    diff_m = (B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n])*(B.data[ktemp].value-def[B.data[ktemp].m*B.N+B.data[ktemp].n]);
+#if (COMPLEX_FLOAT_ || COMPLEX_DOUBLE_)
+    dif = creal(diff_m);
+#else
+    dif = (diff_m);
+#endif
+    
+    res += dif;
+    if (B.length<10)
+      printf("(%d,%d,%f)", B.data[ktemp].m,B.data[ktemp].n,
+	     dif );
   }
   if (B.length<10) printf("\n");
   return res;
 }
 double compare_dense_mb(COOMB B, Mat *def) {
 
-
+  double dif;
   double res = 0;
   int cols =B.data[0].m;
   if (B.length<10) printf("L=%lu M=%d N=%d S=%lu \n",B.length,B.M, B.N, sizeof(COOE));
@@ -535,8 +548,14 @@ double compare_dense_mb(COOMB B, Mat *def) {
     
 
     for (int r=0; r<BM_; r++)
-      for (int c=0; c< BN_; c++)
-	resb += d.value[r*BN_+c]-  C[r*B.N*BN_+c];
+      for (int c=0; c< BN_; c++) {
+#if (COMPLEX_FLOAT_ || COMPLEX_DOUBLE_)
+	dif = creal((d.value[r*BN_+c]-  C[r*B.N*BN_+c])*(d.value[r*BN_+c]-  C[r*B.N*BN_+c]));
+#else
+	dif = (d.value[r*BN_+c]-  C[r*B.N*BN_+c])*(d.value[r*BN_+c]-  C[r*B.N*BN_+c]);
+#endif
+	resb += dif;
+      }
     if (B.length<10) printf("(%d,%d,%f)", d.m,d.n, resb );
     res += resb;
   }
@@ -578,6 +597,8 @@ void matmul_f(
 
 
 #include <cblas.h>
+
+
 void matmul_f_par(
 		  Mat *C, int cm, int cn,
 		  Mat *A, int am, int an,
@@ -585,8 +606,33 @@ void matmul_f_par(
   
   //void cblas_sgemm(const enum CBLAS_ORDER Order, const enum CBLAS_TRANSPOSE TransA, const enum CBLAS_TRANSPOSE TransB, const int M, const int N, const int K, const float alpha, const float *A, const int lda, const float *B, const int ldb, const float beta, float *C, const int ldc)
 
+#if (COMPLEX_FLOAT_ || COMPLEX_DOUBLE_)
+  Mat one = e_m;
+  Mat zero = e_a;
+#endif
+
+  
+#if (FLOAT_) 
   cblas_sgemm(CblasRowMajor,CblasNoTrans, CblasNoTrans,
 	      am, bn, an, 1.0, A, an, B, bn, beta, C, cn);
+#endif
+#if (DOUBLE_) 
+  cblas_dgemm(CblasRowMajor,CblasNoTrans, CblasNoTrans,
+	      am, bn, an, 1.0, A, an, B, bn, beta, C, cn);
+
+#endif
+#if (COMPLEX_FLOAT_) 
+  if (beta==1.0) zero = one;
+  cblas_cgemm(CblasRowMajor,CblasNoTrans, CblasNoTrans,
+	      am, bn, an, &one, A, an, B, bn, &zero, C, cn);
+
+#endif
+#if (COMPLEX_DOUBLE_) 
+  if (beta==1.0) zero = one;
+  cblas_zgemm(CblasRowMajor,CblasNoTrans, CblasNoTrans,
+	      am, bn, an, &one, A, an, B, bn, &zero, C, cn);
+
+#endif
   
 }
 
